@@ -1,125 +1,112 @@
-import React from 'react';
-import { MapPin, Navigation, ExternalLink, Shield, CheckCircle, Sparkles, Building, Phone } from 'lucide-react';
-import { 
-  POPULAR_SOCIETIES, 
-  BUSINESS_NAME, 
-  ADDRESS, 
-  GOOGLE_MAPS_URL, 
-  GOOGLE_MAPS_NAV_URL, 
-  CONTACT_PHONE 
-} from '../data';
+import React from "react";
+import { MapPin, Navigation, ShieldCheck, Zap, Building, ShoppingBag, Trees, Fuel, Landmark, ExternalLink } from "lucide-react";
+import { SOCIETY_AMENITIES, ADDRESS, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL } from "../data";
 
 export default function SocietyGuide() {
+  const getAmenityIcon = (iconName: string) => {
+    switch (iconName) {
+      case "ShieldCheck":
+        return <ShieldCheck size={18} className="text-emerald-800" />;
+      case "Zap":
+        return <Zap size={18} className="text-emerald-800" />;
+      case "Fuel":
+        return <Fuel size={18} className="text-emerald-800" />;
+      case "Landmark":
+        return <Landmark size={18} className="text-emerald-800" />;
+      case "Building":
+        return <Building size={18} className="text-emerald-800" />;
+      case "ShoppingBag":
+        return <ShoppingBag size={18} className="text-emerald-800" />;
+      case "Trees":
+        return <Trees size={18} className="text-emerald-800" />;
+      default:
+        return <Building size={18} className="text-emerald-800" />;
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Featured Office Location Card */}
-      <div className="rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-950 text-white p-6 sm:p-8 shadow-xl border border-amber-400/40 relative overflow-hidden text-right">
-        <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold mb-3">
-            <Sparkles size={13} />
-            <span>مرکزی ہیڈ آفس لوکیشن</span>
+    <div className="w-full my-3 bg-white/95 rounded-2xl p-3.5 sm:p-4 border-2 border-emerald-200 shadow-md text-right backdrop-blur-md" id="society-guide-section">
+      {/* Section Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm">
+            <Navigation size={18} />
           </div>
-
-          <h2 className="text-2xl sm:text-3xl font-black font-nastaliq text-amber-200">
-            {BUSINESS_NAME}
-          </h2>
-          <p className="text-sm sm:text-base text-emerald-100 font-bold mt-1 leading-relaxed">
-            {ADDRESS}
-          </p>
-
-          <p className="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
-            رائل پام سٹی گوجرانوالہ میں پام کمرشل 235 (نزد رائل گولڈ جم) پر واقع ہمارا دفتر ہر قسم کے رہائشی و کمرشل پلاٹس، فائلز، اور مکانات کی شفاف اور محفوظ خرید و فروخت کے لیے ہمہ وقت دستیاب ہے۔
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 mt-5">
-            <a
-              id="guide-google-maps-btn"
-              href={GOOGLE_MAPS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
-            >
-              <ExternalLink size={16} />
-              <span>بن عباس پراپرٹیز لوکیشن (Google Maps)</span>
-            </a>
-
-            <a
-              id="guide-directions-btn"
-              href={GOOGLE_MAPS_NAV_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm border border-emerald-500/40 shadow-md transition-all cursor-pointer"
-            >
-              <Navigation size={16} className="text-amber-300" />
-              <span>دفتر کا راستہ (Directions)</span>
-            </a>
-
-            <a
-              href={`tel:${CONTACT_PHONE}`}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-emerald-200 font-bold text-xs sm:text-sm border border-slate-700 transition-all"
-            >
-              <Phone size={14} />
-              <span>رابطہ: {CONTACT_PHONE}</span>
-            </a>
+          <div>
+            <h3 className="text-sm sm:text-base font-black text-emerald-950">
+              رائل پام سٹی گوجرانوالہ گائیڈ
+            </h3>
+            <p className="text-[10px] text-slate-600">
+              عالمی معیار کی سہولیات اور پرائم لوکیشن
+            </p>
           </div>
         </div>
+        <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
+          5 اسٹار سوسائٹی ⭐
+        </span>
       </div>
 
-      {/* Societies Catalog Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {POPULAR_SOCIETIES.map((soc) => (
+      {/* Society Amenities Grid */}
+      <div className="grid grid-cols-2 gap-2 mt-3.5" id="society-amenities-grid">
+        {SOCIETY_AMENITIES.map((amenity) => (
           <div
-            key={soc.id}
-            className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all text-right flex flex-col justify-between"
+            key={amenity.id}
+            className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 hover:border-emerald-400 transition-all flex flex-col justify-between text-right shadow-sm"
           >
             <div>
-              <div className="flex items-start justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 font-nastaliq">
-                    {soc.nameUrdu}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{soc.nameEnglish}</p>
-                </div>
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <Building size={18} />
-                </div>
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center mb-1.5 shadow-inner">
+                {getAmenityIcon(amenity.icon)}
               </div>
-
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold mb-2.5">
-                <MapPin size={14} className="text-emerald-700 shrink-0" />
-                <span>{soc.location}</span>
-              </div>
-
-              <p className="text-xs text-slate-600 leading-relaxed mb-3.5">
-                {soc.description}
+              <h4 className="text-[11px] font-black text-slate-900 leading-tight">
+                {amenity.title}
+              </h4>
+              <p className="text-[9.5px] text-slate-600 mt-1 leading-relaxed">
+                {amenity.description}
               </p>
-
-              {/* Blocks & Highlights */}
-              <div className="space-y-2">
-                <div className="text-xs font-bold text-slate-700">اہم بلاکس و زونز:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {soc.blocks.map((blk, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200"
-                    >
-                      {blk}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-emerald-800 font-bold flex items-center gap-1">
-                <CheckCircle size={13} className="text-emerald-600" />
-                <span>{soc.highlight}</span>
-              </span>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Google Maps / Office Location Action Card */}
+      <div className="mt-3.5 p-3.5 rounded-2xl bg-emerald-50/90 border-2 border-emerald-200 flex flex-col gap-2.5 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+            <MapPin size={18} />
+          </div>
+          <div className="text-right">
+            <h4 className="text-xs font-black text-emerald-950">
+              بن عباس پراپرٹیز
+            </h4>
+            <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed font-semibold">
+              رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+          <a
+            href={GOOGLE_MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 hover:brightness-105 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer border border-emerald-500 active:scale-95 text-center"
+            id="google-maps-location-btn"
+          >
+            <ExternalLink size={14} className="text-white" />
+            <span>بن عباس پراپرٹیز لوکیشن</span>
+          </a>
+
+          <a
+            href={GOOGLE_MAPS_NAV_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2.5 px-3 bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer border border-emerald-600 active:scale-95 text-center"
+            id="google-maps-directions-btn"
+          >
+            <Navigation size={14} className="text-amber-300" />
+            <span>دفتر کا راستہ (Directions)</span>
+          </a>
+        </div>
       </div>
     </div>
   );

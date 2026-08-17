@@ -1,0 +1,6 @@
+{
+  "name": "Bin Abbas Properties",
+  "description": "بن عباس پراپرٹیز - رئیل اسٹیٹ اینڈ بلڈرز، رائل پام سٹی، گوجرانوالہ۔ رابطہ کرنے کے لیے واٹس ایپ لنکس۔",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

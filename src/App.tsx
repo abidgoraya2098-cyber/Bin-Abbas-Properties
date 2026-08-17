@@ -1,435 +1,216 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Building, 
-  PlusCircle, 
-  Search, 
-  Filter, 
-  Download, 
-  CheckCircle2, 
-  AlertCircle, 
-  Sparkles, 
-  SlidersHorizontal,
-  Home,
-  Building2,
-  Trash2,
-  Share2,
-  RefreshCw
-} from 'lucide-react';
-import { PropertyListing, BuySellInquiry } from './types';
-import { 
-  loadProperties, 
-  saveProperties, 
-  loadInquiries, 
-  saveInquiries, 
-  loadDeals, 
-  saveDeals 
-} from './lib/storage';
-import { POPULAR_SOCIETIES, PROPERTY_TYPES, PROPERTY_PURPOSES } from './data';
-import Header from './components/Header';
-import PropertyCard from './components/PropertyCard';
-import PropertyFormModal from './components/PropertyFormModal';
-import DeleteConfirmModal from './components/DeleteConfirmModal';
-import BackupRestoreModal from './components/BackupRestoreModal';
-import BuySellInquiries from './components/BuySellInquiries';
-import PropertyCalculator from './components/PropertyCalculator';
-import SocietyGuide from './components/SocietyGuide';
-import DealSlipPrint from './components/DealSlipPrint';
-import Footer from './components/Footer';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import Header from "./components/Header";
+import QuickLinksList from "./components/QuickLinksList";
+import FeaturedProperties from "./components/FeaturedProperties";
+import PlotInquiry from "./components/PlotInquiry";
+import SocietyGuide from "./components/SocietyGuide";
+import FAQSection from "./components/FAQSection";
+import SocialLinks from "./components/SocialLinks";
+import Feedback from "./components/Feedback";
+import Footer from "./components/Footer";
+import FloatingActionBar from "./components/FloatingActionBar";
+import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "lucide-react";
+
+type ActiveTab = "links" | "inquiry" | "deals" | "society";
 
 export default function App() {
-  // Persistent State - strictly from localStorage, NO dummy data
-  const [properties, setProperties] = useState<PropertyListing[]>([]);
-  const [inquiries, setInquiries] = useState<BuySellInquiry[]>([]);
-  const [deals, setDeals] = useState<any[]>([]);
-
-  // Navigation & UI State
-  const [activeTab, setActiveTab] = useState<string>('properties');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedSociety, setSelectedSociety] = useState<string>('all');
-  const [selectedPurpose, setSelectedPurpose] = useState<string>('all');
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-
-  // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
-  const [editingProperty, setEditingProperty] = useState<PropertyListing | null>(null);
-  const [isBackupModalOpen, setIsBackupModalOpen] = useState<boolean>(false);
-  
-  // Deletion Modal (Double Confirmation for User Safety)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
-  const [itemToDelete, setItemToDelete] = useState<PropertyListing | BuySellInquiry | null>(null);
-  const [deleteType, setDeleteType] = useState<'property' | 'inquiry'>('property');
-
-  // Print Voucher Modal
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
-  const [voucherProperty, setVoucherProperty] = useState<PropertyListing | null>(null);
-
-  // Toast State
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  // Load Data on Initial Render
-  const reloadData = () => {
-    const loadedProps = loadProperties();
-    const loadedInqs = loadInquiries();
-    const loadedDls = loadDeals();
-    setProperties(loadedProps);
-    setInquiries(loadedInqs);
-    setDeals(loadedDls);
-  };
+  const [activeTab, setActiveTab] = useState<ActiveTab>("links");
+  const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   useEffect(() => {
-    reloadData();
+    document.title = "Bin Abbas Properties - بن عباس پراپرٹیز | رائل پام سٹی گوجرانوالہ";
+    
+    // Check URL parameters for direct tab navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get("tab");
+    if (tabParam && ["links", "deals", "inquiry", "society"].includes(tabParam)) {
+      setActiveTab(tabParam as ActiveTab);
+    }
+    const modeParam = urlParams.get("mode");
+    if (modeParam === "sell" || modeParam === "buy") {
+      setInquiryDefaultMode(modeParam);
+    }
 
-    // Listen for storage events across tabs or components
-    const handlePropsUpdate = () => setProperties(loadProperties());
-    const handleInqsUpdate = () => setInquiries(loadInquiries());
-    window.addEventListener('properties-updated', handlePropsUpdate);
-    window.addEventListener('inquiries-updated', handleInqsUpdate);
-
-    return () => {
-      window.removeEventListener('properties-updated', handlePropsUpdate);
-      window.removeEventListener('inquiries-updated', handleInqsUpdate);
-    };
+    // Check if opened inside WhatsApp / Facebook in-app browser
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const inAppRegex = /fban|fbav|instagram|snapchat|line\/|twitter|gsa\/|wv|micromessenger|whatsapp|bytedance|tiktok/i;
+    if (inAppRegex.test(userAgent)) {
+      setIsInAppBrowser(true);
+    }
   }, []);
 
-  // Save / Update Property
-  const handleSaveProperty = (property: PropertyListing) => {
-    const exists = properties.some(p => p.id === property.id);
-    let updated: PropertyListing[];
-    if (exists) {
-      updated = properties.map(p => p.id === property.id ? property : p);
-      showToast('پراپرٹی ڈیٹا کامیابی سے اپ ڈیٹ ہو گیا!');
-    } else {
-      updated = [property, ...properties];
-      showToast('نئی پراپرٹی کامیابی سے مستقل محفوظ ہو گئی!');
+  const handleOpenInChrome = () => {
+    const cleanUrl = window.location.href.replace(/^https?:\/\//, "");
+    window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+  };
+
+  const handleNavigateToInquiry = (mode: "sell" | "buy") => {
+    setInquiryDefaultMode(mode);
+    setActiveTab("inquiry");
+    const mainCard = document.getElementById("main-app-card");
+    if (mainCard) {
+      mainCard.scrollIntoView({ behavior: "smooth" });
     }
-    setProperties(updated);
-    saveProperties(updated);
   };
 
-  // Status Change for Property
-  const handleStatusChange = (property: PropertyListing, newStatus: any) => {
-    const updated = properties.map(p => p.id === property.id ? { ...p, status: newStatus, updatedAt: new Date().toISOString() } : p);
-    setProperties(updated);
-    saveProperties(updated);
-    showToast('پراپرٹی کی حیثیت تبدیل کر دی گئی ہے۔');
-  };
-
-  // Delete Request (Opens safety dialog)
-  const handleDeleteRequest = (item: PropertyListing | BuySellInquiry, type: 'property' | 'inquiry' = 'property') => {
-    setItemToDelete(item);
-    setDeleteType(type);
-    setIsDeleteModalOpen(true);
-  };
-
-  // Confirmed Delete
-  const handleConfirmDelete = () => {
-    if (!itemToDelete) return;
-
-    if (deleteType === 'property') {
-      const updated = properties.filter(p => p.id !== itemToDelete.id);
-      setProperties(updated);
-      saveProperties(updated);
-      showToast('پراپرٹی ریکارڈ محفوظ طریقے سے ڈیلیٹ کر دیا گیا۔');
-    } else {
-      const updated = inquiries.filter(i => i.id !== itemToDelete.id);
-      setInquiries(updated);
-      saveInquiries(updated);
-      showToast('انکوائری ریکارڈ ڈیلیٹ کر دیا گیا۔');
-    }
-    setItemToDelete(null);
-  };
-
-  // Save Inquiry
-  const handleSaveInquiry = (inquiry: BuySellInquiry) => {
-    const exists = inquiries.some(i => i.id === inquiry.id);
-    let updated: BuySellInquiry[];
-    if (exists) {
-      updated = inquiries.map(i => i.id === inquiry.id ? inquiry : i);
-      showToast('انکوائری ڈیٹا اپ ڈیٹ ہو گیا!');
-    } else {
-      updated = [inquiry, ...inquiries];
-      showToast('نئی انکوائری مستقل محفوظ ہو گئی!');
-    }
-    setInquiries(updated);
-    saveInquiries(updated);
-  };
-
-  // Filter Properties
-  const filteredProperties = properties.filter((prop) => {
-    const matchesSearch = 
-      (prop.title && prop.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (prop.society && prop.society.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (prop.blockPhase && prop.blockPhase.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (prop.plotNumber && prop.plotNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (prop.clientName && prop.clientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (prop.clientPhone && prop.clientPhone.includes(searchTerm));
-
-    const matchesSociety = selectedSociety === 'all' || prop.society.includes(selectedSociety);
-    const matchesPurpose = selectedPurpose === 'all' || prop.purpose === selectedPurpose;
-    const matchesType = selectedType === 'all' || prop.type === selectedType;
-    const matchesStatus = selectedStatus === 'all' || prop.status === selectedStatus;
-
-    return matchesSearch && matchesSociety && matchesPurpose && matchesType && matchesStatus;
-  });
+  const tabOptions = [
+    { id: "links", label: "اہم روابط", icon: LayoutGrid },
+    { id: "inquiry", label: "خرید و فروخت", icon: ArrowRightLeft },
+    { id: "deals", label: "پراپرٹی ڈیلز", icon: Sparkles },
+    { id: "society", label: "سوسائٹی گائیڈ", icon: Navigation }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-naskh flex flex-col selection:bg-amber-400 selection:text-slate-950">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-5 left-5 z-50 bg-emerald-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-500 flex items-center gap-2.5 animate-fadeIn">
-          <CheckCircle2 size={18} className="text-amber-300 shrink-0" />
-          <span className="text-xs sm:text-sm font-bold">{toastMessage}</span>
-        </div>
-      )}
+    <div 
+      className="min-h-screen bg-royal-light-green flex flex-col items-center justify-start py-2.5 px-2.5 sm:py-6 sm:px-4 selection:bg-emerald-600 selection:text-white text-slate-900 relative overflow-x-hidden pb-32"
+      id="app-root-container"
+      dir="rtl"
+    >
+      {/* Ambient Lighting Background Orbs */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[520px] h-[360px] bg-amber-400/10 rounded-full blur-[110px]"></div>
+        <div className="absolute top-[35%] -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[10%] -right-20 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px]"></div>
+      </div>
 
-      {/* Header with Official Logo, Location, and Nav Tabs */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenAddModal={() => {
-          setEditingProperty(null);
-          setIsAddModalOpen(true);
-        }}
-        onOpenBackupModal={() => setIsBackupModalOpen(true)}
-        totalProperties={properties.length}
-      />
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
-        {/* Tab 1: Properties & Deals */}
-        {activeTab === 'properties' && (
-          <div className="space-y-6">
-            {/* Search & Filter Bar */}
-            <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
-              <div className="flex flex-col md:flex-row items-center gap-3">
-                {/* Search Input */}
-                <div className="relative flex-1 w-full">
-                  <Search className="absolute right-3.5 top-3 text-slate-400" size={18} />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="پلاٹ نمبر، سوسائٹی، بلاک یا کلائنٹ نام سے تلاش کریں..."
-                    className="w-full pl-3 pr-10 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all text-right"
-                  />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="absolute left-3 top-3 text-xs text-slate-400 hover:text-slate-600"
-                    >
-                      صاف کریں
-                    </button>
-                  )}
-                </div>
-
-                {/* Society Dropdown */}
-                <div className="w-full md:w-56">
-                  <select
-                    value={selectedSociety}
-                    onChange={(e) => setSelectedSociety(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600 text-right cursor-pointer"
-                  >
-                    <option value="all">تمام سوسائٹیز (All)</option>
-                    {POPULAR_SOCIETIES.map(s => (
-                      <option key={s.id} value={s.nameUrdu}>{s.nameUrdu}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Purpose Dropdown */}
-                <div className="w-full md:w-44">
-                  <select
-                    value={selectedPurpose}
-                    onChange={(e) => setSelectedPurpose(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600 text-right cursor-pointer"
-                  >
-                    <option value="all">تمام ڈیلز (All Deals)</option>
-                    <option value="sale">برائے فروخت (For Sale)</option>
-                    <option value="purchase">مطلوب (Wanted / Buy)</option>
-                    <option value="rent">برائے کرایہ (Rent)</option>
-                    <option value="sold">فروخت شدہ (Sold)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Quick Filter Badges */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold pt-1 border-t border-slate-100">
-                <span className="text-slate-500 whitespace-nowrap">فوری فلٹر:</span>
-                <button
-                  onClick={() => { setSelectedSociety('all'); setSelectedPurpose('all'); setSelectedType('all'); setSelectedStatus('all'); }}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    selectedSociety === 'all' && selectedPurpose === 'all' && selectedType === 'all'
-                      ? 'bg-emerald-800 text-white font-bold'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  تمام ڈیلز
-                </button>
-                <button
-                  onClick={() => setSelectedSociety('رائل پام سٹی')}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    selectedSociety.includes('رائل پام') ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  رائل پام سٹی
-                </button>
-                <button
-                  onClick={() => setSelectedPurpose('sale')}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    selectedPurpose === 'sale' ? 'bg-emerald-700 text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  برائے فروخت
-                </button>
-                <button
-                  onClick={() => setSelectedType('commercial_plot')}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    selectedType === 'commercial_plot' ? 'bg-purple-700 text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  کمرشل پلاٹس
-                </button>
-                <button
-                  onClick={() => setSelectedStatus('available')}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    selectedStatus === 'available' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  صرف دستیاب
-                </button>
-              </div>
+      {/* Main Luxury App Card Container */}
+      <div 
+        className="relative z-10 w-full max-w-[440px] gold-luxury-card rounded-3xl p-3.5 sm:p-5 transition-all duration-300"
+        id="main-app-card"
+      >
+        {/* WhatsApp / In-App Browser Warning Alert */}
+        {isInAppBrowser && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-3 p-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-right flex items-center justify-between gap-2 shadow-md border border-emerald-400"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Info size={16} className="text-amber-300 shrink-0" />
+              <p className="text-[11px] font-black leading-tight truncate">
+                ایپ انسٹال کرنے کے لیے گوگل کروم میں کھولیں
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={handleOpenInChrome}
+              className="bg-amber-400 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-xl shrink-0 flex items-center gap-1 cursor-pointer active:scale-95 shadow"
+            >
+              <Globe size={12} />
+              <span>کروم میں کھولیں</span>
+            </button>
+          </motion.div>
+        )}
 
-            {/* Properties Grid or Clean Empty State */}
-            {filteredProperties.length === 0 ? (
-              <div className="bg-white rounded-3xl p-10 sm:p-14 border border-slate-200 text-center space-y-4 shadow-sm max-w-2xl mx-auto">
-                <div className="w-20 h-20 rounded-3xl bg-emerald-50 border-2 border-emerald-200 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
-                  <Building size={36} />
-                </div>
-                
-                <div>
-                  <h3 className="text-xl font-black text-slate-900 font-nastaliq">
-                    {properties.length === 0 
-                      ? 'کوئی عارضی یا غیر مصدقہ پلاٹ ڈیٹا موجود نہیں ہے' 
-                      : 'تلاش کے مطابق کوئی پراپرٹی نہیں ملی'}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
-                    {properties.length === 0 
-                      ? 'تمام عارضی ڈمی پلاٹس ختم کر دیے گئے ہیں۔ اب آپ اپنا تصدیق شدہ پراپرٹی ڈیٹا درج کر سکتے ہیں جو مستقل اور محفوظ رہے گا۔'
-                      : 'برائے مہربانی فلٹر یا سرچ کی ورڈ تبدیل کر کے دوبارہ کوشش کریں۔'}
-                  </p>
-                </div>
+        {/* 1. Seamless Luxury Header & Logo */}
+        <Header />
 
-                <div className="pt-2">
-                  <button
-                    id="empty-state-add-property-btn"
-                    onClick={() => {
-                      setEditingProperty(null);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-900/20 transition-all cursor-pointer"
-                  >
-                    <PlusCircle size={18} />
-                    <span>پہلا پلاٹ / پراپرٹی ریکارڈ شامل کریں</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredProperties.map((prop) => (
-                  <PropertyCard
-                    key={prop.id}
-                    property={prop}
-                    onEdit={(p) => {
-                      setEditingProperty(p);
-                      setIsAddModalOpen(true);
-                    }}
-                    onDeleteRequest={(p) => handleDeleteRequest(p, 'property')}
-                    onStatusChange={handleStatusChange}
-                    onPrintVoucher={(p) => {
-                      setVoucherProperty(p);
-                      setIsPrintModalOpen(true);
-                    }}
+        {/* 2. Modern 4 Navigation Tab Buttons */}
+        <div className="mt-3.5" id="app-nav-buttons-container">
+          <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-emerald-50/90 rounded-2xl border-2 border-emerald-200 shadow-inner">
+            {tabOptions.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as ActiveTab)}
+                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 cursor-pointer text-center ${
+                    isActive
+                      ? "bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white font-black shadow-md border border-amber-300 scale-[1.02]"
+                      : "text-emerald-950 hover:text-emerald-900 hover:bg-emerald-100/70"
+                  }`}
+                  id={`nav-tab-${tab.id}`}
+                >
+                  <Icon 
+                    size={16} 
+                    className={`mb-1 transition-transform duration-200 ${
+                      isActive ? "text-amber-300 scale-110" : "text-emerald-700"
+                    }`} 
                   />
-                ))}
-              </div>
-            )}
+                  <span className="leading-tight truncate w-full">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {/* Tab 2: Buy & Sell Inquiries */}
-        {activeTab === 'inquiries' && (
-          <BuySellInquiries
-            inquiries={inquiries}
-            onSaveInquiry={handleSaveInquiry}
-            onDeleteRequest={(i) => handleDeleteRequest(i, 'inquiry')}
-            onStatusChange={(inq, status) => {
-              const updated = inquiries.map(i => i.id === inq.id ? { ...i, status, updatedAt: new Date().toISOString() } : i);
-              setInquiries(updated);
-              saveInquiries(updated);
-              showToast('انکوائری کی حیثیت تبدیل ہو گئی ہے۔');
-            }}
-          />
-        )}
+        {/* 3. Active Tab Content with Smooth Transitions */}
+        <div className="mt-2.5" id="tab-content-wrapper">
+          <AnimatePresence mode="wait">
+            {/* TAB 1: اہم روابط (Main WhatsApp Quick Links & FAQs) */}
+            {activeTab === "links" && (
+              <motion.div
+                key="tab-links"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <QuickLinksList onNavigateToInquiry={handleNavigateToInquiry} />
+                <FAQSection />
+              </motion.div>
+            )}
 
-        {/* Tab 3: Society Guide & Office Location */}
-        {activeTab === 'society' && <SocietyGuide />}
+            {/* TAB 2: خرید و فروخت (Plot Demand & Rate Inquiry Form) */}
+            {activeTab === "inquiry" && (
+              <motion.div
+                key="tab-inquiry"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PlotInquiry defaultMode={inquiryDefaultMode} />
+              </motion.div>
+            )}
 
-        {/* Tab 4: Real Estate Calculator */}
-        {activeTab === 'calculator' && <PropertyCalculator />}
-      </main>
+            {/* TAB 3: پراپرٹی ڈیلز (Featured Deals & Listings) */}
+            {activeTab === "deals" && (
+              <motion.div
+                key="tab-deals"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FeaturedProperties />
+              </motion.div>
+            )}
 
-      {/* Property Add/Edit Modal */}
-      <PropertyFormModal
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setEditingProperty(null);
-        }}
-        onSave={handleSaveProperty}
-        editProperty={editingProperty}
-      />
+            {/* TAB 4: سوسائٹی معلومات (Royal Palm City Society Overview & Maps) */}
+            {activeTab === "society" && (
+              <motion.div
+                key="tab-society"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <SocietyGuide />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-      {/* Delete Confirmation Modal (Guarantees user-approved deletion) */}
-      <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setItemToDelete(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        item={itemToDelete}
-        itemType={deleteType}
-      />
+        {/* 4. Official Social Links Hub */}
+        <SocialLinks />
 
-      {/* Backup & Restore Modal */}
-      <BackupRestoreModal
-        isOpen={isBackupModalOpen}
-        onClose={() => setIsBackupModalOpen(false)}
-        propertiesCount={properties.length}
-        inquiriesCount={inquiries.length}
-        dealsCount={deals.length}
-        onDataReload={reloadData}
-      />
+        {/* 5. Customer Review & Feedback Module */}
+        <Feedback />
 
-      {/* Deal Slip Print Modal */}
-      <DealSlipPrint
-        isOpen={isPrintModalOpen}
-        onClose={() => {
-          setIsPrintModalOpen(false);
-          setVoucherProperty(null);
-        }}
-        property={voucherProperty}
-      />
+        {/* Decorative Gold Divider Line */}
+        <div className="w-full h-0.5 mt-4 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"></div>
 
-      {/* Footer with Prioritized Location & Contacts */}
-      <Footer />
+        {/* 6. Footer */}
+        <Footer />
+      </div>
+
+      {/* Smooth Movable 3-Action Floating Bar (کال، واٹس ایپ، لوکیشن) */}
+      <FloatingActionBar />
     </div>
   );
 }

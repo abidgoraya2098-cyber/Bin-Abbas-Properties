@@ -1,9 +1,7 @@
 node_modules/
 build/
 dist/
-dev-dist/
-sessions.json
-.cache
+coverage/
 .DS_Store
 *.log
 .env*

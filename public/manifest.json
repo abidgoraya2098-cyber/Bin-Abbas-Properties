@@ -1,26 +1,28 @@
 {
-  "name": "بن عباس پراپرٹیز - رائل پام سٹی گوجرانوالہ",
-  "short_name": "بن عباس پراپرٹیز",
-  "description": "بن عباس پراپرٹیز (Bin Abbas Properties) - رائل پام سٹی گوجرانوالہ (پام کمرشل 235)",
-  "id": "/?source=pwa",
+  "name": "Bin Abbas Real Estate - بن عباس پراپرٹیز",
+  "short_name": "Bin Abbas",
+  "description": "بن عباس پراپرٹیز آفیشل ایپ۔ رئیل اسٹیٹ اینڈ بلڈرز، رائل پام سٹی، گوجرانوالہ",
   "start_url": "/",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "orientation": "any",
-  "background_color": "#022c22",
-  "theme_color": "#064e3b",
-  "lang": "ur",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "window-controls-overlay"
+  ],
+  "orientation": "portrait",
+  "background_color": "#ecf6f1",
+  "theme_color": "#ecf6f1",
   "dir": "rtl",
+  "lang": "ur",
+  "categories": [
+    "business",
+    "real estate",
+    "lifestyle"
+  ],
   "prefer_related_applications": false,
-  "categories": ["business", "productivity", "utilities"],
   "icons": [
-    {
-      "src": "/bin_abbas_logo.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any"
-    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -28,10 +30,57 @@
       "purpose": "any"
     },
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "پراپرٹی ڈیلز (Deals)",
+      "short_name": "ڈیلز",
+      "description": "تازہ ترین ہاٹ پراپرٹی ڈیلز دیکھیں",
+      "url": "/?tab=deals",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ریٹ انکوائری (Inquiry)",
+      "short_name": "انکوائری",
+      "description": "پلاٹ ڈیمانڈ اور ریٹ انکوائری فارم",
+      "url": "/?tab=inquiry",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "سوسائٹی معلومات (Society Guide)",
+      "short_name": "سوسائٹی",
+      "description": "رائل پام سٹی رہنمائی و نقشہ جات",
+      "url": "/?tab=society",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

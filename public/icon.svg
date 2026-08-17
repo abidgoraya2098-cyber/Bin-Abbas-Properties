@@ -1,59 +1,162 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#064e3b" />
-      <stop offset="50%" stop-color="#022c22" />
-      <stop offset="100%" stop-color="#0f172a" />
+    <!-- Soft Luminous Light Mint Pearl Gradient Canvas -->
+    <radialGradient id="iconCanvasBg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#f5fbf7" />
+      <stop offset="75%" stop-color="#e0f3e7" />
+      <stop offset="100%" stop-color="#c6e9d4" />
+    </radialGradient>
+
+    <!-- Master 24K Champagne Gold 3D Luminous Gradient -->
+    <linearGradient id="gold3DGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="15%" stop-color="#fff1b0" />
+      <stop offset="35%" stop-color="#f5ce5e" />
+      <stop offset="60%" stop-color="#ca9820" />
+      <stop offset="85%" stop-color="#8c6109" />
+      <stop offset="95%" stop-color="#e8bf56" />
+      <stop offset="100%" stop-color="#ffe696" />
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24" />
-      <stop offset="50%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#d97706" />
+
+    <!-- Arch Inner Golden Bevel -->
+    <linearGradient id="goldBevelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#ffea9a" />
+      <stop offset="70%" stop-color="#c59726" />
+      <stop offset="100%" stop-color="#734e06" />
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.5"/>
+
+    <!-- Building Front Pearl White Facet -->
+    <linearGradient id="bldgWhiteFacet" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#f6fcf9" />
+      <stop offset="100%" stop-color="#e0f2e7" />
+    </linearGradient>
+
+    <!-- 3D Gold Building Shadow Side -->
+    <linearGradient id="goldSideGrad" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#b98519" />
+      <stop offset="50%" stop-color="#7a5409" />
+      <stop offset="100%" stop-color="#462c03" />
+    </linearGradient>
+
+    <!-- 3D Soft Drop Shadow for Emblem & Text -->
+    <filter id="ultraHdShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0a4328" flood-opacity="0.22" />
     </filter>
   </defs>
-  
-  <!-- Background Shield / Rounded Shape -->
-  <rect width="512" height="512" rx="100" fill="url(#bgGrad)" />
-  <circle cx="256" cy="256" r="230" fill="none" stroke="url(#goldGrad)" stroke-width="8" stroke-dasharray="16 8" opacity="0.6"/>
-  <circle cx="256" cy="256" r="215" fill="none" stroke="url(#goldGrad)" stroke-width="3" />
 
-  <!-- Shield Base -->
-  <g filter="url(#glow)">
-    <path d="M256,70 C340,70 410,110 410,190 C410,320 256,430 256,430 C256,430 102,320 102,190 C102,110 172,70 256,70 Z" 
-          fill="#064e3b" stroke="url(#goldGrad)" stroke-width="12" stroke-linejoin="round"/>
+  <!-- Background Base Canvas -->
+  <rect width="512" height="512" fill="url(#iconCanvasBg)" rx="112" />
+
+  <!-- Outer Elegant Gold & Emerald Rings -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#gold3DGrad)" stroke-width="3" opacity="0.8" />
+  <circle cx="256" cy="256" r="232" fill="none" stroke="#0e6d42" stroke-width="1.5" opacity="0.3" stroke-dasharray="6 4" />
+
+  <!-- Complete Exact Logo & Brand Typography (Strictly Scaled inside 360px Safe Circle: ZERO Clipping!) -->
+  <g filter="url(#ultraHdShadow)">
+    
+    <!-- 1. Moorish 3D Gold Arch & Buildings Emblem -->
+    <g transform="translate(256, 202) scale(0.72)">
+      
+      <!-- Outer Moorish Arch -->
+      <path 
+        d="M -150 145 V -15 C -150 -105, -90 -175, 0 -205 C 90 -175, 150 -105, 150 -15 V 145 L 120 145 V -15 C 120 -90, 65 -150, 0 -175 C -65 -150, -120 -90, -120 -15 V 145 Z" 
+        fill="url(#gold3DGrad)" 
+      />
+
+      <!-- Arch Inner Golden Bevel Trim -->
+      <path 
+        d="M -105 145 V -12 C -105 -72, -55 -128, 0 -152 C 55 -128, 105 -72, 105 -12 V 145" 
+        fill="none" 
+        stroke="url(#goldBevelGrad)" 
+        stroke-width="4" 
+        stroke-linecap="round"
+        opacity="0.95"
+      />
+
+      <!-- Left Skyscraper Tower -->
+      <polygon points="-100,135 -100,-35 -48,-78 -48,135" fill="url(#bldgWhiteFacet)" />
+      <polygon points="-48,-78 -26,-62 -26,135 -48,135" fill="url(#goldSideGrad)" />
+      <g fill="#0b4a2e" opacity="0.9">
+        <rect x="-90" y="-10" width="14" height="32" rx="1.5" />
+        <rect x="-90" y="36" width="14" height="32" rx="1.5" />
+        <rect x="-90" y="82" width="14" height="32" rx="1.5" />
+        <rect x="-68" y="-24" width="14" height="32" rx="1.5" />
+        <rect x="-68" y="22" width="14" height="32" rx="1.5" />
+        <rect x="-68" y="68" width="14" height="32" rx="1.5" />
+      </g>
+
+      <!-- Center Grand Skyscraper Tower -->
+      <polygon points="-22,135 -22,-120 22,-162 25,-158 25,135" fill="url(#bldgWhiteFacet)" />
+      <polygon points="25,-158 54,-135 54,135 25,135" fill="url(#goldSideGrad)" />
+      <g fill="#0b4a2e" opacity="0.92">
+        <rect x="-14" y="-85" width="12" height="24" rx="1.5" />
+        <rect x="-14" y="-50" width="12" height="24" rx="1.5" />
+        <rect x="-14" y="-15" width="12" height="24" rx="1.5" />
+        <rect x="-14" y="20" width="12" height="24" rx="1.5" />
+        <rect x="-14" y="55" width="12" height="24" rx="1.5" />
+        <rect x="-14" y="90" width="12" height="24" rx="1.5" />
+        <rect x="4" y="-102" width="12" height="24" rx="1.5" />
+        <rect x="4" y="-67" width="12" height="24" rx="1.5" />
+        <rect x="4" y="-32" width="12" height="24" rx="1.5" />
+        <rect x="4" y="3" width="12" height="24" rx="1.5" />
+        <rect x="4" y="38" width="12" height="24" rx="1.5" />
+        <rect x="4" y="73" width="12" height="24" rx="1.5" />
+      </g>
+
+      <!-- Right Tower -->
+      <polygon points="60,135 60,-60 105,-34 105,135" fill="url(#gold3DGrad)" />
+      <polygon points="105,-34 118,-24 118,135 105,135" fill="url(#goldSideGrad)" />
+      <g stroke="#083823" stroke-width="3.5" stroke-linecap="round" opacity="0.9">
+        <line x1="68" y1="-26" x2="96" y2="-10" />
+        <line x1="68" y1="-5" x2="96" y2="11" />
+        <line x1="68" y1="16" x2="96" y2="32" />
+        <line x1="68" y1="37" x2="96" y2="53" />
+        <line x1="68" y1="58" x2="96" y2="74" />
+        <line x1="68" y1="79" x2="96" y2="95" />
+        <line x1="68" y1="100" x2="96" y2="116" />
+      </g>
+
+      <!-- Grand Dome -->
+      <path d="M -65 145 C -65 75, 65 75, 65 145 Z" fill="url(#gold3DGrad)" />
+      <path d="M -50 145 C -50 88, 50 88, 50 145 Z" fill="none" stroke="url(#goldBevelGrad)" stroke-width="2.5" opacity="0.85" />
+      <path d="M 0 75 V 46" stroke="url(#gold3DGrad)" stroke-width="4.5" stroke-linecap="round" />
+      <circle cx="0" cy="42" r="4" fill="#ffffff" />
+
+      <!-- Base Curved Wings / Swoops -->
+      <path d="M -195 158 Q 0 132 195 158" fill="none" stroke="url(#gold3DGrad)" stroke-width="6" stroke-linecap="round" />
+      <path d="M -155 168 Q 0 145 155 168" fill="none" stroke="url(#goldBevelGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.85" />
+    </g>
+
+    <!-- 2. "BIN ABBAS" Primary Brand Title (Crisp, High-Resolution, Perfectly Placed) -->
+    <text 
+      x="256" 
+      y="370" 
+      text-anchor="middle" 
+      font-family="'Cinzel', 'Trajan Pro', 'Georgia', 'Times New Roman', serif" 
+      font-size="39" 
+      font-weight="900" 
+      letter-spacing="4.5"
+      fill="#0a482b"
+    >
+      BIN ABBAS
+    </text>
+
+    <!-- 3. "PROPERTIES" Subtitle -->
+    <text 
+      x="256" 
+      y="406" 
+      text-anchor="middle" 
+      font-family="'Segoe UI', -apple-system, 'Helvetica Neue', sans-serif" 
+      font-size="18" 
+      font-weight="800" 
+      letter-spacing="11"
+      fill="#b88318"
+    >
+      PROPERTIES
+    </text>
+
   </g>
-
-  <!-- Star & Crescent (Emblem) -->
-  <!-- Crescent -->
-  <path d="M265,150 A65,65 0 1,0 315,260 A78,78 0 1,1 265,150 Z" fill="url(#goldGrad)" />
-  <!-- Star -->
-  <polygon points="295,175 304,198 328,198 309,212 316,235 295,221 274,235 281,212 262,198 286,198" fill="url(#goldGrad)" />
-
-  <!-- Scales of Justice (انصاف کا ترازو) -->
-  <g stroke="url(#goldGrad)" stroke-width="5" fill="none" stroke-linecap="round">
-    <!-- Center Post -->
-    <line x1="256" y1="230" x2="256" y2="350" stroke-width="8"/>
-    <line x1="220" y1="350" x2="292" y2="350" stroke-width="8"/>
-    <!-- Beam -->
-    <line x1="170" y1="260" x2="342" y2="260" stroke-width="6"/>
-    <!-- Center Ring -->
-    <circle cx="256" cy="230" r="10" fill="url(#goldGrad)" stroke="none"/>
-    <!-- Left Strings -->
-    <line x1="170" y1="260" x2="145" y2="310" stroke-width="3"/>
-    <line x1="170" y1="260" x2="195" y2="310" stroke-width="3"/>
-    <!-- Right Strings -->
-    <line x1="342" y1="260" x2="317" y2="310" stroke-width="3"/>
-    <line x1="342" y1="260" x2="367" y2="310" stroke-width="3"/>
-  </g>
-  <!-- Left Pan -->
-  <path d="M135,310 Q170,335 205,310 Z" fill="url(#goldGrad)" />
-  <!-- Right Pan -->
-  <path d="M307,310 Q342,335 377,310 Z" fill="url(#goldGrad)" />
-
-  <!-- Text / Banner -->
-  <rect x="120" y="375" width="272" height="42" rx="10" fill="#022c22" stroke="url(#goldGrad)" stroke-width="3"/>
-  <text x="256" y="403" font-family="'Noto Nastaliq Urdu', 'Noto Naskh Urdu', Arial, sans-serif" font-size="22" font-weight="bold" fill="#fbbf24" text-anchor="middle">پنجاب پولیس</text>
 </svg>

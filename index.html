@@ -3,49 +3,74 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#064e3b" />
+    <title>Bin Abbas Real Estate - بن عباس پراپرٹیز</title>
+    
+    <!-- Meta Descriptions & SEO -->
+    <meta name="description" content="بن عباس پراپرٹیز آفیشل ایپ۔ رئیل اسٹیٹ اینڈ بلڈرز، رائل پام سٹی، گوجرانوالہ" />
+    <meta name="author" content="Bin Abbas Real Estate" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Open Graph & Social Sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Bin Abbas Real Estate - بن عباس پراپرٹیز" />
+    <meta property="og:description" content="بن عباس پراپرٹیز آفیشل ایپ۔ رئیل اسٹیٹ اینڈ بلڈرز، رائل پام سٹی، گوجرانوالہ" />
+    <meta property="og:image" content="/icon-512.png" />
+
+    <!-- PWA Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Mobile & PWA Meta Tags -->
+    <meta name="theme-color" content="#ecf6f1" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="بن عباس پراپرٹیز" />
-    <meta name="application-name" content="Bin Abbas Properties" />
-    <meta name="description" content="بن عباس پراپرٹیز - رائل پام سٹی، گوجرانوالہ (پام کمرشل 235) - پلاٹس، فائلز اور پراپرٹی ڈیلز پورٹل" />
-    
-    <!-- PWA & Favicon links -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/jpeg" href="/bin_abbas_logo.jpg" />
-    <link rel="apple-touch-icon" href="/bin_abbas_logo.jpg" />
-    <link rel="shortcut icon" href="/bin_abbas_logo.jpg" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Bin Abbas" />
+    <meta name="application-name" content="Bin Abbas Real Estate" />
+    <meta name="msapplication-TileColor" content="#ecf6f1" />
+    <meta name="msapplication-TileImage" content="/icon-192.png" />
+    <meta name="msapplication-navbutton-color" content="#ecf6f1" />
 
-    <title>بن عباس پراپرٹیز - رائل پام سٹی، گوجرانوالہ | Bin Abbas Properties</title>
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
 
+    <!-- Google Chrome PWA Event Capture & Instant Service Worker Auto-Update -->
     <script>
-      // Capture Google Chrome beforeinstallprompt event early
-      window.deferredInstallPrompt = null;
-      window.addEventListener('beforeinstallprompt', (e) => {
+      window.deferredPrompt = null;
+      window.deferredPwaPrompt = null;
+
+      window.addEventListener("beforeinstallprompt", function(e) {
         e.preventDefault();
-        window.deferredInstallPrompt = e;
-        window.dispatchEvent(new CustomEvent('pwa-install-ready', { detail: e }));
-        if (typeof window.onPWAInstallAvailable === 'function') {
-          window.onPWAInstallAvailable(e);
-        }
-        console.log('PWA beforeinstallprompt captured successfully.');
+        window.deferredPrompt = e;
+        window.deferredPwaPrompt = e;
+        console.log("[PWA] beforeinstallprompt ready for 1-tap install");
+        window.dispatchEvent(new CustomEvent("pwa-ready"));
       });
 
-      window.addEventListener('appinstalled', () => {
-        window.deferredInstallPrompt = null;
-        console.log('PWA application installed on device.');
+      window.addEventListener("appinstalled", function() {
+        console.log("[PWA] Bin Abbas Real Estate installed successfully!");
+        window.deferredPrompt = null;
+        window.deferredPwaPrompt = null;
+        window.dispatchEvent(new CustomEvent("pwa-installed"));
       });
 
-      // Register PWA Service Worker safely
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then((reg) => {
-              console.log('PWA ServiceWorker registered with scope:', reg.scope);
+      // Register and Auto-Update Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function() {
+          navigator.serviceWorker
+            .register("/sw.js", { scope: "/" })
+            .then(function(registration) {
+              registration.update();
+              console.log("[PWA] Service Worker active and checked for updates:", registration.scope);
             })
-            .catch((err) => {
-              console.warn('PWA ServiceWorker registration error:', err);
+            .catch(function(error) {
+              console.warn("[PWA] Service Worker registration failed:", error);
             });
         });
       }
