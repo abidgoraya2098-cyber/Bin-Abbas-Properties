@@ -1,9 +1,19 @@
 import { QuickLink, FAQItem, PropertyListing, SocietyAmenity, SocietyBlockInfo, SocialLinkItem } from "./types";
 
+/**
+ * 🔒 SECURITY & OWNER CONFIGURATION
+ * Strict Single-Owner Security Authorization:
+ * Only authorized administrator: abidgoraya2098@gmail.com (GitHub: @abidgoraya2098-cyber)
+ */
+export const SECURITY_LOCK_ENABLED = true;
+export const AUTHORIZED_ADMIN_EMAIL = "abidgoraya2098@gmail.com";
+export const DEVELOPER_NAME = "عابد عباس علی گورائیہ";
+export const DEVELOPER_ENGLISH_NAME = "Abid Abbas Ali Goraya";
+export const DEVELOPER_GITHUB = "https://github.com/abidgoraya2098-cyber/Bin-Abbas-Properties";
+
 export const CONTACT_PHONE = "923204800071";
 export const CONTACT_PHONE_DISPLAY = "0320.4800071";
 export const OWNER_NAME = "فریاد حسن گورائیہ";
-export const DEVELOPER_NAME = "عابد عباس علی گورائیہ";
 export const BUSINESS_NAME = "بن عباس پراپرٹیز";
 export const ENGLISH_NAME = "BIN ABBAS PROPERTIES";
 export const SUBTITLE = "BIN ABBAS PROPERTIES";
@@ -12,7 +22,7 @@ export const ADDRESS = "بن عباس پراپرٹیز، رائل پام سٹی�
 export const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Bin+Abbas+Properties,+Royal+Palm+City,+Gujranwala";
 export const GOOGLE_MAPS_NAV_URL = "https://www.google.com/maps/dir/?api=1&destination=Bin+Abbas+Properties,+Royal+Palm+City,+Gujranwala";
 
-export const QUICK_LINKS: QuickLink[] = [
+export const QUICK_LINKS: readonly QuickLink[] = Object.freeze([
   {
     id: "sell",
     title: "پلاٹ فروخت کریں",
@@ -58,9 +68,9 @@ export const QUICK_LINKS: QuickLink[] = [
     colorClass: "bg-gradient-to-r from-[#1b6b47] via-[#0f5334] to-[#1b6b47] hover:brightness-110 border-2 border-amber-400/70 shadow-xl",
     textColorClass: "text-white"
   }
-];
+]);
 
-export const SOCIAL_LINKS: SocialLinkItem[] = [
+export const SOCIAL_LINKS: readonly SocialLinkItem[] = Object.freeze([
   {
     id: "facebook",
     name: "فیس بک",
@@ -106,9 +116,9 @@ export const SOCIAL_LINKS: SocialLinkItem[] = [
     iconName: "Twitter",
     colorClass: "bg-slate-900 text-amber-300 hover:bg-slate-800 border border-amber-400/40 shadow-sm"
   }
-];
+]);
 
-export const ROYAL_PALM_BLOCKS: SocietyBlockInfo[] = [
+export const ROYAL_PALM_BLOCKS: readonly SocietyBlockInfo[] = Object.freeze([
   { id: "A", name: "بلاک A", desc: "مین انٹرنس و مرکزی جامع مسجد کے قریب" },
   { id: "B", name: "بلاک B", desc: "خوبصورت فیملی پارک اور پُرسکون رہائش" },
   { id: "C", name: "بلاک C", desc: "تیزی سے آباد ہوتا پرائم علاقہ" },
@@ -119,27 +129,27 @@ export const ROYAL_PALM_BLOCKS: SocietyBlockInfo[] = [
   { id: "Royal", name: "رائل بلاک (Royal)", desc: "پریمیم لگژری رہائشی بلاک" },
   { id: "Palm", name: "پام بلاک (Palm)", desc: "مرکزی کمرشل اور پام مال کے نزدیک" },
   { id: "Comm", name: "پام کمرشل (Commercial)", desc: "مرکزی بزنس ہب، 2، 4 و 8 مرلہ پلاٹس" }
-];
+]);
 
-export const RESIDENTIAL_PLOT_SIZES = [
+export const RESIDENTIAL_PLOT_SIZES: readonly string[] = Object.freeze([
   "5 مرلہ (رہائشی)",
   "10 مرلہ (رہائشی)",
   "1 کنال (رہائشی)",
   "2 کنال (رہائشی)"
-];
+]);
 
-export const COMMERCIAL_PLOT_SIZES = [
+export const COMMERCIAL_PLOT_SIZES: readonly string[] = Object.freeze([
   "2 مرلہ (کمرشل)",
   "4 مرلہ (کمرشل)",
   "8 مرلہ (کمرشل)"
-];
+]);
 
-export const PLOT_SIZES = [
+export const PLOT_SIZES: readonly string[] = Object.freeze([
   ...RESIDENTIAL_PLOT_SIZES,
   ...COMMERCIAL_PLOT_SIZES
-];
+]);
 
-export const PLOT_FEATURES = [
+export const PLOT_FEATURES: readonly string[] = Object.freeze([
   "جنرل پلاٹ",
   "کارنر پلاٹ (Corner)",
   "پارک فیسنگ (Facing Park)",
@@ -147,9 +157,9 @@ export const PLOT_FEATURES = [
   "60 فٹ چوڑی سڑک",
   "مسجد و مارکیٹ کے قریب",
   "اوپن انویسٹمنٹ"
-];
+]);
 
-export const FEATURED_PROPERTIES: PropertyListing[] = [
+export const FEATURED_PROPERTIES: readonly PropertyListing[] = Object.freeze([
   {
     id: "prop-1",
     title: "5 مرلہ پرائم رہائشی پلاٹ",
@@ -238,9 +248,9 @@ export const FEATURED_PROPERTIES: PropertyListing[] = [
     features: ["4 بیڈ رومز", "امپورٹڈ کچن", "فیملی کے لیے موزوں"],
     isHot: false
   }
-];
+]);
 
-export const SOCIETY_AMENITIES: SocietyAmenity[] = [
+export const SOCIETY_AMENITIES: readonly SocietyAmenity[] = Object.freeze([
   {
     id: "security",
     title: "24/7 سیکیورٹی و کیمرے",
@@ -283,9 +293,9 @@ export const SOCIETY_AMENITIES: SocietyAmenity[] = [
     description: "خوبصورت فیملی پارکس، جوگنگ ٹریکس، جھیل اور بچوں کے پلے ایریاز۔",
     icon: "Trees"
   }
-];
+]);
 
-export const FAQS: FAQItem[] = [
+export const FAQS: readonly FAQItem[] = Object.freeze([
   {
     id: "faq-1",
     question: "رائل پام سٹی گوجرانوالہ میں کون سے سائز کے پلاٹس دستیاب ہیں؟",
@@ -311,4 +321,4 @@ export const FAQS: FAQItem[] = [
     question: "پلاٹ فروخت کرنے یا خریدنے کے لیے کوائف کیسے درج کریں؟",
     answer: "آپ ہماری ایپ میں 'پلاٹ خریدیں / بیچیں' ٹیب پر جا کر پلاٹ کا سائز، بلاک، پلاٹ نمبر، ڈیمانڈ یا فائنل قیمت درج کر کے 1 کلک پر براہِ راست واٹس ایپ پر ارسال کر سکتے ہیں۔ تمام فیلڈز مکمل طور پر اختیاری (Optional) ہیں۔"
   }
-];
+]);

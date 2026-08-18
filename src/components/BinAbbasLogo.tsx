@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MessageCircle, Phone, CheckCircle2, MapPin } from "lucide-react";
+import { X, MessageCircle, Phone, CheckCircle2, MapPin, Download, Share2, Check, Sparkles } from "lucide-react";
 import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE, CONTACT_PHONE_DISPLAY } from "../data";
 
 // 3D Master App Logo Plaque Component
@@ -349,7 +349,7 @@ function RenderAppIconOnly() {
             stroke="url(#iconOnlyGoldBevel)" 
             strokeWidth="4" 
             strokeLinecap="round"
-            opacity="0.95"
+            opacity="0.95" 
           />
 
           <polygon points="-100,135 -100,-35 -48,-78 -48,135" fill="url(#iconOnlyBldgWhite)" />
@@ -440,10 +440,90 @@ export default function BinAbbasLogo({
   variant?: "full" | "iconOnly";
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  // Reliable Universal PNG Logo Downloader (works across Android, iOS, Windows, Mac)
+  const handleDownloadPng = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsDownloading(true);
+
+    try {
+      // 1. Fetch the high-res PNG file and create blob
+      const logoUrl = "/Bin-Abbas-Properties-Logo.png";
+      const response = await fetch(logoUrl);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch image");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // 2. Programmatically trigger native download
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "Bin-Abbas-Properties-Official-Logo.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 2000);
+
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 3500);
+    } catch (err) {
+      console.warn("[Logo Download] Fallback direct download link:", err);
+      // Fallback direct download link
+      const fallbackLink = document.createElement("a");
+      fallbackLink.href = "/logo.png";
+      fallbackLink.download = "Bin-Abbas-Properties-Official-Logo.png";
+      fallbackLink.target = "_blank";
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      document.body.removeChild(fallbackLink);
+
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 3500);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleShareLogo = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const shareText = `بن عباس پراپرٹیز - BIN ABBAS PROPERTIES (رائل پام سٹی، گوجرانوالہ)\nآفیشل برانڈ لوگو و رابطہ معلومات:\nفون و واٹس ایپ: ${CONTACT_PHONE_DISPLAY}\n${window.location.origin}/logo.png`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "بن عباس پراپرٹیز آفیشل لوگو",
+          text: shareText,
+          url: `${window.location.origin}/logo.png`
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2500);
+      }
+    } catch (err) {
+      await navigator.clipboard.writeText(shareText);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2500);
+    }
+  };
 
   if (variant === "iconOnly") {
     return (
-      <div className={`relative flex items-center justify-center select-none ${className}`}>
+      <div 
+        onClick={handleDownloadPng}
+        className={`relative flex items-center justify-center select-none cursor-pointer group ${className}`}
+        title="آفیشل 3D ایپ آئیکن (PNG) ڈاؤن لوڈ کرنے کے لیے کلک کریں"
+      >
         <RenderAppIconOnly />
       </div>
     );
@@ -451,21 +531,66 @@ export default function BinAbbasLogo({
 
   return (
     <>
-      {/* Official 3D App Icon Brand Logo Card */}
+      {/* Official 3D App Icon Brand Logo Card with 1-Click PNG Download Action */}
       <motion.div 
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setIsModalOpen(true)}
-        className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 ${className}`} 
+        whileHover={{ scale: 1.015 }}
+        whileTap={{ scale: 0.985 }}
+        onClick={() => {
+          // Open HD modal and trigger quick download for seamless user experience
+          setIsModalOpen(true);
+        }}
+        className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 group ${className}`} 
         id="bin-abbas-logo-box"
-        title="مکمل تھری ڈی ایچ ڈی لوگو اور رابطہ دیکھنے کے لیے کلک کریں"
+        title="مکمل تھری ڈی ایچ ڈی لوگو دیکھیں یا پی این جی (PNG) فارمیٹ میں ڈاؤن لوڈ کریں"
       >
-        <div className="w-full flex items-center justify-center py-0.5">
-          <RenderMaster3DLogo showPhone={true} />
+        {/* Quick Download Indicator Overlay Badge */}
+        <div className="w-full flex items-center justify-between px-2 mb-1 z-10">
+          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-900 bg-amber-300/90 hover:bg-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/40 shadow-xs transition-transform duration-200 group-hover:scale-105">
+            <Sparkles size={11} className="text-amber-700" />
+            <span>آفیشل 3D برانڈ لوگو</span>
+          </span>
+
+          <button
+            type="button"
+            onClick={handleDownloadPng}
+            className="inline-flex items-center gap-1 text-[10.5px] font-black text-white bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 hover:brightness-110 active:scale-95 px-2.5 py-0.5 rounded-full border border-emerald-400 shadow-sm transition-all cursor-pointer"
+            title="براہِ راست پی این جی (PNG) لوگو ڈاؤن لوڈ کریں"
+          >
+            <Download size={11} className={isDownloading ? "animate-spin" : "animate-bounce"} />
+            <span>ڈاؤن لوڈ PNG</span>
+          </button>
         </div>
+
+        {/* The 3D Master SVG Render */}
+        <div className="w-full flex items-center justify-center py-0.5 relative">
+          <RenderMaster3DLogo showPhone={true} />
+
+          {/* Hover Tap Visual Hint for User */}
+          <div className="absolute inset-x-4 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center justify-center">
+            <span className="bg-slate-950/85 backdrop-blur-xs text-amber-300 text-[10.5px] font-bold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 flex items-center gap-1">
+              <Download size={12} />
+              <span>کلک کر کے ایچ ڈی (PNG) ڈاؤن لوڈ کریں</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Global Download Success Toast Floating Notification */}
+        <AnimatePresence>
+          {downloadSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.9 }}
+              className="absolute -bottom-8 z-30 bg-emerald-900 text-amber-200 px-3.5 py-1.5 rounded-xl border border-amber-400 shadow-xl flex items-center gap-1.5 text-xs font-black whitespace-nowrap"
+            >
+              <Check size={14} className="text-emerald-300" />
+              <span>آفیشل لوگو (PNG) کامیابی سے ڈاؤن لوڈ ہو گیا!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {/* Ultra-HD Full-Screen Modal */}
+      {/* Ultra-HD Full-Screen Modal & Download Suite */}
       <AnimatePresence>
         {isModalOpen && (
           <div 
@@ -488,7 +613,7 @@ export default function BinAbbasLogo({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.88, y: 25 }}
               transition={{ type: "spring", damping: 25, stiffness: 350 }}
-              className="relative w-full max-w-[430px] bg-gradient-to-b from-[#ffffff] via-[#f4faf6] to-[#def2e6] rounded-3xl p-5 sm:p-6 shadow-2xl border-2 border-amber-400 text-center overflow-hidden z-10 my-auto"
+              className="relative w-full max-w-[435px] bg-gradient-to-b from-[#ffffff] via-[#f4faf6] to-[#def2e6] rounded-3xl p-4 sm:p-5 shadow-2xl border-2 border-amber-400 text-center overflow-hidden z-10 my-auto"
               id="logo-hd-modal-body"
             >
               {/* Top Luxury Gold Accent Line */}
@@ -498,26 +623,76 @@ export default function BinAbbasLogo({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-3.5 left-3.5 p-2 rounded-full bg-white/90 text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-300 shadow-sm"
+                className="absolute top-3 left-3 p-1.5 rounded-full bg-white/95 text-emerald-950 hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-300 shadow-sm"
                 aria-label="بند کریں"
               >
                 <X size={18} />
               </button>
 
               {/* Verified Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs shadow-xs mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs shadow-xs mb-1.5">
                 <CheckCircle2 size={14} className="text-emerald-700" />
                 <span>تصدیق شدہ آفیشل 3D برانڈ لوگو</span>
               </div>
 
               {/* Logo Presentation in Modal */}
-              <div className="p-1 rounded-2xl overflow-hidden my-1">
+              <div className="p-1 rounded-2xl overflow-hidden my-1 bg-white/60 border border-emerald-200/70 shadow-inner">
                 <RenderMaster3DLogo showPhone={true} />
               </div>
 
+              {/* Prominent High-Def PNG Download & Share Action Buttons */}
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {/* 1. Primary PNG Download Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    onClick={handleDownloadPng}
+                    disabled={isDownloading}
+                    className="py-2.5 px-3 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:brightness-105 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center justify-center gap-1.5 border border-amber-300 transition-all cursor-pointer"
+                  >
+                    <Download size={16} className={isDownloading ? "animate-spin" : "text-slate-950"} />
+                    <span>{isDownloading ? "ڈاؤن لوڈ جاری ہے..." : "لوگو PNG ڈاؤن لوڈ کریں"}</span>
+                  </motion.button>
+
+                  {/* 2. Share Logo Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    onClick={handleShareLogo}
+                    className="py-2.5 px-3 bg-emerald-900 hover:bg-emerald-950 text-amber-200 font-bold text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 border border-emerald-700 transition-all cursor-pointer"
+                  >
+                    {copiedShare ? (
+                      <>
+                        <Check size={16} className="text-emerald-300" />
+                        <span>لنک کاپی ہو گیا!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 size={16} className="text-amber-300" />
+                        <span>لوگو شیئر کریں</span>
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+
+                {downloadSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-emerald-800 text-emerald-100 text-[11px] font-bold py-1 px-2.5 rounded-lg border border-emerald-500 flex items-center justify-center gap-1"
+                  >
+                    <CheckCircle2 size={13} className="text-emerald-300" />
+                    <span>آفیشل لوگو (PNG) کامیابی سے آپ کی ڈیوائس پر ڈاؤن لوڈ ہو گیا ہے!</span>
+                  </motion.div>
+                )}
+              </div>
+
               {/* Business Info & Tagline */}
-              <div className="mt-2 space-y-1">
-                <h3 className="text-base font-black text-emerald-950">
+              <div className="mt-3 pt-2.5 border-t border-emerald-200/80 space-y-1">
+                <h3 className="text-sm sm:text-base font-black text-emerald-950">
                   {BUSINESS_NAME} ({ENGLISH_NAME})
                 </h3>
                 <p className="text-xs text-slate-700 font-semibold flex items-center justify-center gap-1">
@@ -529,24 +704,24 @@ export default function BinAbbasLogo({
                 </p>
               </div>
 
-              {/* Quick Actions (WhatsApp & Call) */}
-              <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-emerald-200">
+              {/* Quick Contact Actions (WhatsApp & Call) */}
+              <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-emerald-200">
                 <a
                   href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-2.5 px-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-500 hover:brightness-110 transition-all"
+                  className="py-2 px-2.5 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-500 hover:brightness-110 transition-all"
                 >
                   <MessageCircle size={14} className="fill-white" />
-                  <span>واٹس ایپ ({CONTACT_PHONE_DISPLAY})</span>
+                  <span>واٹس ایپ رابطہ</span>
                 </a>
 
                 <a
                   href={`tel:+${CONTACT_PHONE}`}
-                  className="py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-600 transition-all"
+                  className="py-2 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-600 transition-all"
                 >
                   <Phone size={14} />
-                  <span>کال ({CONTACT_PHONE_DISPLAY})</span>
+                  <span>براہِ راست کال</span>
                 </a>
               </div>
             </motion.div>
