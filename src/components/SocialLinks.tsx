@@ -2,8 +2,13 @@ import React from "react";
 import { motion } from "motion/react";
 import { Facebook, Instagram, Youtube } from "lucide-react";
 import { SOCIAL_LINKS } from "../data";
+import { useLanguage } from "../context/LanguageContext";
+import { getTranslation } from "../i18n";
 
 export default function SocialLinks() {
+  const { language, isUrdu } = useLanguage();
+  const t = getTranslation(language);
+
   const getIcon = (id: string) => {
     switch (id) {
       case "facebook":
@@ -33,29 +38,32 @@ export default function SocialLinks() {
     <div className="mt-4 pt-3.5 border-t border-emerald-200 select-none" id="social-links-section">
       <div className="text-center mb-3">
         <h3 className="text-[10px] font-black text-emerald-950 tracking-wider uppercase mb-0.5">
-          ہمارے آفیشل سوشل میڈیا اکاؤنٹس
+          {t.socialTitle}
         </h3>
         <p className="text-xs font-bold text-slate-600">
-          پیجز وزٹ کرنے کے لیے آئیکون دبائیں
+          {t.socialSubtitle}
         </p>
       </div>
 
       <div className="flex items-center justify-center gap-3 sm:gap-3.5" id="social-buttons-container">
-        {SOCIAL_LINKS.map((social) => (
-          <motion.a
-            key={social.id}
-            id={`social-btn-${social.id}`}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={social.name}
-            whileHover={{ scale: 1.12, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            className={`flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all duration-300 shadow-sm border cursor-pointer ${social.colorClass}`}
-          >
-            {getIcon(social.id)}
-          </motion.a>
-        ))}
+        {SOCIAL_LINKS.map((social) => {
+          const currentName = isUrdu ? social.name : (social.nameEn || social.name);
+          return (
+            <motion.a
+              key={social.id}
+              id={`social-btn-${social.id}`}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={currentName}
+              whileHover={{ scale: 1.12, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all duration-300 shadow-sm border cursor-pointer ${social.colorClass}`}
+            >
+              {getIcon(social.id)}
+            </motion.a>
+          );
+        })}
       </div>
     </div>
   );

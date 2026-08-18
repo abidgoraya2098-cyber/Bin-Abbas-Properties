@@ -1,13 +1,18 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Home, MessageCircle, Phone, ArrowLeft, Key } from "lucide-react";
+import { Home, MessageCircle, Phone, ArrowLeft, ArrowRight, Key } from "lucide-react";
 import { QUICK_LINKS } from "../data";
+import { useLanguage } from "../context/LanguageContext";
+import { getTranslation } from "../i18n";
 
 interface QuickLinksListProps {
   onNavigateToInquiry?: (mode: "sell" | "buy") => void;
 }
 
 export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListProps) {
+  const { language, isUrdu } = useLanguage();
+  const t = getTranslation(language);
+
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "Rupee":
@@ -37,7 +42,7 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
     }
   };
 
-  const handleLinkClick = (e: React.MouseEvent, linkId: string, url: string) => {
+  const handleLinkClick = (e: React.MouseEvent, linkId: string) => {
     if (linkId === "sell" && onNavigateToInquiry) {
       e.preventDefault();
       onNavigateToInquiry("sell");
@@ -51,21 +56,25 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
     <div className="space-y-2.5 my-3 sm:my-4" id="quick-links-section">
       <div className="text-center" id="instruction-title">
         <p className="text-xs sm:text-sm font-black text-emerald-900 tracking-wide">
-          رابطہ یا کوائف درج کرنے کے لیے مطلوبہ آپشن منتخب کریں
+          {t.linksTitle}
         </p>
       </div>
 
       <div className="flex flex-col gap-2.5" id="links-container">
         {QUICK_LINKS.map((link, index) => {
           const isWhatsApp = link.id === "whatsapp";
+          const currentTitle = isUrdu ? link.title : (link.titleEn || link.title);
+          const currentSubtitle = isUrdu ? link.subtitle : (link.subtitleEn || link.subtitle);
+          const currentUrl = isUrdu ? link.url : (link.urlEn || link.url);
+
           return (
             <motion.a
               key={link.id}
               id={`link-button-${link.id}`}
-              href={link.url}
+              href={currentUrl}
               target={isWhatsApp ? "_blank" : undefined}
               rel={isWhatsApp ? "noopener noreferrer" : undefined}
-              onClick={(e) => handleLinkClick(e, link.id, link.url)}
+              onClick={(e) => handleLinkClick(e, link.id)}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.05 }}
@@ -87,20 +96,20 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
                 >
                   {getIcon(link.iconName)}
                 </span>
-                <div className="text-right">
+                <div className={isUrdu ? "text-right" : "text-left"}>
                   <div
                     className={`text-sm sm:text-base font-black leading-tight tracking-wide ${
                       isWhatsApp ? "text-amber-200" : "text-slate-900"
                     }`}
                   >
-                    {link.title}
+                    {currentTitle}
                   </div>
                   <div
                     className={`text-[10.5px] sm:text-[11px] font-medium mt-0.5 ${
                       isWhatsApp ? "text-emerald-100" : "text-slate-600"
                     }`}
                   >
-                    {link.subtitle}
+                    {currentSubtitle}
                   </div>
                 </div>
               </div>
@@ -111,7 +120,7 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
                     : "bg-emerald-100/80 border-emerald-300 text-emerald-800"
                 }`}
               >
-                <ArrowLeft className="w-4 h-4" />
+                {isUrdu ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
               </div>
             </motion.a>
           );

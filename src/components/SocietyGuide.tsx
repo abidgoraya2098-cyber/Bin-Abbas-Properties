@@ -1,8 +1,13 @@
 import React from "react";
 import { MapPin, Navigation, ShieldCheck, Zap, Building, ShoppingBag, Trees, Fuel, Landmark, ExternalLink } from "lucide-react";
-import { SOCIETY_AMENITIES, ADDRESS, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL } from "../data";
+import { SOCIETY_AMENITIES, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL } from "../data";
+import { useLanguage } from "../context/LanguageContext";
+import { getTranslation } from "../i18n";
 
 export default function SocietyGuide() {
+  const { language, isUrdu } = useLanguage();
+  const t = getTranslation(language);
+
   const getAmenityIcon = (iconName: string) => {
     switch (iconName) {
       case "ShieldCheck":
@@ -25,7 +30,10 @@ export default function SocietyGuide() {
   };
 
   return (
-    <div className="w-full my-3 bg-white/95 rounded-2xl p-3.5 sm:p-4 border-2 border-emerald-200 shadow-md text-right backdrop-blur-md" id="society-guide-section">
+    <div 
+      className={`w-full my-3 bg-white/95 rounded-2xl p-3.5 sm:p-4 border-2 border-emerald-200 shadow-md backdrop-blur-md ${isUrdu ? "text-right" : "text-left"}`} 
+      id="society-guide-section"
+    >
       {/* Section Header */}
       <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
         <div className="flex items-center gap-2">
@@ -34,38 +42,43 @@ export default function SocietyGuide() {
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-black text-emerald-950">
-              رائل پام سٹی گوجرانوالہ گائیڈ
+              {t.societyTitle}
             </h3>
             <p className="text-[10px] text-slate-600">
-              عالمی معیار کی سہولیات اور پرائم لوکیشن
+              {t.societySubtitle}
             </p>
           </div>
         </div>
         <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
-          5 اسٹار سوسائٹی ⭐
+          {t.societyBadge}
         </span>
       </div>
 
       {/* Society Amenities Grid */}
       <div className="grid grid-cols-2 gap-2 mt-3.5" id="society-amenities-grid">
-        {SOCIETY_AMENITIES.map((amenity) => (
-          <div
-            key={amenity.id}
-            className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 hover:border-emerald-400 transition-all flex flex-col justify-between text-right shadow-sm"
-          >
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center mb-1.5 shadow-inner">
-                {getAmenityIcon(amenity.icon)}
+        {SOCIETY_AMENITIES.map((amenity) => {
+          const currentTitle = isUrdu ? amenity.title : (amenity.titleEn || amenity.title);
+          const currentDesc = isUrdu ? amenity.description : (amenity.descriptionEn || amenity.description);
+
+          return (
+            <div
+              key={amenity.id}
+              className={`p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 hover:border-emerald-400 transition-all flex flex-col justify-between shadow-sm ${isUrdu ? "text-right" : "text-left"}`}
+            >
+              <div>
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center mb-1.5 shadow-inner">
+                  {getAmenityIcon(amenity.icon)}
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 leading-tight">
+                  {currentTitle}
+                </h4>
+                <p className="text-[9.5px] text-slate-600 mt-1 leading-relaxed">
+                  {currentDesc}
+                </p>
               </div>
-              <h4 className="text-[11px] font-black text-slate-900 leading-tight">
-                {amenity.title}
-              </h4>
-              <p className="text-[9.5px] text-slate-600 mt-1 leading-relaxed">
-                {amenity.description}
-              </p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Google Maps / Office Location Action Card */}
@@ -74,12 +87,12 @@ export default function SocietyGuide() {
           <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
             <MapPin size={18} />
           </div>
-          <div className="text-right">
+          <div className={isUrdu ? "text-right" : "text-left"}>
             <h4 className="text-xs font-black text-emerald-950">
-              بن عباس پراپرٹیز
+              {isUrdu ? "بن عباس پراپرٹیز" : "BIN ABBAS PROPERTIES"}
             </h4>
             <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed font-semibold">
-              رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)
+              {isUrdu ? "رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)" : "Royal Palm City, Gujranwala (Palm Commercial 235)"}
             </p>
           </div>
         </div>
@@ -93,7 +106,7 @@ export default function SocietyGuide() {
             id="google-maps-location-btn"
           >
             <ExternalLink size={14} className="text-white" />
-            <span>بن عباس پراپرٹیز لوکیشن</span>
+            <span>{t.mapsLocationBtn}</span>
           </a>
 
           <a
@@ -104,7 +117,7 @@ export default function SocietyGuide() {
             id="google-maps-directions-btn"
           >
             <Navigation size={14} className="text-amber-300" />
-            <span>دفتر کا راستہ (Directions)</span>
+            <span>{t.mapsDirectionsBtn}</span>
           </a>
         </div>
       </div>

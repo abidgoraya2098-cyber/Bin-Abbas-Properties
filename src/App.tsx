@@ -11,18 +11,21 @@ import Feedback from "./components/Feedback";
 import Footer from "./components/Footer";
 import FloatingActionBar from "./components/FloatingActionBar";
 import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "lucide-react";
+import { LanguageProvider, useLanguage } from "./context/LanguageContext";
+import { getTranslation } from "./i18n";
 
 type ActiveTab = "links" | "inquiry" | "deals" | "society";
 
-export default function App() {
+function MainAppContent() {
+  const { language, isUrdu, dir } = useLanguage();
+  const t = getTranslation(language);
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("links");
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine !== false : true);
 
   useEffect(() => {
-    document.title = "Bin Abbas Properties - بن عباس پراپرٹیز | رائل پام سٹی گوجرانوالہ";
-    
     // Online & Offline Event Listeners
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -69,17 +72,19 @@ export default function App() {
   };
 
   const tabOptions = [
-    { id: "links", label: "اہم روابط", icon: LayoutGrid },
-    { id: "inquiry", label: "خرید و فروخت", icon: ArrowRightLeft },
-    { id: "deals", label: "پراپرٹی ڈیلز", icon: Sparkles },
-    { id: "society", label: "سوسائٹی گائیڈ", icon: Navigation }
+    { id: "links", label: t.tabLinks, icon: LayoutGrid },
+    { id: "inquiry", label: t.tabInquiry, icon: ArrowRightLeft },
+    { id: "deals", label: t.tabDeals, icon: Sparkles },
+    { id: "society", label: t.tabSociety, icon: Navigation }
   ];
 
   return (
     <div 
-      className="min-h-screen bg-royal-light-green flex flex-col items-center justify-start py-2.5 px-2.5 sm:py-6 sm:px-4 selection:bg-emerald-600 selection:text-white text-slate-900 relative overflow-x-hidden pb-32"
+      className={`min-h-screen bg-royal-light-green flex flex-col items-center justify-start py-2.5 px-2.5 sm:py-6 sm:px-4 selection:bg-emerald-600 selection:text-white text-slate-900 relative overflow-x-hidden pb-32 transition-all duration-200 ${
+        isUrdu ? "font-sans" : "font-sans"
+      }`}
       id="app-root-container"
-      dir="rtl"
+      dir={dir}
     >
       {/* Ambient Lighting Background Orbs */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -98,12 +103,12 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-right flex items-center justify-between gap-2 shadow-md border border-emerald-400"
+            className="mb-3 p-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white flex items-center justify-between gap-2 shadow-md border border-emerald-400"
           >
             <div className="flex items-center gap-2 min-w-0">
               <Info size={16} className="text-amber-300 shrink-0" />
               <p className="text-[11px] font-black leading-tight truncate">
-                ایپ انسٹال کرنے کے لیے گوگل کروم میں کھولیں
+                {t.inAppWarning}
               </p>
             </div>
             <button
@@ -112,7 +117,7 @@ export default function App() {
               className="bg-amber-400 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-xl shrink-0 flex items-center gap-1 cursor-pointer active:scale-95 shadow"
             >
               <Globe size={12} />
-              <span>کروم میں کھولیں</span>
+              <span>{t.openChrome}</span>
             </button>
           </motion.div>
         )}
@@ -122,22 +127,22 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-850 to-emerald-900 text-white text-right flex flex-col gap-1 shadow-lg border-2 border-amber-400/80"
+            className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-850 to-emerald-900 text-white flex flex-col gap-1 shadow-lg border-2 border-amber-400/80"
             id="offline-status-banner"
           >
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <p className="text-xs font-black text-amber-200">
-                📶 آف لائن موڈ فعال ہے (بغیر انٹرنیٹ کے 100% دستیاب)
+                {t.offlineTitle}
               </p>
             </div>
             <p className="text-[10.5px] text-emerald-100 font-semibold leading-relaxed">
-              ایپ کے تمام فیچرز، پلاٹس، ریٹس اور رہنمائی بغیر انٹرنیٹ کے کھلے ہیں۔ واٹس ایپ پر رابطہ کرنے کے لیے انٹرنیٹ یا واٹس ایپ ڈیٹا پیکج درکار ہوگا، جبکہ آپ <strong>03204800071</strong> پر براہِ راست سم کال بھی کر سکتے ہیں۔
+              {t.offlineDesc}
             </p>
           </motion.div>
         )}
 
-        {/* 1. Seamless Luxury Header & Logo */}
+        {/* 1. Seamless Luxury Header & Logo (With Language Switcher) */}
         <Header />
 
         {/* 2. Modern 4 Navigation Tab Buttons */}
@@ -177,7 +182,7 @@ export default function App() {
             {/* TAB 1: اہم روابط (Main WhatsApp Quick Links & FAQs) */}
             {activeTab === "links" && (
               <motion.div
-                key="tab-links"
+                key={`tab-links-${language}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -191,7 +196,7 @@ export default function App() {
             {/* TAB 2: خرید و فروخت (Plot Demand & Rate Inquiry Form) */}
             {activeTab === "inquiry" && (
               <motion.div
-                key="tab-inquiry"
+                key={`tab-inquiry-${language}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -204,7 +209,7 @@ export default function App() {
             {/* TAB 3: پراپرٹی ڈیلز (Featured Deals & Listings) */}
             {activeTab === "deals" && (
               <motion.div
-                key="tab-deals"
+                key={`tab-deals-${language}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -217,7 +222,7 @@ export default function App() {
             {/* TAB 4: سوسائٹی معلومات (Royal Palm City Society Overview & Maps) */}
             {activeTab === "society" && (
               <motion.div
-                key="tab-society"
+                key={`tab-society-${language}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -245,5 +250,13 @@ export default function App() {
       {/* Smooth Movable 3-Action Floating Bar (کال، واٹس ایپ، لوکیشن) */}
       <FloatingActionBar />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <MainAppContent />
+    </LanguageProvider>
   );
 }

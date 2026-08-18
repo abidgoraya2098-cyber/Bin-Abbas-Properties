@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { MapPin, Share2, Check, Download, CheckCircle2 } from "lucide-react";
-import { LOCATION_TAGLINE, ADDRESS, GOOGLE_MAPS_URL } from "../data";
+import { MapPin, Share2, Check, Download, CheckCircle2, Globe } from "lucide-react";
+import { LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH, ADDRESS, ADDRESS_ENGLISH, GOOGLE_MAPS_URL } from "../data";
 import BinAbbasLogo from "./BinAbbasLogo";
+import { useLanguage } from "../context/LanguageContext";
+import { getTranslation } from "../i18n";
 
 export default function Header() {
+  const { language, isUrdu, toggleLanguage } = useLanguage();
+  const t = getTranslation(language);
+
   const [copied, setCopied] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
@@ -62,12 +67,15 @@ export default function Header() {
   };
 
   const handleShare = async () => {
-    const shareText = `السلام علیکم!\n\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\n\nرائل پام سٹی گوجرانوالہ میں پلاٹ کی خرید و فروخت، تازہ ترین ریٹ لسٹ اور فوری معلومات حاصل کرنے کے لیے نیچے دیے گئے لنک پر کلک کریں:\n\nشناخت: binabbasproperties\nلنک: ${window.location.href}`;
+    const shareText = isUrdu
+      ? `السلام علیکم!\n\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\n\nرائل پام سٹی گوجرانوالہ میں پلاٹ کی خرید و فروخت، تازہ ترین ریٹ لسٹ اور فوری معلومات حاصل کرنے کے لیے نیچے دیے گئے لنک پر کلک کریں:\n\nشناخت: binabbasproperties\nلنک: ${window.location.href}`
+      : `Hello!\n\nBIN ABBAS PROPERTIES (${LOCATION_TAGLINE_ENGLISH})\n\nClick the link below for buying, selling, latest price lists and real estate consultations in Royal Palm City Gujranwala:\n\nLink: ${window.location.href}`;
+
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `بن عباس پراپرٹیز - BIN ABBAS PROPERTIES`,
-          text: `السلام علیکم!\n\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\n\nرائل پام سٹی گوجرانوالہ میں پلاٹ کی خرید و فروخت، تازہ ترین ریٹ لسٹ اور فوری معلومات حاصل کرنے کے لیے نیچے دیے گئے لنک پر کلک کریں:\n\nشناخت: binabbasproperties`,
+          title: isUrdu ? `بن عباس پراپرٹیز - BIN ABBAS PROPERTIES` : `BIN ABBAS PROPERTIES - Royal Palm City`,
+          text: shareText,
           url: window.location.href,
         });
       } else {
@@ -96,8 +104,8 @@ export default function Header() {
         {/* Ambient Top Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Action Buttons: Install (Left) and Share (Right) */}
-        <div className="w-full flex items-center justify-between z-20 mb-2">
+        {/* Action Buttons: Install (Left), Language Switcher (Center), Share (Right) */}
+        <div className="w-full flex items-center justify-between z-20 mb-2 gap-1.5">
           {/* 1. Install Button */}
           {!isStandalone ? (
             <motion.button
@@ -105,32 +113,46 @@ export default function Header() {
               whileTap={{ scale: 0.96 }}
               id="header-install-btn"
               onClick={handleInstallClick}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-black text-xs shadow-md border border-emerald-400 transition-all cursor-pointer hover:brightness-110"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-black text-[11px] sm:text-xs shadow-md border border-emerald-400 transition-all cursor-pointer hover:brightness-110"
             >
-              <Download size={14} className="text-white animate-bounce" />
-              <span>ایپ انسٹال کریں</span>
+              <Download size={13} className="text-white animate-bounce" />
+              <span>{t.installApp}</span>
             </motion.button>
           ) : (
-            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-white/90 px-3 py-1 rounded-full border border-emerald-300 shadow-sm">
-              <CheckCircle2 size={13} className="text-emerald-600" />
-              <span>ایپ انسٹال ہے</span>
+            <span className="flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold text-emerald-800 bg-white/90 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
+              <CheckCircle2 size={12} className="text-emerald-600" />
+              <span>{t.installed}</span>
             </span>
           )}
 
-          {/* 2. Share Button */}
+          {/* 2. 🌐 Bilingual Language Switcher Button (Urdu <-> English) */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleLanguage}
+            id="header-language-toggle-btn"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs border border-amber-400/70 shadow-sm transition-all cursor-pointer"
+            title={isUrdu ? "Switch App to English" : "ایپ کو اردو میں تبدیل کریں"}
+            aria-label="Language Switcher"
+          >
+            <Globe size={13} className="text-emerald-700" />
+            <span className="font-sans font-black tracking-wide">{t.langToggle}</span>
+          </motion.button>
+
+          {/* 3. Share Button */}
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
             id="share-button"
             onClick={handleShare}
             className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/50 shadow-sm transition-all cursor-pointer focus:outline-none"
-            title="شیئر کریں"
-            aria-label="ایپ شیئر کریں"
+            title={t.shareApp}
+            aria-label={t.shareApp}
           >
             {copied ? (
               <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 px-1">
                 <Check size={14} />
-                <span>کاپی ہو گیا!</span>
+                <span>{t.copied}</span>
               </span>
             ) : (
               <Share2 size={15} />
@@ -138,27 +160,27 @@ export default function Header() {
           </motion.button>
         </div>
 
-        {/* Main Logo Component (Ultra-HD Guaranteed Non-Clipping) */}
+        {/* Main Logo Component (Official 3D Brand Logo) */}
         <BinAbbasLogo className="w-full max-w-[290px] sm:max-w-[310px] my-1" />
 
-        {/* Location / Address Card (Clickable to Google Maps Bin Abbas Properties) */}
+        {/* Location / Address Card */}
         <a 
           id="address-card"
           href={GOOGLE_MAPS_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full max-w-xs mt-2.5 flex items-center justify-center gap-2.5 bg-white/95 hover:bg-emerald-50 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-emerald-200 text-center shadow-sm transition-all cursor-pointer group"
-          title="گوگل میپس پر بن عباس پراپرٹیز، رائل پام سٹی گوجرانوالہ کی لوکیشن اور راستہ دیکھیں"
+          title="Google Maps: Bin Abbas Properties"
         >
           <div className="bg-emerald-100 p-1.5 rounded-lg text-emerald-700 shrink-0 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
             <MapPin size={14} />
           </div>
           <div className="flex flex-col text-center">
             <span className="text-xs text-emerald-950 font-black leading-tight">
-              بن عباس پراپرٹیز
+              {isUrdu ? "بن عباس پراپرٹیز" : "BIN ABBAS PROPERTIES"}
             </span>
             <span className="text-[10.5px] text-slate-700 font-bold leading-tight mt-0.5">
-              رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)
+              {isUrdu ? "رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)" : "Royal Palm City, Gujranwala (Palm Commercial 235)"}
             </span>
           </div>
         </a>

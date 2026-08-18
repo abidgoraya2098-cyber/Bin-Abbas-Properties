@@ -1,8 +1,12 @@
 import React from "react";
-import { DEVELOPER_NAME, BUSINESS_NAME, SUBTITLE } from "../data";
+import { DEVELOPER_NAME, DEVELOPER_ENGLISH_NAME, BUSINESS_NAME, ENGLISH_NAME, SUBTITLE, SUBTITLE_ENGLISH, LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH } from "../data";
 import { ShieldCheck } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
+import { getTranslation } from "../i18n";
 
 export default function Footer() {
+  const { language, isUrdu } = useLanguage();
+  const t = getTranslation(language);
   const currentYear = new Date().getFullYear();
 
   return (
@@ -15,13 +19,17 @@ export default function Footer() {
         id="footer-developer-badge"
       >
         <ShieldCheck size={13} className="text-emerald-700" />
-        <span>تیار کردہ و جملہ حقوق محفوظ: {DEVELOPER_NAME}</span>
+        <span>
+          {isUrdu 
+            ? `تیار کردہ و جملہ حقوق محفوظ: ${DEVELOPER_NAME}` 
+            : `Developed & Secured by: ${DEVELOPER_ENGLISH_NAME}`}
+        </span>
       </div>
       <div className="text-[10.5px] text-slate-700 font-bold mt-0.5" id="footer-copyright">
-        © {currentYear} {BUSINESS_NAME} - {SUBTITLE}
+        © {currentYear} {isUrdu ? BUSINESS_NAME : ENGLISH_NAME} - {isUrdu ? SUBTITLE : SUBTITLE_ENGLISH}
       </div>
       <div className="text-[9.5px] text-emerald-800 font-semibold mt-0.5">
-        رائل پام سٹی، گوجرانوالہ
+        {isUrdu ? LOCATION_TAGLINE : LOCATION_TAGLINE_ENGLISH}
       </div>
     </footer>
   );

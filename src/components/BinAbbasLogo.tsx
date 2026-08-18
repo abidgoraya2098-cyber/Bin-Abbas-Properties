@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MessageCircle, Phone, CheckCircle2, MapPin, Download, Share2, Check, Sparkles, Image as ImageIcon, Layers, Eye } from "lucide-react";
-import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE, CONTACT_PHONE_DISPLAY, LOCATION_TAGLINE } from "../data";
+import { X, CheckCircle2, MapPin, Download, Share2, Check, Sparkles, Layers } from "lucide-react";
+import { OWNER_NAME, OWNER_NAME_ENGLISH, ADDRESS, ADDRESS_ENGLISH, CONTACT_PHONE, CONTACT_PHONE_DISPLAY, LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH } from "../data";
+import { useLanguage } from "../context/LanguageContext";
 
 // Logo Collection Archive Definition
 export interface LogoArchiveItem {
   id: string;
   title: string;
+  titleEn: string;
   subtitle: string;
+  subtitleEn: string;
   badge: string;
+  badgeEn: string;
   format: "PNG" | "JPG" | "SVG";
   imageSrc: string;
   downloadFilename: string;
@@ -19,8 +23,11 @@ export const LOGO_COLLECTION: LogoArchiveItem[] = [
   {
     id: "master-3d",
     title: "موجودہ 3D ماسٹر لوگو (مع فون 0320.4800071)",
+    titleEn: "Official 3D Master Logo (with 0320.4800071)",
     subtitle: "رائل پام سٹی، گوجرانوالہ آفیشل ایمبوسڈ 3D لوگو",
-    badge: "موجودہ ایکٹو لوگو ⭐",
+    subtitleEn: "Royal Palm City Gujranwala Official Embossed 3D Logo",
+    badge: "موجودہ لوگو ⭐",
+    badgeEn: "Active 3D ⭐",
     format: "PNG",
     imageSrc: "/Bin-Abbas-Properties-Logo.png",
     downloadFilename: "Bin-Abbas-Properties-Master-3D-Logo.png",
@@ -29,8 +36,11 @@ export const LOGO_COLLECTION: LogoArchiveItem[] = [
   {
     id: "classic-original",
     title: "کلاسک آفیشل برانڈ لوگو",
+    titleEn: "Classic Official Brand Logo",
     subtitle: "اصل کلاسک رجسٹرڈ بن عباس پراپرٹیز لوگو",
-    badge: "کلاسک برانڈ 🏛️",
+    subtitleEn: "Original Registered Classic Brand Identity",
+    badge: "کلاسک 🏛️",
+    badgeEn: "Classic 🏛️",
     format: "JPG",
     imageSrc: "/bin_abbas_logo.jpg",
     downloadFilename: "Bin-Abbas-Properties-Classic-Original-Logo.jpg"
@@ -38,8 +48,11 @@ export const LOGO_COLLECTION: LogoArchiveItem[] = [
   {
     id: "3d-app-emblem",
     title: "3D گولڈ بلڈنگ ایمبلم و ایپ آئیکن",
+    titleEn: "3D Gold Building Emblem & App Icon",
     subtitle: "اسکوائر 3D لگژری ایمبلم لوگو (1024x1024)",
-    badge: "اسکوائر ایمبلم 👑",
+    subtitleEn: "Square 3D Luxury Emblem Logo (1024x1024)",
+    badge: "ایمبلم 👑",
+    badgeEn: "Emblem 👑",
     format: "PNG",
     imageSrc: "/3d-app-icon.png",
     downloadFilename: "Bin-Abbas-Properties-3D-Emblem-Icon.png"
@@ -47,8 +60,11 @@ export const LOGO_COLLECTION: LogoArchiveItem[] = [
   {
     id: "vector-svg",
     title: "ایچ ڈی ویکٹر ماسٹر ایڈیشن",
+    titleEn: "HD Vector Master Edition",
     subtitle: "لا محدود زوم اور پرنٹنگ کے لیے آفیشل ویکٹر فارمیٹ",
-    badge: "ویکٹر پرنٹ 📐",
+    subtitleEn: "Official Vector Format for Printing & Infinite Zoom",
+    badge: "ویکٹر 📐",
+    badgeEn: "Vector 📐",
     format: "SVG",
     imageSrc: "/logo.svg",
     downloadFilename: "Bin-Abbas-Properties-Vector-Master-Logo.svg"
@@ -491,6 +507,8 @@ export default function BinAbbasLogo({
   className?: string;
   variant?: "full" | "iconOnly";
 }) {
+  const { language, isUrdu } = useLanguage();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLogoId, setSelectedLogoId] = useState<string>("master-3d");
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -556,20 +574,28 @@ export default function BinAbbasLogo({
       const mimeType = logoItem.format === "JPG" ? "image/jpeg" : logoItem.format === "SVG" ? "image/svg+xml" : "image/png";
       const file = new File([blob], logoItem.downloadFilename, { type: mimeType });
 
+      const shareTitle = isUrdu 
+        ? `بن عباس پراپرٹیز - ${logoItem.title}` 
+        : `BIN ABBAS PROPERTIES - ${logoItem.titleEn}`;
+
+      const shareText = isUrdu
+        ? `السلام علیکم!\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\nرابطہ و واٹس ایپ: ${CONTACT_PHONE_DISPLAY}`
+        : `Hello!\nBIN ABBAS PROPERTIES (${LOCATION_TAGLINE_ENGLISH})\nContact & WhatsApp: ${CONTACT_PHONE_DISPLAY}`;
+
       // If device supports Web Share API Level 2 (files attachment directly in WhatsApp / Photos)
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `بن عباس پراپرٹیز - ${logoItem.title}`,
-          text: `السلام علیکم!\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\nرابطہ و واٹس ایپ: ${CONTACT_PHONE_DISPLAY}`
+          title: shareTitle,
+          text: shareText
         });
         setCopiedShare(true);
         setTimeout(() => setCopiedShare(false), 3000);
       } else if (navigator.share) {
         // Fallback Web Share
         await navigator.share({
-          title: `بن عباس پراپرٹیز - ${logoItem.title}`,
-          text: `السلام علیکم!\nبن عباس پراپرٹیز کا آفیشل لوگو ڈاؤن لوڈ کرنے کے لیے لنک کھولیں:\n${window.location.origin}${logoItem.imageSrc}`,
+          title: shareTitle,
+          text: `${shareText}\n${window.location.origin}${logoItem.imageSrc}`,
           url: `${window.location.origin}${logoItem.imageSrc}`
         });
         setCopiedShare(true);
@@ -596,7 +622,7 @@ export default function BinAbbasLogo({
       <div 
         onClick={(e) => handleSavePhotoToPhone(LOGO_COLLECTION[2], e)}
         className={`relative flex items-center justify-center select-none cursor-pointer group ${className}`}
-        title="آفیشل 3D ایپ آئیکن فوٹو ڈاؤن لوڈ کرنے کے لیے کلک کریں"
+        title={isUrdu ? "آفیشل 3D ایپ آئیکن فوٹو ڈاؤن لوڈ کرنے کے لیے کلک کریں" : "Click to download official 3D app icon photo"}
       >
         <RenderAppIconOnly />
       </div>
@@ -612,23 +638,23 @@ export default function BinAbbasLogo({
         onClick={() => setIsModalOpen(true)}
         className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 group ${className}`} 
         id="bin-abbas-logo-box"
-        title="مکمل تھری ڈی ایچ ڈی لوگو دیکھیں یا تمام لوگوز موبائل میں محفوظ کریں"
+        title={isUrdu ? "مکمل تھری ڈی ایچ ڈی لوگو دیکھیں یا تمام لوگوز موبائل میں محفوظ کریں" : "View 3D HD Logo or Save all logos to phone memory"}
       >
         {/* Quick Indicator Overlay Badge */}
         <div className="w-full flex items-center justify-between px-2 mb-1 z-10">
           <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-900 bg-amber-300/90 hover:bg-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/40 shadow-xs transition-transform duration-200 group-hover:scale-105">
             <Sparkles size={11} className="text-amber-700" />
-            <span>آفیشل 3D برانڈ لوگو</span>
+            <span>{isUrdu ? "آفیشل 3D برانڈ لوگو" : "Official 3D Brand Logo"}</span>
           </span>
 
           <button
             type="button"
             onClick={(e) => handleSavePhotoToPhone(LOGO_COLLECTION[0], e)}
             className="inline-flex items-center gap-1 text-[10.5px] font-black text-white bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 hover:brightness-110 active:scale-95 px-2.5 py-0.5 rounded-full border border-emerald-400 shadow-sm transition-all cursor-pointer"
-            title="براہِ راست تصویر موبائل میموری میں ڈاؤن لوڈ کریں"
+            title={isUrdu ? "براہِ راست تصویر موبائل میموری میں ڈاؤن لوڈ کریں" : "Save photo directly to phone memory"}
           >
             <Download size={11} className={isDownloading ? "animate-spin" : "animate-bounce"} />
-            <span>فوٹو ڈاؤن لوڈ</span>
+            <span>{isUrdu ? "فوٹو ڈاؤن لوڈ" : "Save Photo"}</span>
           </button>
         </div>
 
@@ -640,7 +666,7 @@ export default function BinAbbasLogo({
           <div className="absolute inset-x-4 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center justify-center">
             <span className="bg-slate-950/85 backdrop-blur-xs text-amber-300 text-[10.5px] font-bold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 flex items-center gap-1">
               <Layers size={12} />
-              <span>کلک کریں: تمام لوگوز گیلری و ڈاؤن لوڈ</span>
+              <span>{isUrdu ? "کلک کریں: تمام لوگوز گیلری و ڈاؤن لوڈ" : "Click: All Logos Gallery & Download"}</span>
             </span>
           </div>
         </div>
@@ -655,7 +681,7 @@ export default function BinAbbasLogo({
               className="absolute -bottom-8 z-30 bg-emerald-900 text-amber-200 px-3.5 py-1.5 rounded-xl border border-amber-400 shadow-xl flex items-center gap-1.5 text-xs font-black whitespace-nowrap"
             >
               <Check size={14} className="text-emerald-300" />
-              <span>تصویر موبائل کی میموری میں محفوظ ہو گئی!</span>
+              <span>{isUrdu ? "تصویر موبائل کی میموری میں محفوظ ہو گئی!" : "Photo saved to phone memory!"}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -667,7 +693,7 @@ export default function BinAbbasLogo({
           <div 
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
             id="logo-hd-modal-root"
-            dir="rtl"
+            dir={isUrdu ? "rtl" : "ltr"}
           >
             {/* Backdrop */}
             <motion.div
@@ -694,8 +720,8 @@ export default function BinAbbasLogo({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-3 left-3 p-1.5 rounded-full bg-white/95 text-emerald-950 hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-300 shadow-sm z-20"
-                aria-label="بند کریں"
+                className={`absolute top-3 p-1.5 rounded-full bg-white/95 text-emerald-950 hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-300 shadow-sm z-20 ${isUrdu ? "left-3" : "right-3"}`}
+                aria-label="Close"
               >
                 <X size={18} />
               </button>
@@ -705,14 +731,15 @@ export default function BinAbbasLogo({
                 <div className="flex items-center justify-center gap-2 mb-2 pt-1">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs shadow-xs">
                     <Layers size={13} className="text-emerald-700" />
-                    <span>آفیشل لوگو آرکائیو و گیلری (تمام لوگوز)</span>
+                    <span>{isUrdu ? "آفیشل لوگو آرکائیو و گیلری (تمام لوگوز)" : "Official Logo Archive & Gallery (All Logos)"}</span>
                   </div>
                 </div>
 
                 {/* 📂 LOGO SELECTOR TABS (Browse All Created Logos) */}
                 <div className="grid grid-cols-4 gap-1 p-1 bg-emerald-100/70 rounded-2xl border border-emerald-200 mb-3 shadow-inner">
-                  {LOGO_COLLECTION.map((item, idx) => {
+                  {LOGO_COLLECTION.map((item) => {
                     const isSelected = selectedLogoId === item.id;
+                    const badgeLabel = isUrdu ? item.badge.split(" ")[0] : item.badgeEn.split(" ")[0];
                     return (
                       <button
                         key={item.id}
@@ -724,7 +751,7 @@ export default function BinAbbasLogo({
                             : "text-emerald-950 hover:bg-emerald-200/60"
                         }`}
                       >
-                        <span className="truncate w-full">{item.badge.split(" ")[0]}</span>
+                        <span className="truncate w-full">{badgeLabel}</span>
                         <span className="text-[8.5px] opacity-85 mt-0.5">{item.format}</span>
                       </button>
                     );
@@ -740,34 +767,36 @@ export default function BinAbbasLogo({
                   ) : (
                     <img
                       src={selectedLogo.imageSrc}
-                      alt={selectedLogo.title}
+                      alt={isUrdu ? selectedLogo.title : selectedLogo.titleEn}
                       className="max-h-[220px] w-auto max-w-full object-contain rounded-xl drop-shadow-sm select-none"
                     />
                   )}
 
                   {/* Format & Current Badge */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                  <div className={`absolute top-2 flex items-center gap-1 ${isUrdu ? "right-2" : "left-2"}`}>
                     <span className="bg-emerald-900/90 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-400/50 shadow">
-                      {selectedLogo.badge}
+                      {isUrdu ? selectedLogo.badge : selectedLogo.badgeEn}
                     </span>
                   </div>
 
                   {/* Long-press / Click tip */}
                   <div className="absolute bottom-1 inset-x-2 text-[9.5px] text-slate-500 font-semibold bg-white/85 backdrop-blur-xs py-0.5 rounded-lg border border-emerald-100">
-                    💡 موبائل پر تصویر کو دبا کر رکھنے (Long-Press) سے بھی تصویر گیلری میں محفوظ ہو جاتی ہے
+                    {isUrdu 
+                      ? "💡 موبائل پر تصویر کو دبا کر رکھنے (Long-Press) سے بھی تصویر گیلری میں محفوظ ہو جاتی ہے" 
+                      : "💡 Long-press the image on mobile to save directly to Photos gallery"}
                   </div>
                 </div>
 
                 {/* Selected Logo Details */}
-                <div className="mt-2 text-right px-1">
+                <div className={`mt-2 px-1 ${isUrdu ? "text-right" : "text-left"}`}>
                   <h4 className="text-xs sm:text-sm font-black text-emerald-950 flex items-center justify-between">
-                    <span>{selectedLogo.title}</span>
+                    <span>{isUrdu ? selectedLogo.title : selectedLogo.titleEn}</span>
                     <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md font-bold">
-                      فارمیٹ: {selectedLogo.format}
+                      {isUrdu ? `فارمیٹ: ${selectedLogo.format}` : `Format: ${selectedLogo.format}`}
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
-                    {selectedLogo.subtitle}
+                    {isUrdu ? selectedLogo.subtitle : selectedLogo.subtitleEn}
                   </p>
                 </div>
               </div>
@@ -785,7 +814,11 @@ export default function BinAbbasLogo({
                     className="py-2.5 px-2.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:brightness-105 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center justify-center gap-1.5 border border-amber-300 transition-all cursor-pointer"
                   >
                     <Download size={16} className={isDownloading ? "animate-spin" : "text-slate-950"} />
-                    <span>{isDownloading ? "محفوظ ہو رہی ہے..." : "موبائل میموری میں محفوظ کریں"}</span>
+                    <span>
+                      {isDownloading 
+                        ? (isUrdu ? "محفوظ ہو رہی ہے..." : "Saving...") 
+                        : (isUrdu ? "موبائل میموری میں محفوظ کریں" : "Save Photo to Phone")}
+                    </span>
                   </motion.button>
 
                   {/* 2. Direct WhatsApp Photo Attachment Share Button */}
@@ -800,12 +833,12 @@ export default function BinAbbasLogo({
                     {copiedShare ? (
                       <>
                         <Check size={16} className="text-emerald-300" />
-                        <span>فوٹو شیئر ہو گئی!</span>
+                        <span>{isUrdu ? "فوٹو شیئر ہو گئی!" : "Shared!"}</span>
                       </>
                     ) : (
                       <>
                         <Share2 size={16} className={isSharing ? "animate-spin text-amber-300" : "text-amber-300"} />
-                        <span>{isSharing ? "شیئرنگ..." : "واٹس ایپ فوٹو بھیجیں"}</span>
+                        <span>{isSharing ? (isUrdu ? "شیئرنگ..." : "Sharing...") : (isUrdu ? "واٹس ایپ فوٹو بھیجیں" : "Send Photo via WhatsApp")}</span>
                       </>
                     )}
                   </motion.button>
@@ -818,19 +851,23 @@ export default function BinAbbasLogo({
                     className="bg-emerald-800 text-emerald-100 text-[11px] font-bold py-1.5 px-3 rounded-lg border border-emerald-500 flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <CheckCircle2 size={13} className="text-emerald-300" />
-                    <span>منتخب لوگو تصویر کی شکل میں موبائل کی میموری میں ڈاؤن لوڈ ہو گئی ہے!</span>
+                    <span>
+                      {isUrdu 
+                        ? "منتخب لوگو تصویر کی شکل میں موبائل کی میموری میں ڈاؤن لوڈ ہو گئی ہے!" 
+                        : "Selected logo downloaded as a photo directly into phone memory!"}
+                    </span>
                   </motion.div>
                 )}
               </div>
 
               {/* Business Info Footer in Modal */}
-              <div className="mt-2 pt-2 border-t border-emerald-200/70 text-right flex items-center justify-between text-[11px] text-slate-700 font-bold">
+              <div className="mt-2 pt-2 border-t border-emerald-200/70 flex items-center justify-between text-[11px] text-slate-700 font-bold">
                 <span className="flex items-center gap-1">
                   <MapPin size={12} className="text-emerald-700" />
-                  <span>{ADDRESS}</span>
+                  <span>{isUrdu ? ADDRESS : ADDRESS_ENGLISH}</span>
                 </span>
                 <span className="text-emerald-800 font-black">
-                  سی ای او: {OWNER_NAME}
+                  {isUrdu ? `سی ای او: ${OWNER_NAME}` : `CEO: ${OWNER_NAME_ENGLISH}`}
                 </span>
               </div>
             </motion.div>
