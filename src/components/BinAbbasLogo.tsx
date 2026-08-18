@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MessageCircle, Phone, CheckCircle2, MapPin, Download, Share2, Check, Sparkles } from "lucide-react";
-import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE, CONTACT_PHONE_DISPLAY } from "../data";
+import { X, MessageCircle, Phone, CheckCircle2, MapPin, Download, Share2, Check, Sparkles, Image as ImageIcon } from "lucide-react";
+import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE, CONTACT_PHONE_DISPLAY, LOCATION_TAGLINE } from "../data";
 
 // 3D Master App Logo Plaque Component
 function RenderMaster3DLogo({ showPhone = true }: { showPhone?: boolean }) {
@@ -442,17 +442,18 @@ export default function BinAbbasLogo({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
 
-  // Reliable Universal PNG Logo Downloader (works across Android, iOS, Windows, Mac)
+  // 1. Guaranteed Universal High-Definition PNG Logo Downloader
   const handleDownloadPng = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setIsDownloading(true);
 
     try {
-      // 1. Fetch the high-res PNG file and create blob
+      // Direct high-res solid-background PNG logo
       const logoUrl = "/Bin-Abbas-Properties-Logo.png";
-      const response = await fetch(logoUrl);
+      const response = await fetch(logoUrl, { cache: "no-cache" });
       
       if (!response.ok) {
         throw new Error("Failed to fetch image");
@@ -461,7 +462,6 @@ export default function BinAbbasLogo({
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       
-      // 2. Programmatically trigger native download
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = "Bin-Abbas-Properties-Official-Logo.png";
@@ -469,18 +469,16 @@ export default function BinAbbasLogo({
       link.click();
       document.body.removeChild(link);
       
-      // Clean up blob URL
       setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl);
-      }, 2000);
+      }, 3000);
 
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3500);
     } catch (err) {
-      console.warn("[Logo Download] Fallback direct download link:", err);
-      // Fallback direct download link
+      console.warn("[Logo Download] Direct download fallback:", err);
       const fallbackLink = document.createElement("a");
-      fallbackLink.href = "/logo.png";
+      fallbackLink.href = "/Bin-Abbas-Properties-Logo.png";
       fallbackLink.download = "Bin-Abbas-Properties-Official-Logo.png";
       fallbackLink.target = "_blank";
       document.body.appendChild(fallbackLink);
@@ -494,26 +492,49 @@ export default function BinAbbasLogo({
     }
   };
 
-  const handleShareLogo = async (e?: React.MouseEvent) => {
+  // 2. Native File Share (Direct Photo Attachment to WhatsApp / Messenger)
+  const handleShareLogoFile = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const shareText = `بن عباس پراپرٹیز - BIN ABBAS PROPERTIES (رائل پام سٹی، گوجرانوالہ)\nآفیشل برانڈ لوگو و رابطہ معلومات:\nفون و واٹس ایپ: ${CONTACT_PHONE_DISPLAY}\n${window.location.origin}/logo.png`;
-    
+    setIsSharing(true);
+
     try {
-      if (navigator.share) {
+      const logoUrl = "/Bin-Abbas-Properties-Logo.png";
+      const response = await fetch(logoUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "Bin-Abbas-Properties-Logo.png", { type: "image/png" });
+
+      // If browser/device supports native file sharing (Android/iOS WhatsApp & Photos)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: "بن عباس پراپرٹیز آفیشل لوگو",
-          text: shareText,
-          url: `${window.location.origin}/logo.png`
+          files: [file],
+          title: "بن عباس پراپرٹیز - آفیشل برانڈ لوگو",
+          text: `السلام علیکم!\nبن عباس پراپرٹیز - BIN ABBAS PROPERTIES (${LOCATION_TAGLINE})\nرابطہ و واٹس ایپ: ${CONTACT_PHONE_DISPLAY}`
         });
-      } else {
-        await navigator.clipboard.writeText(shareText);
         setCopiedShare(true);
-        setTimeout(() => setCopiedShare(false), 2500);
+        setTimeout(() => setCopiedShare(false), 3000);
+      } else if (navigator.share) {
+        // Fallback Web Share with link
+        await navigator.share({
+          title: "بن عباس پراپرٹیز - آفیشل برانڈ لوگو",
+          text: `السلام علیکم!\nبن عباس پراپرٹیز کا آفیشل برانڈ لوگو ڈاؤن لوڈ کرنے کے لیے لنک کھولیں:\n${window.location.origin}/Bin-Abbas-Properties-Logo.png`,
+          url: `${window.location.origin}/Bin-Abbas-Properties-Logo.png`
+        });
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 3000);
+      } else {
+        // Fallback: Trigger download & copy link
+        await handleDownloadPng();
+        await navigator.clipboard.writeText(`${window.location.origin}/Bin-Abbas-Properties-Logo.png`);
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 3000);
       }
-    } catch (err) {
-      await navigator.clipboard.writeText(shareText);
-      setCopiedShare(true);
-      setTimeout(() => setCopiedShare(false), 2500);
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        console.warn("[Share Logo File] Fallback triggered:", err);
+        await handleDownloadPng();
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -535,10 +556,7 @@ export default function BinAbbasLogo({
       <motion.div 
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.985 }}
-        onClick={() => {
-          // Open HD modal and trigger quick download for seamless user experience
-          setIsModalOpen(true);
-        }}
+        onClick={() => setIsModalOpen(true)}
         className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 group ${className}`} 
         id="bin-abbas-logo-box"
         title="مکمل تھری ڈی ایچ ڈی لوگو دیکھیں یا پی این جی (PNG) فارمیٹ میں ڈاؤن لوڈ کریں"
@@ -561,7 +579,7 @@ export default function BinAbbasLogo({
           </button>
         </div>
 
-        {/* The 3D Master SVG Render */}
+        {/* The 3D Master SVG Render with Crystal Clear Definition */}
         <div className="w-full flex items-center justify-center py-0.5 relative">
           <RenderMaster3DLogo showPhone={true} />
 
@@ -584,7 +602,7 @@ export default function BinAbbasLogo({
               className="absolute -bottom-8 z-30 bg-emerald-900 text-amber-200 px-3.5 py-1.5 rounded-xl border border-amber-400 shadow-xl flex items-center gap-1.5 text-xs font-black whitespace-nowrap"
             >
               <Check size={14} className="text-emerald-300" />
-              <span>آفیشل لوگو (PNG) کامیابی سے ڈاؤن لوڈ ہو گیا!</span>
+              <span>آفیشل لوگو (PNG) کامیابی سے محفوظ ہو گیا!</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -636,11 +654,11 @@ export default function BinAbbasLogo({
               </div>
 
               {/* Logo Presentation in Modal */}
-              <div className="p-1 rounded-2xl overflow-hidden my-1 bg-white/60 border border-emerald-200/70 shadow-inner">
+              <div className="p-1.5 rounded-2xl overflow-hidden my-1 bg-white border border-emerald-200/80 shadow-md">
                 <RenderMaster3DLogo showPhone={true} />
               </div>
 
-              {/* Prominent High-Def PNG Download & Share Action Buttons */}
+              {/* Action Buttons: Download PNG & Share PNG File directly */}
               <div className="flex flex-col gap-2 mt-3">
                 <div className="grid grid-cols-2 gap-2">
                   {/* 1. Primary PNG Download Button */}
@@ -656,23 +674,24 @@ export default function BinAbbasLogo({
                     <span>{isDownloading ? "ڈاؤن لوڈ جاری ہے..." : "لوگو PNG ڈاؤن لوڈ کریں"}</span>
                   </motion.button>
 
-                  {/* 2. Share Logo Button */}
+                  {/* 2. Direct PNG File Share Button (WhatsApp / Photos) */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     type="button"
-                    onClick={handleShareLogo}
+                    onClick={handleShareLogoFile}
+                    disabled={isSharing}
                     className="py-2.5 px-3 bg-emerald-900 hover:bg-emerald-950 text-amber-200 font-bold text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 border border-emerald-700 transition-all cursor-pointer"
                   >
                     {copiedShare ? (
                       <>
                         <Check size={16} className="text-emerald-300" />
-                        <span>لنک کاپی ہو گیا!</span>
+                        <span>لوگو شیئر ہو گیا!</span>
                       </>
                     ) : (
                       <>
-                        <Share2 size={16} className="text-amber-300" />
-                        <span>لوگو شیئر کریں</span>
+                        <Share2 size={16} className={isSharing ? "animate-spin text-amber-300" : "text-amber-300"} />
+                        <span>{isSharing ? "شیئرنگ جاری ہے..." : "لوگو فوٹو شیئر کریں"}</span>
                       </>
                     )}
                   </motion.button>
@@ -682,7 +701,7 @@ export default function BinAbbasLogo({
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-emerald-800 text-emerald-100 text-[11px] font-bold py-1 px-2.5 rounded-lg border border-emerald-500 flex items-center justify-center gap-1"
+                    className="bg-emerald-800 text-emerald-100 text-[11px] font-bold py-1.5 px-3 rounded-lg border border-emerald-500 flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <CheckCircle2 size={13} className="text-emerald-300" />
                     <span>آفیشل لوگو (PNG) کامیابی سے آپ کی ڈیوائس پر ڈاؤن لوڈ ہو گیا ہے!</span>
