@@ -1,7 +1,436 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, MessageCircle, Phone, CheckCircle2, MapPin } from "lucide-react";
-import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE } from "../data";
+import { OWNER_NAME, BUSINESS_NAME, ENGLISH_NAME, ADDRESS, CONTACT_PHONE, CONTACT_PHONE_DISPLAY } from "../data";
+
+// 3D Master App Logo Plaque Component
+function RenderMaster3DLogo({ showPhone = true }: { showPhone?: boolean }) {
+  return (
+    <svg 
+      viewBox="0 0 600 500" 
+      className="w-full h-auto drop-shadow-md select-none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        {/* Soft Luxury Light Emerald & Mint Pearl Radial Background */}
+        <radialGradient id="appLogoBgRadial" cx="50%" cy="38%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="35%" stopColor="#f3faf6" />
+          <stop offset="75%" stopColor="#dff2e7" />
+          <stop offset="100%" stopColor="#c5e8d3" />
+        </radialGradient>
+
+        {/* Ultra-Luminous 3D Metallic Champagne Gold Gradient */}
+        <linearGradient id="appHdGold3D" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="15%" stopColor="#fff1b3" />
+          <stop offset="35%" stopColor="#f5d061" />
+          <stop offset="60%" stopColor="#c9971e" />
+          <stop offset="85%" stopColor="#8a600a" />
+          <stop offset="95%" stopColor="#e8bf56" />
+          <stop offset="100%" stopColor="#ffe699" />
+        </linearGradient>
+
+        {/* 3D Bevel Gold Gradient */}
+        <linearGradient id="appHdGoldBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="30%" stopColor="#ffea9f" />
+          <stop offset="70%" stopColor="#c59828" />
+          <stop offset="100%" stopColor="#734f07" />
+        </linearGradient>
+
+        {/* Building Front Face Facet (Pure Pearl White) */}
+        <linearGradient id="appHdBldgFront" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="50%" stopColor="#f4fbf7" />
+          <stop offset="100%" stopColor="#dcf0e4" />
+        </linearGradient>
+
+        {/* Gold 3D Shadow Side */}
+        <linearGradient id="appHdGoldSide" x1="0%" y1="0%" x2="100%" y2="50%">
+          <stop offset="0%" stopColor="#b88318" />
+          <stop offset="50%" stopColor="#785308" />
+          <stop offset="100%" stopColor="#452c02" />
+        </linearGradient>
+
+        {/* 3D Embossed Phone Badge Background Gradient */}
+        <linearGradient id="phoneBadge3DGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="20%" stopColor="#fff6c8" />
+          <stop offset="55%" stopColor="#e5b236" />
+          <stop offset="85%" stopColor="#ab7b10" />
+          <stop offset="100%" stopColor="#f8d66e" />
+        </linearGradient>
+
+        <linearGradient id="phoneBadgeInnerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#0a4d30" />
+          <stop offset="50%" stopColor="#063822" />
+          <stop offset="100%" stopColor="#032415" />
+        </linearGradient>
+
+        <linearGradient id="phoneGoldTextGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="35%" stopColor="#fff3b8" />
+          <stop offset="70%" stopColor="#eec34b" />
+          <stop offset="100%" stopColor="#bc8a15" />
+        </linearGradient>
+
+        {/* Drop Shadows for Crisp 3D Definition */}
+        <filter id="appHdDropShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#0a4328" floodOpacity="0.22" />
+        </filter>
+        
+        <filter id="appHdTextShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#000000" floodOpacity="0.14" />
+        </filter>
+
+        <filter id="phoneBadgeGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#0a3d24" floodOpacity="0.3" />
+        </filter>
+      </defs>
+
+      {/* Outer Card Plaque with 3D Beveled Borders */}
+      <rect x="6" y="6" width="588" height="488" rx="28" fill="url(#appLogoBgRadial)" stroke="url(#appHdGold3D)" strokeWidth="2.5" />
+      <rect x="14" y="14" width="572" height="472" rx="20" fill="none" stroke="#0e6d42" strokeWidth="1.2" opacity="0.25" strokeDasharray="6 4" />
+
+      {/* 1. Architectural 3D Gold Emblem */}
+      <g filter="url(#appHdDropShadow)" transform="translate(300, 118) scale(0.46)">
+        {/* Grand Moorish Outer Arch */}
+        <path 
+          d="M -150 145 V -15 C -150 -105, -90 -175, 0 -205 C 90 -175, 150 -105, 150 -15 V 145 L 120 145 V -15 C 120 -90, 65 -150, 0 -175 C -65 -150, -120 -90, -120 -15 V 145 Z" 
+          fill="url(#appHdGold3D)" 
+        />
+
+        {/* Arch Inner Golden Bevel Trim */}
+        <path 
+          d="M -105 145 V -12 C -105 -72, -55 -128, 0 -152 C 55 -128, 105 -72, 105 -12 V 145" 
+          fill="none" 
+          stroke="url(#appHdGoldBevel)" 
+          strokeWidth="4" 
+          strokeLinecap="round"
+          opacity="0.95" 
+        />
+
+        {/* Left Skyscraper Tower */}
+        <polygon points="-100,135 -100,-35 -48,-78 -48,135" fill="url(#appHdBldgFront)" />
+        <polygon points="-48,-78 -26,-62 -26,135 -48,135" fill="url(#appHdGoldSide)" />
+        <g fill="#0b4a2e" opacity="0.85">
+          <rect x="-90" y="-10" width="14" height="32" rx="1.5" />
+          <rect x="-90" y="36" width="14" height="32" rx="1.5" />
+          <rect x="-90" y="82" width="14" height="32" rx="1.5" />
+          <rect x="-68" y="-24" width="14" height="32" rx="1.5" />
+          <rect x="-68" y="22" width="14" height="32" rx="1.5" />
+          <rect x="-68" y="68" width="14" height="32" rx="1.5" />
+        </g>
+
+        {/* Center Grand Skyscraper Tower */}
+        <polygon points="-22,135 -22,-120 22,-162 25,-158 25,135" fill="url(#appHdBldgFront)" />
+        <polygon points="25,-158 54,-135 54,135 25,135" fill="url(#appHdGoldSide)" />
+        <g fill="#0b4a2e" opacity="0.88">
+          <rect x="-14" y="-85" width="12" height="24" rx="1.5" />
+          <rect x="-14" y="-50" width="12" height="24" rx="1.5" />
+          <rect x="-14" y="-15" width="12" height="24" rx="1.5" />
+          <rect x="-14" y="20" width="12" height="24" rx="1.5" />
+          <rect x="-14" y="55" width="12" height="24" rx="1.5" />
+          <rect x="-14" y="90" width="12" height="24" rx="1.5" />
+          <rect x="4" y="-102" width="12" height="24" rx="1.5" />
+          <rect x="4" y="-67" width="12" height="24" rx="1.5" />
+          <rect x="4" y="-32" width="12" height="24" rx="1.5" />
+          <rect x="4" y="3" width="12" height="24" rx="1.5" />
+          <rect x="4" y="38" width="12" height="24" rx="1.5" />
+          <rect x="4" y="73" width="12" height="24" rx="1.5" />
+        </g>
+
+        {/* Right Tower */}
+        <polygon points="60,135 60,-60 105,-34 105,135" fill="url(#appHdGold3D)" />
+        <polygon points="105,-34 118,-24 118,135 105,135" fill="url(#appHdGoldSide)" />
+        <g stroke="#083823" strokeWidth="3.5" strokeLinecap="round" opacity="0.9">
+          <line x1="68" y1="-26" x2="96" y2="-10" />
+          <line x1="68" y1="-5" x2="96" y2="11" />
+          <line x1="68" y1="16" x2="96" y2="32" />
+          <line x1="68" y1="37" x2="96" y2="53" />
+          <line x1="68" y1="58" x2="96" y2="74" />
+          <line x1="68" y1="79" x2="96" y2="95" />
+          <line x1="68" y1="100" x2="96" y2="116" />
+        </g>
+
+        {/* Grand Dome */}
+        <path d="M -65 145 C -65 75, 65 75, 65 145 Z" fill="url(#appHdGold3D)" />
+        <path d="M -50 145 C -50 88, 50 88, 50 145 Z" fill="none" stroke="url(#appHdGoldBevel)" strokeWidth="2.5" opacity="0.85" />
+        <path d="M 0 75 V 46" stroke="url(#appHdGold3D)" strokeWidth="4.5" strokeLinecap="round" />
+        <circle cx="0" cy="42" r="4" fill="#ffffff" />
+
+        {/* Base Platforms */}
+        <path d="M -195 158 Q 0 132 195 158" fill="none" stroke="url(#appHdGold3D)" strokeWidth="6" strokeLinecap="round" />
+        <path d="M -155 168 Q 0 145 155 168" fill="none" stroke="url(#appHdGoldBevel)" strokeWidth="2.5" strokeLinecap="round" opacity="0.85" />
+      </g>
+
+      {/* 2. ENGLISH BRAND TITLE */}
+      <g filter="url(#appHdTextShadow)">
+        <text 
+          x="300" 
+          y="245" 
+          textAnchor="middle" 
+          fontFamily="'Cinzel', 'Trajan Pro', 'Georgia', serif" 
+          fontSize="35" 
+          fontWeight="900" 
+          letterSpacing="4.5"
+          fill="#0a4d30"
+        >
+          BIN ABBAS
+        </text>
+
+        <text 
+          x="300" 
+          y="276" 
+          textAnchor="middle" 
+          fontFamily="'Segoe UI', -apple-system, sans-serif" 
+          fontSize="16" 
+          fontWeight="800" 
+          letterSpacing="11"
+          fill="#b88318"
+        >
+          PROPERTIES
+        </text>
+      </g>
+
+      {/* 3. URDU CALLIGRAPHY: بن عباس پراپرٹیز */}
+      <text 
+        x="300" 
+        y="336" 
+        textAnchor="middle" 
+        fontFamily="'Noto Sans Arabic', 'Jameel Noori Nastaleeq', serif" 
+        fontSize="38" 
+        fontWeight="900"
+        fill="#073d25"
+        direction="rtl"
+      >
+        بن عباس پراپرٹیز
+      </text>
+
+      {/* 4. LOCATION TAGLINE */}
+      <text 
+        x="300" 
+        y="370" 
+        textAnchor="middle" 
+        fontFamily="'Noto Sans Arabic', sans-serif" 
+        fontSize="16" 
+        fontWeight="bold"
+        fill="#7a5509"
+        direction="rtl"
+      >
+        رائل پام سٹی، گوجرانوالہ
+      </text>
+
+      {/* 5. ⭐ 3D PROMINENT EMBOSSED MOBILE NUMBER BADGE (0320.4800071) */}
+      {showPhone && (
+        <g filter="url(#phoneBadgeGlow)" transform="translate(300, 424)">
+          {/* Outer 3D Gold Rim Plaque */}
+          <rect 
+            x="-185" 
+            y="-26" 
+            width="370" 
+            height="52" 
+            rx="26" 
+            fill="url(#phoneBadge3DGrad)" 
+            stroke="url(#appHdGold3D)" 
+            strokeWidth="2" 
+          />
+          
+          {/* Inner Royal Deep Emerald Inset */}
+          <rect 
+            x="-181" 
+            y="-22" 
+            width="362" 
+            height="44" 
+            rx="22" 
+            fill="url(#phoneBadgeInnerGrad)" 
+            stroke="#c59828" 
+            strokeWidth="1.2" 
+          />
+
+          {/* 3D Phone Icon */}
+          <g transform="translate(-142, 0) scale(0.9)">
+            <circle cx="0" cy="0" r="14" fill="url(#appHdGold3D)" />
+            <path 
+              d="M -5 -6 C -6 -5, -6 -3, -4 0 C -2 3, 0 5, 3 6 C 5 7, 7 6, 8 4 L 6.5 2 C 6 1.5, 5 1.5, 4.5 2 L 3.5 2.8 C 2.5 2.2, 1.8 1.5, 1.2 0.5 L 2 -0.5 C 2.5 -1, 2.5 -2, 2 -2.5 L 0 -4.5 C -0.5 -5, -1.5 -5, -2 -4.5 Z" 
+              fill="#042617" 
+            />
+          </g>
+
+          {/* 3D Embossed Mobile Number: 0320.4800071 */}
+          <text 
+            x="12" 
+            y="9" 
+            textAnchor="middle" 
+            fontFamily="'Trebuchet MS', 'Arial Black', -apple-system, sans-serif" 
+            fontSize="26" 
+            fontWeight="900" 
+            letterSpacing="2.5"
+            fill="url(#phoneGoldTextGrad)"
+            stroke="#021a0f"
+            strokeWidth="0.8"
+          >
+            0320.4800071
+          </text>
+        </g>
+      )}
+
+      {/* Bottom Accent Golden Arc */}
+      <path d="M 170 478 Q 300 468 430 478" fill="none" stroke="url(#appHdGold3D)" strokeWidth="1.8" opacity="0.85" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// 3D Square App Icon Component
+function RenderAppIconOnly() {
+  return (
+    <svg 
+      viewBox="0 0 512 512" 
+      className="w-full h-full object-contain select-none drop-shadow-md"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <radialGradient id="iconOnlyCanvasBg" cx="50%" cy="38%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="35%" stopColor="#f5fbf7" />
+          <stop offset="75%" stopColor="#e0f3e7" />
+          <stop offset="100%" stopColor="#c6e9d4" />
+        </radialGradient>
+
+        <linearGradient id="iconOnlyGold3D" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="15%" stopColor="#fff1b0" />
+          <stop offset="35%" stopColor="#f5ce5e" />
+          <stop offset="60%" stopColor="#ca9820" />
+          <stop offset="85%" stopColor="#8c6109" />
+          <stop offset="95%" stopColor="#e8bf56" />
+          <stop offset="100%" stopColor="#ffe696" />
+        </linearGradient>
+
+        <linearGradient id="iconOnlyGoldBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="30%" stopColor="#ffea9a" />
+          <stop offset="70%" stopColor="#c59828" />
+          <stop offset="100%" stopColor="#734e06" />
+        </linearGradient>
+
+        <linearGradient id="iconOnlyBldgWhite" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="50%" stopColor="#f6fcf9" />
+          <stop offset="100%" stopColor="#e0f2e7" />
+        </linearGradient>
+
+        <linearGradient id="iconOnlyGoldSide" x1="0%" y1="0%" x2="100%" y2="50%">
+          <stop offset="0%" stopColor="#b98519" />
+          <stop offset="50%" stopColor="#7a5409" />
+          <stop offset="100%" stopColor="#462c03" />
+        </linearGradient>
+
+        <filter id="iconOnlyShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="5" stdDeviation="6" floodColor="#0a4328" floodOpacity="0.22" />
+        </filter>
+      </defs>
+
+      <rect width="512" height="512" fill="url(#iconOnlyCanvasBg)" rx="112" />
+      <circle cx="256" cy="256" r="240" fill="none" stroke="url(#iconOnlyGold3D)" strokeWidth="3" opacity="0.85" />
+      <circle cx="256" cy="256" r="232" fill="none" stroke="#0e6d42" strokeWidth="1.5" opacity="0.3" strokeDasharray="6 4" />
+
+      <g filter="url(#iconOnlyShadow)">
+        {/* 3D Gold Arch & Buildings Emblem */}
+        <g transform="translate(256, 175) scale(0.60)">
+          <path 
+            d="M -150 145 V -15 C -150 -105, -90 -175, 0 -205 C 90 -175, 150 -105, 150 -15 V 145 L 120 145 V -15 C 120 -90, 65 -150, 0 -175 C -65 -150, -120 -90, -120 -15 V 145 Z" 
+            fill="url(#iconOnlyGold3D)" 
+          />
+          <path 
+            d="M -105 145 V -12 C -105 -72, -55 -128, 0 -152 C 55 -128, 105 -72, 105 -12 V 145" 
+            fill="none" 
+            stroke="url(#iconOnlyGoldBevel)" 
+            strokeWidth="4" 
+            strokeLinecap="round"
+            opacity="0.95"
+          />
+
+          <polygon points="-100,135 -100,-35 -48,-78 -48,135" fill="url(#iconOnlyBldgWhite)" />
+          <polygon points="-48,-78 -26,-62 -26,135 -48,135" fill="url(#iconOnlyGoldSide)" />
+          <g fill="#0b4a2e" opacity="0.9">
+            <rect x="-90" y="-10" width="14" height="32" rx="1.5" />
+            <rect x="-90" y="36" width="14" height="32" rx="1.5" />
+            <rect x="-90" y="82" width="14" height="32" rx="1.5" />
+            <rect x="-68" y="-24" width="14" height="32" rx="1.5" />
+            <rect x="-68" y="22" width="14" height="32" rx="1.5" />
+            <rect x="-68" y="68" width="14" height="32" rx="1.5" />
+          </g>
+
+          <polygon points="-22,135 -22,-120 22,-162 25,-158 25,135" fill="url(#iconOnlyBldgWhite)" />
+          <polygon points="25,-158 54,-135 54,135 25,135" fill="url(#iconOnlyGoldSide)" />
+          <g fill="#0b4a2e" opacity="0.92">
+            <rect x="-14" y="-85" width="12" height="24" rx="1.5" />
+            <rect x="-14" y="-50" width="12" height="24" rx="1.5" />
+            <rect x="-14" y="-15" width="12" height="24" rx="1.5" />
+            <rect x="-14" y="20" width="12" height="24" rx="1.5" />
+            <rect x="-14" y="55" width="12" height="24" rx="1.5" />
+            <rect x="-14" y="90" width="12" height="24" rx="1.5" />
+            <rect x="4" y="-102" width="12" height="24" rx="1.5" />
+            <rect x="4" y="-67" width="12" height="24" rx="1.5" />
+            <rect x="4" y="-32" width="12" height="24" rx="1.5" />
+            <rect x="4" y="3" width="12" height="24" rx="1.5" />
+            <rect x="4" y="38" width="12" height="24" rx="1.5" />
+            <rect x="4" y="73" width="12" height="24" rx="1.5" />
+          </g>
+
+          <polygon points="60,135 60,-60 105,-34 105,135" fill="url(#iconOnlyGold3D)" />
+          <polygon points="105,-34 118,-24 118,135 105,135" fill="url(#iconOnlyGoldSide)" />
+          <g stroke="#083823" strokeWidth="3.5" strokeLinecap="round" opacity="0.9">
+            <line x1="68" y1="-26" x2="96" y2="-10" />
+            <line x1="68" y1="-5" x2="96" y2="11" />
+            <line x1="68" y1="16" x2="96" y2="32" />
+            <line x1="68" y1="37" x2="96" y2="53" />
+            <line x1="68" y1="58" x2="96" y2="74" />
+            <line x1="68" y1="79" x2="96" y2="95" />
+            <line x1="68" y1="100" x2="96" y2="116" />
+          </g>
+
+          <path d="M -65 145 C -65 75, 65 75, 65 145 Z" fill="url(#iconOnlyGold3D)" />
+          <path d="M -50 145 C -50 88, 50 88, 50 145 Z" fill="none" stroke="url(#iconOnlyGoldBevel)" strokeWidth="2.5" opacity="0.85" />
+          <path d="M 0 75 V 46" stroke="url(#iconOnlyGold3D)" strokeWidth="4.5" strokeLinecap="round" />
+          <circle cx="0" cy="42" r="4" fill="#ffffff" />
+
+          <path d="M -195 158 Q 0 132 195 158" fill="none" stroke="url(#iconOnlyGold3D)" strokeWidth="6" strokeLinecap="round" />
+          <path d="M -155 168 Q 0 145 155 168" fill="none" stroke="url(#iconOnlyGoldBevel)" strokeWidth="2.5" strokeLinecap="round" opacity="0.85" />
+        </g>
+
+        {/* English Brand Title */}
+        <text 
+          x="256" 
+          y="322" 
+          textAnchor="middle" 
+          fontFamily="'Cinzel', 'Trajan Pro', 'Georgia', serif" 
+          fontSize="34" 
+          fontWeight="900" 
+          letterSpacing="4"
+          fill="#0a482b"
+        >
+          BIN ABBAS
+        </text>
+
+        <text 
+          x="256" 
+          y="350" 
+          textAnchor="middle" 
+          fontFamily="'Segoe UI', -apple-system, sans-serif" 
+          fontSize="15" 
+          fontWeight="800" 
+          letterSpacing="9"
+          fill="#b88318"
+        >
+          PROPERTIES
+        </text>
+      </g>
+    </svg>
+  );
+}
 
 export default function BinAbbasLogo({ 
   className = "w-full max-w-[320px]",
@@ -15,34 +444,24 @@ export default function BinAbbasLogo({
   if (variant === "iconOnly") {
     return (
       <div className={`relative flex items-center justify-center select-none ${className}`}>
-        <img 
-          src="/bin_abbas_logo.jpg" 
-          alt="Bin Abbas Properties 3D Icon" 
-          className="w-full h-full object-contain rounded-2xl drop-shadow-md"
-        />
+        <RenderAppIconOnly />
       </div>
     );
   }
 
   return (
     <>
-      {/* Official Luxury Brand Logo Card */}
+      {/* Official 3D App Icon Brand Logo Card */}
       <motion.div 
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => setIsModalOpen(true)}
         className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 ${className}`} 
         id="bin-abbas-logo-box"
-        title="مکمل ایچ ڈی لوگو دیکھنے کے لیے کلک کریں"
+        title="مکمل تھری ڈی ایچ ڈی لوگو اور رابطہ دیکھنے کے لیے کلک کریں"
       >
-        <div className="w-full flex items-center justify-center py-1">
-          <div className="w-full rounded-2xl overflow-hidden shadow-md border-2 border-amber-400/60 bg-emerald-950">
-            <img
-              src="/bin_abbas_logo.jpg"
-              alt="بن عباس پراپرٹیز - رائل پام سٹی گوجرانوالہ"
-              className="w-full h-auto object-cover max-h-[160px] sm:max-h-[175px] block select-none"
-            />
-          </div>
+        <div className="w-full flex items-center justify-center py-0.5">
+          <RenderMaster3DLogo showPhone={true} />
         </div>
       </motion.div>
 
@@ -88,20 +507,16 @@ export default function BinAbbasLogo({
               {/* Verified Badge */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs shadow-xs mb-2">
                 <CheckCircle2 size={14} className="text-emerald-700" />
-                <span>تصدیق شدہ آفیشل برانڈ لوگو</span>
+                <span>تصدیق شدہ آفیشل 3D برانڈ لوگو</span>
               </div>
 
               {/* Logo Presentation in Modal */}
-              <div className="p-1 rounded-2xl overflow-hidden bg-emerald-950 border-2 border-amber-400 shadow-md my-2">
-                <img
-                  src="/bin_abbas_logo.jpg"
-                  alt="بن عباس پراپرٹیز - مکمل لوگو"
-                  className="w-full h-auto object-cover rounded-xl"
-                />
+              <div className="p-1 rounded-2xl overflow-hidden my-1">
+                <RenderMaster3DLogo showPhone={true} />
               </div>
 
               {/* Business Info & Tagline */}
-              <div className="mt-3 space-y-1">
+              <div className="mt-2 space-y-1">
                 <h3 className="text-base font-black text-emerald-950">
                   {BUSINESS_NAME} ({ENGLISH_NAME})
                 </h3>
@@ -114,24 +529,24 @@ export default function BinAbbasLogo({
                 </p>
               </div>
 
-              {/* Quick Actions */}
+              {/* Quick Actions (WhatsApp & Call) */}
               <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-emerald-200">
                 <a
                   href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-2.5 px-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-500"
+                  className="py-2.5 px-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-500 hover:brightness-110 transition-all"
                 >
                   <MessageCircle size={14} className="fill-white" />
-                  <span>واٹس ایپ رابطہ</span>
+                  <span>واٹس ایپ ({CONTACT_PHONE_DISPLAY})</span>
                 </a>
 
                 <a
                   href={`tel:+${CONTACT_PHONE}`}
-                  className="py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-600"
+                  className="py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-600 transition-all"
                 >
                   <Phone size={14} />
-                  <span>براہِ راست کال</span>
+                  <span>کال ({CONTACT_PHONE_DISPLAY})</span>
                 </a>
               </div>
             </motion.div>
