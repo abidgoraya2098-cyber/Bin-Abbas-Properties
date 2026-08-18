@@ -20,6 +20,8 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
         return <Home className="w-5 h-5 text-emerald-800" />;
       case "Key":
         return <Key className="w-5 h-5 text-emerald-800" />;
+      case "Phone":
+        return <Phone className="w-5 h-5 text-emerald-800" />;
       case "WhatsApp":
         return (
           <div className="relative w-5 h-5 flex items-center justify-center" id="whatsapp-icon-wrapper">

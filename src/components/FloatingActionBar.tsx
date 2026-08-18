@@ -29,12 +29,16 @@ export default function FloatingActionBar() {
           <a
             href={directCallUrl}
             id="floating-call-btn"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm"
+            title="براہِ راست سم کال - بغیر انٹرنیٹ کے بھی دستیاب ہے"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm"
           >
-            <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
-              <Phone size={12} className="text-emerald-800" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
+                <Phone size={12} className="text-emerald-800" />
+              </div>
+              <span className="text-xs font-black text-emerald-950">کال کریں</span>
             </div>
-            <span className="text-xs font-black text-emerald-950">کال کریں</span>
+            <span className="text-[9px] text-emerald-800 font-bold mt-0.5">آف لائن دستیاب</span>
           </a>
 
           {/* 2. Direct WhatsApp */}
@@ -43,12 +47,16 @@ export default function FloatingActionBar() {
             target="_blank"
             rel="noopener noreferrer"
             id="floating-whatsapp-btn"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:brightness-105 text-white shadow-md active:scale-95 border border-emerald-500"
+            title="واٹس ایپ رابطہ - انٹرنیٹ یا واٹس ایپ ڈیٹا پیکج درکار ہے"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:brightness-105 text-white shadow-md active:scale-95 border border-emerald-500"
           >
-            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
-              <MessageCircle size={13} className="fill-white" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
+                <MessageCircle size={13} className="fill-white" />
+              </div>
+              <span className="text-xs font-black text-white">واٹس ایپ</span>
             </div>
-            <span className="text-xs font-black text-white">واٹس ایپ</span>
+            <span className="text-[9px] text-emerald-100 font-bold mt-0.5">انٹرنیٹ / پیکج</span>
           </a>
 
           {/* 3. Office Location Map */}
@@ -57,12 +65,16 @@ export default function FloatingActionBar() {
             target="_blank"
             rel="noopener noreferrer"
             id="floating-map-btn"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm"
+            title="گوگل میپس پر لوکیشن دیکھیں"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm"
           >
-            <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
-              <MapPin size={12} className="text-emerald-800" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
+                <MapPin size={12} className="text-emerald-800" />
+              </div>
+              <span className="text-xs font-black text-emerald-950">لوکیشن</span>
             </div>
-            <span className="text-xs font-black text-emerald-950">لوکیشن</span>
+            <span className="text-[9px] text-slate-600 font-bold mt-0.5">پام کمرشل 235</span>
           </a>
         </div>
 

@@ -18,10 +18,18 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("links");
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine !== false : true);
 
   useEffect(() => {
     document.title = "Bin Abbas Properties - بن عباس پراپرٹیز | رائل پام سٹی گوجرانوالہ";
     
+    // Online & Offline Event Listeners
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
     // Check URL parameters for direct tab navigation
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get("tab");
@@ -39,6 +47,11 @@ export default function App() {
     if (inAppRegex.test(userAgent)) {
       setIsInAppBrowser(true);
     }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   const handleOpenInChrome = () => {
@@ -101,6 +114,26 @@ export default function App() {
               <Globe size={12} />
               <span>کروم میں کھولیں</span>
             </button>
+          </motion.div>
+        )}
+
+        {/* Offline Mode Status Banner */}
+        {!isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-850 to-emerald-900 text-white text-right flex flex-col gap-1 shadow-lg border-2 border-amber-400/80"
+            id="offline-status-banner"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <p className="text-xs font-black text-amber-200">
+                📶 آف لائن موڈ فعال ہے (بغیر انٹرنیٹ کے 100% دستیاب)
+              </p>
+            </div>
+            <p className="text-[10.5px] text-emerald-100 font-semibold leading-relaxed">
+              ایپ کے تمام فیچرز، پلاٹس، ریٹس اور رہنمائی بغیر انٹرنیٹ کے کھلے ہیں۔ واٹس ایپ پر رابطہ کرنے کے لیے انٹرنیٹ یا واٹس ایپ ڈیٹا پیکج درکار ہوگا، جبکہ آپ <strong>03204800071</strong> پر براہِ راست سم کال بھی کر سکتے ہیں۔
+            </p>
           </motion.div>
         )}
 

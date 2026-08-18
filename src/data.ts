@@ -40,9 +40,18 @@ export const QUICK_LINKS: QuickLink[] = [
     textColorClass: "text-slate-100"
   },
   {
+    id: "call",
+    title: `براہِ راست فون کال (${CONTACT_PHONE_DISPLAY})`,
+    subtitle: "بغیر انٹرنیٹ کے فوری سم کال کے لیے کلک کریں (آف لائن دستیاب)",
+    iconName: "Phone",
+    url: `tel:+${CONTACT_PHONE}`,
+    colorClass: "bg-slate-900/90 hover:bg-slate-800/90 border border-amber-400/30 hover:border-amber-400/60 shadow-md",
+    textColorClass: "text-slate-100"
+  },
+  {
     id: "whatsapp",
     title: "براہِ راست واٹس ایپ رابطہ",
-    subtitle: "تازہ ترین ریٹس اور تفصیلی مشاورت کے لیے کلک کریں",
+    subtitle: "فوری چیٹ و ریٹس (انٹرنیٹ یا واٹس ایپ سوشل پیکج درکار ہے)",
     iconName: "WhatsApp",
     url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`,
     colorClass: "bg-gradient-to-r from-[#1b6b47] via-[#0f5334] to-[#1b6b47] hover:brightness-110 border-2 border-amber-400/70 shadow-xl",
