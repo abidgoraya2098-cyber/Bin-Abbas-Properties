@@ -45,7 +45,7 @@ export default function Feedback() {
     const nameLine = userName.trim() ? `👤 نام: ${userName.trim()}\n` : "";
     const commentLine = comment.trim() ? `✍️ تبصرہ: ${comment.trim()}\n` : "✍️ تبصرہ: کوئی اضافی تبصرہ نہیں لکھا گیا۔\n";
 
-    const message = `السلام علیکم! عابد عباس صاحب،\n\nمیں نے بن عباس پراپرٹیز ایپ پر اپنی رائے (Review & Feedback) دی ہے:\n\n${nameLine}⭐ درجہ بندی: ${starIcons} (${activeLevel.label} ${activeLevel.emoji})\n${commentLine}\nشکریہ!`;
+    const message = `السلام علیکم! فریاد حسن گورائیہ صاحب،\n\nمیں نے بن عباس پراپرٹیز ایپ پر اپنی رائے (Review & Feedback) دی ہے:\n\n${nameLine}⭐ درجہ بندی: ${starIcons} (${activeLevel.label} ${activeLevel.emoji})\n${commentLine}\nشکریہ!`;
 
     const whatsappUrl = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(message)}`;
 

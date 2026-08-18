@@ -5,7 +5,7 @@ import { CONTACT_PHONE, GOOGLE_MAPS_URL } from "../data";
 
 export default function FloatingActionBar() {
   const directCallUrl = `tel:+${CONTACT_PHONE}`;
-  const directWhatsAppUrl = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`;
+  const directWhatsAppUrl = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`;
 
   return (
     <motion.div

@@ -532,7 +532,7 @@ export default function BinAbbasLogo({
               {/* Quick Actions (WhatsApp & Call) */}
               <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-emerald-200">
                 <a
-                  href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`}
+                  href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2.5 px-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 border border-emerald-500 hover:brightness-110 transition-all"

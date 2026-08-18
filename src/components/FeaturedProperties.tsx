@@ -73,7 +73,7 @@ export default function FeaturedProperties() {
     saveCustomDeals(updated);
 
     // Also offer 1-tap WhatsApp message creation
-    let message = `السلام علیکم! محترم عابد عباس علی گورائیہ صاحب (${OWNER_NAME})،\n\n`;
+    let message = `السلام علیکم! محترم فریاد حسن گورائیہ صاحب (${OWNER_NAME})،\n\n`;
     message += `نئی پراپرٹی ڈیل کا دفتری اندراج:\n\n`;
     message += `🏡 *عنوان:* ${titleFinal}\n`;
     message += `📍 *بلاک:* ${newBlock}\n`;
@@ -112,7 +112,7 @@ export default function FeaturedProperties() {
   });
 
   const handleInquireProperty = (prop: PropertyListing) => {
-    const text = `السلام علیکم! عابد عباس صاحب،\n\nمجھے اس پراپرٹی کی تفصیلات اور تازہ ترین ریٹ میں دلچسپی ہے:\n\n🏡 *${prop.title}*\n📍 لوکیشن: ${prop.block}\n📏 سائز: ${prop.size}\n\nبراہِ کرم اس کی دستیابی اور موجودہ فائنل ریٹ بتائیں۔ شکریہ!`;
+    const text = `السلام علیکم! فریاد حسن گورائیہ صاحب،\n\nمجھے اس پراپرٹی کی تفصیلات اور تازہ ترین ریٹ میں دلچسپی ہے:\n\n🏡 *${prop.title}*\n📍 لوکیشن: ${prop.block}\n📏 سائز: ${prop.size}\n\nبراہِ کرم اس کی دستیابی اور موجودہ فائنل ریٹ بتائیں۔ شکریہ!`;
     const url = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };

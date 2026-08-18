@@ -2,7 +2,7 @@ import { QuickLink, FAQItem, PropertyListing, SocietyAmenity, SocietyBlockInfo, 
 
 export const CONTACT_PHONE = "923204800071";
 export const CONTACT_PHONE_DISPLAY = "0320.4800071";
-export const OWNER_NAME = "عابد عباس علی گورائیہ";
+export const OWNER_NAME = "فریاد حسن گورائیہ";
 export const BUSINESS_NAME = "بن عباس پراپرٹیز";
 export const ENGLISH_NAME = "BIN ABBAS PROPERTIES";
 export const SUBTITLE = "BIN ABBAS PROPERTIES";
@@ -17,7 +17,7 @@ export const QUICK_LINKS: QuickLink[] = [
     title: "پلاٹ فروخت کریں",
     subtitle: "اپنے پلاٹ کی تفصیلات درج کریں اور بہترین مارکیٹ ریٹ حاصل کریں",
     iconName: "Rupee",
-    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس صاحب، میں اپنا پلاٹ فروخت کرنا چاہتا ہوں۔ براہ کرم تفصیلات حاصل کریں۔")}`,
+    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، میں اپنا پلاٹ فروخت کرنا چاہتا ہوں۔ براہ کرم تفصیلات حاصل کریں۔")}`,
     colorClass: "bg-slate-900/90 hover:bg-slate-800/90 border border-amber-400/30 hover:border-amber-400/60 shadow-md",
     textColorClass: "text-slate-100"
   },
@@ -26,7 +26,7 @@ export const QUICK_LINKS: QuickLink[] = [
     title: "پلاٹ خرید کریں",
     subtitle: "5، 10 مرلہ، 1 و 2 کنال رہائشی اور 2، 4، 8 مرلہ کمرشل پلاٹس",
     iconName: "Home",
-    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس صاحب، مجھے رائل پام سٹی میں پلاٹ خریدنا ہے، دستیاب آپشنز اور ریٹ لسٹ بتائیں۔")}`,
+    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے رائل پام سٹی میں پلاٹ خریدنا ہے، دستیاب آپشنز اور ریٹ لسٹ بتائیں۔")}`,
     colorClass: "bg-slate-900/90 hover:bg-slate-800/90 border border-amber-400/30 hover:border-amber-400/60 shadow-md",
     textColorClass: "text-slate-100"
   },
@@ -35,7 +35,7 @@ export const QUICK_LINKS: QuickLink[] = [
     title: "کرایہ پر مکان / کمرشل",
     subtitle: "رائل پام سٹی میں فیملی کے لیے لگژری گھر اور کمرشل دکانیں",
     iconName: "Key",
-    url: `https://wa.me/923204800071?text=${encodeURIComponent("السلام علیکم! مجھے رائل پام سٹی میں کرایہ کے لیے پراپرٹی درکار ہے۔")}`,
+    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے رائل پام سٹی میں کرایہ کے لیے پراپرٹی درکار ہے۔")}`,
     colorClass: "bg-slate-900/90 hover:bg-slate-800/90 border border-amber-400/30 hover:border-amber-400/60 shadow-md",
     textColorClass: "text-slate-100"
   },
@@ -44,7 +44,7 @@ export const QUICK_LINKS: QuickLink[] = [
     title: "براہِ راست واٹس ایپ رابطہ",
     subtitle: "تازہ ترین ریٹس اور تفصیلی مشاورت کے لیے کلک کریں",
     iconName: "WhatsApp",
-    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! عابد عباس علی گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`,
+    url: `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! فریاد حسن گورائیہ صاحب، مجھے بن عباس پراپرٹیز سے متعلق معلومات درکار ہیں۔")}`,
     colorClass: "bg-gradient-to-r from-[#1b6b47] via-[#0f5334] to-[#1b6b47] hover:brightness-110 border-2 border-amber-400/70 shadow-xl",
     textColorClass: "text-white"
   }

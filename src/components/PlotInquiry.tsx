@@ -40,7 +40,7 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
   const handleSellSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let message = `السلام علیکم! محترم عابد عباس علی گورائیہ صاحب (${OWNER_NAME})،\n\n`;
+    let message = `السلام علیکم! محترم فریاد حسن گورائیہ صاحب (${OWNER_NAME})،\n\n`;
     message += `میں رائل پام سٹی میں اپنا *پلاٹ برائے فروخت (Sell Plot)* درج کروانا چاہتا ہوں:\n\n`;
     message += `📍 *بلاک:* ${sellBlock}\n`;
     message += `📏 *سائز:* ${sellSize}\n`;
@@ -77,7 +77,7 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
   const handleBuySubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let message = `السلام علیکم! محترم عابد عباس علی گورائیہ صاحب (${OWNER_NAME})،\n\n`;
+    let message = `السلام علیکم! محترم فریاد حسن گورائیہ صاحب (${OWNER_NAME})،\n\n`;
     message += `مجھے رائل پام سٹی میں *پلاٹ کی خریداری (Buy Plot)* کے لیے تفصیلات درکار ہیں:\n\n`;
     message += `📍 *پسندیدہ بلاک:* ${buyBlock}\n`;
     message += `📏 *مطلوبہ سائز:* ${buySize}\n`;
