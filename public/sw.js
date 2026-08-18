@@ -1,5 +1,5 @@
 // Progressive Web App Service Worker for Bin Abbas Real Estate - Complete 100% Offline Engine
-const CACHE_NAME = "bin-abbas-real-estate-offline-v3";
+const CACHE_NAME = "bin-abbas-real-estate-offline-v4";
 
 const CORE_ASSETS = [
   "/",
@@ -10,6 +10,8 @@ const CORE_ASSETS = [
   "/logo.svg",
   "/logo.png",
   "/Bin-Abbas-Properties-Logo.png",
+  "/bin_abbas_logo.jpg",
+  "/3d-app-icon.png",
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png"
