@@ -1,5 +1,5 @@
 import React from "react";
-import { OWNER_NAME, BUSINESS_NAME, SUBTITLE } from "../data";
+import { DEVELOPER_NAME, BUSINESS_NAME, SUBTITLE } from "../data";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,7 +10,7 @@ export default function Footer() {
       id="app-footer"
     >
       <div className="text-xs font-black text-emerald-950 tracking-wide" id="footer-owner-info">
-        {OWNER_NAME}
+        {DEVELOPER_NAME}
       </div>
       <div className="text-[10.5px] text-slate-600 font-semibold mt-1" id="footer-copyright">
         © {currentYear} {BUSINESS_NAME} - {SUBTITLE}

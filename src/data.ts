@@ -3,6 +3,7 @@ import { QuickLink, FAQItem, PropertyListing, SocietyAmenity, SocietyBlockInfo, 
 export const CONTACT_PHONE = "923204800071";
 export const CONTACT_PHONE_DISPLAY = "0320.4800071";
 export const OWNER_NAME = "فریاد حسن گورائیہ";
+export const DEVELOPER_NAME = "عابد عباس علی گورائیہ";
 export const BUSINESS_NAME = "بن عباس پراپرٹیز";
 export const ENGLISH_NAME = "BIN ABBAS PROPERTIES";
 export const SUBTITLE = "BIN ABBAS PROPERTIES";
