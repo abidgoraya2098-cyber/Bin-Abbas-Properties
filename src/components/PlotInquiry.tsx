@@ -1,20 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Tag, Send, ArrowRightLeft, Sparkles, Layers } from "lucide-react";
 import { 
   ROYAL_PALM_BLOCKS, 
-  RESIDENTIAL_PLOT_SIZES_URDU,
-  RESIDENTIAL_PLOT_SIZES_ENGLISH,
-  COMMERCIAL_PLOT_SIZES_URDU,
-  COMMERCIAL_PLOT_SIZES_ENGLISH,
-  PLOT_FEATURES_URDU,
-  PLOT_FEATURES_ENGLISH,
+  RESIDENTIAL_PLOT_SIZES_URDU, 
+  RESIDENTIAL_PLOT_SIZES_ENGLISH, 
+  COMMERCIAL_PLOT_SIZES_URDU, 
+  COMMERCIAL_PLOT_SIZES_ENGLISH, 
+  PLOT_FEATURES_URDU, 
+  PLOT_FEATURES_ENGLISH, 
   CONTACT_PHONE, 
-  OWNER_NAME,
-  OWNER_NAME_ENGLISH
+  OWNER_NAME, 
+  OWNER_NAME_ENGLISH 
 } from "../data";
 import { useLanguage } from "../context/LanguageContext";
 import { getTranslation } from "../i18n";
+import { estimateRoyalPalmPrice } from "../utils/rateEstimator";
 
 export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "sell" | "buy" }) {
   const { language, isUrdu } = useLanguage();
@@ -48,6 +49,25 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
   const [buyBuyerName, setBuyBuyerName] = useState("");
   const [buyContactPhone, setBuyContactPhone] = useState("");
   const [buyNotes, setBuyNotes] = useState("");
+
+  // Live Smart Market Rate Calculations
+  const liveSellEstimate = useMemo(() => {
+    return estimateRoyalPalmPrice({
+      block: sellBlock,
+      size: sellSize,
+      category: sellCategory,
+      isCommercial: sizeType === "commercial"
+    }, isUrdu);
+  }, [sellBlock, sellSize, sellCategory, sizeType, isUrdu]);
+
+  const liveBuyEstimate = useMemo(() => {
+    return estimateRoyalPalmPrice({
+      block: buyBlock.includes("Any") || buyBlock.includes("کوئی") ? "بلاک A" : buyBlock,
+      size: buySize,
+      category: buyCategory,
+      isCommercial: sizeType === "commercial"
+    }, isUrdu);
+  }, [buyBlock, buySize, buyCategory, sizeType, isUrdu]);
 
   // Handler for Selling Plot WhatsApp dispatch
   const handleSellSubmit = (e: React.FormEvent) => {
@@ -322,6 +342,22 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
               </div>
             </div>
 
+            {/* Live Market Valuation Estimate Badge */}
+            <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 border border-amber-400/60 flex items-center justify-between text-xs shadow-xs">
+              <div className="flex items-center gap-1.5 text-emerald-950 font-black text-[11px]">
+                <Sparkles size={14} className="text-amber-600 shrink-0" />
+                <span>{isUrdu ? "تخمینہ شدہ مارکیٹ ریٹ:" : "Estimated Market Rate:"}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-amber-950 text-xs">
+                  {liveSellEstimate.formattedMin} ~ {liveSellEstimate.formattedMax}
+                </span>
+                <span className="text-[9.5px] bg-emerald-900 text-amber-300 font-bold px-1.5 py-0.5 rounded">
+                  {isUrdu ? liveSellEstimate.demandLabelUrdu.split(" ")[0] : liveSellEstimate.demandLevel}
+                </span>
+              </div>
+            </div>
+
             {/* 4. Demand & Final Price */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
@@ -467,6 +503,22 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
                     {size}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Live Market Valuation Estimate Badge */}
+            <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 border border-amber-400/60 flex items-center justify-between text-xs shadow-xs">
+              <div className="flex items-center gap-1.5 text-emerald-950 font-black text-[11px]">
+                <Sparkles size={14} className="text-amber-600 shrink-0" />
+                <span>{isUrdu ? "متوقع مارکیٹ بجٹ حد:" : "Estimated Price Range:"}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-amber-950 text-xs">
+                  {liveBuyEstimate.formattedMin} ~ {liveBuyEstimate.formattedMax}
+                </span>
+                <span className="text-[9.5px] bg-emerald-900 text-amber-300 font-bold px-1.5 py-0.5 rounded">
+                  {isUrdu ? liveBuyEstimate.demandLabelUrdu.split(" ")[0] : liveBuyEstimate.demandLevel}
+                </span>
               </div>
             </div>
 

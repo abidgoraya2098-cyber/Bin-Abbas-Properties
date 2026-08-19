@@ -1,36 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, MessageCircle, Check, PlusCircle, X, Send, Trash2 } from "lucide-react";
+import { 
+  Sparkles, 
+  MessageCircle, 
+  Check, 
+  PlusCircle, 
+  X, 
+  Send, 
+  Trash2, 
+  Search, 
+  ShieldCheck, 
+  Filter, 
+  ArrowRightLeft,
+  Lock
+} from "lucide-react";
 import { 
   FEATURED_PROPERTIES, 
   ROYAL_PALM_BLOCKS, 
-  RESIDENTIAL_PLOT_SIZES_URDU,
-  RESIDENTIAL_PLOT_SIZES_ENGLISH,
-  COMMERCIAL_PLOT_SIZES_URDU,
-  COMMERCIAL_PLOT_SIZES_ENGLISH,
-  PLOT_FEATURES_URDU,
-  PLOT_FEATURES_ENGLISH,
+  RESIDENTIAL_PLOT_SIZES_URDU, 
+  RESIDENTIAL_PLOT_SIZES_ENGLISH, 
+  COMMERCIAL_PLOT_SIZES_URDU, 
+  COMMERCIAL_PLOT_SIZES_ENGLISH, 
+  PLOT_FEATURES_URDU, 
+  PLOT_FEATURES_ENGLISH, 
   CONTACT_PHONE, 
-  OWNER_NAME,
-  OWNER_NAME_ENGLISH
+  OWNER_NAME, 
+  OWNER_NAME_ENGLISH 
 } from "../data";
 import { PropertyListing } from "../types";
 import { useLanguage } from "../context/LanguageContext";
+import { useAdmin } from "../context/AdminContext";
 import { getTranslation } from "../i18n";
 
-export default function FeaturedProperties() {
+interface FeaturedPropertiesProps {
+  onNavigateToInquiry?: (mode: "sell" | "buy") => void;
+}
+
+export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedPropertiesProps) {
   const { language, isUrdu } = useLanguage();
   const t = getTranslation(language);
+  const { isAdmin, setIsLoginModalOpen } = useAdmin();
 
   const residentialSizes = isUrdu ? RESIDENTIAL_PLOT_SIZES_URDU : RESIDENTIAL_PLOT_SIZES_ENGLISH;
   const commercialSizes = isUrdu ? COMMERCIAL_PLOT_SIZES_URDU : COMMERCIAL_PLOT_SIZES_ENGLISH;
   const plotFeatures = isUrdu ? PLOT_FEATURES_URDU : PLOT_FEATURES_ENGLISH;
 
-  const [filter, setFilter] = useState<"all" | "residential" | "commercial" | "rent" | "demand">("all");
+  const [filter, setFilter] = useState<"all" | "residential" | "commercial" | "demand" | "rent">("all");
+  const [selectedBlockFilter, setSelectedBlockFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [customDeals, setCustomDeals] = useState<PropertyListing[]>([]);
 
-  // Load custom added verbal/office deals from localStorage
+  // Load custom deals from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_custom_deals");
@@ -52,7 +73,7 @@ export default function FeaturedProperties() {
     }
   };
 
-  // --- NEW DEAL FORM STATE (All Optional) ---
+  // Form State for Add Custom Deal (Admin / Owner only)
   const [newCategory, setNewCategory] = useState<"residential" | "commercial" | "rent" | "demand">("residential");
   const [newBlock, setNewBlock] = useState(ROYAL_PALM_BLOCKS[0].name);
   const [newSize, setNewSize] = useState(residentialSizes[0]);
@@ -75,7 +96,7 @@ export default function FeaturedProperties() {
   const handleAddDealSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const titleFinal = newTitle.trim() || `${newSize} Prime Deal (${newBlock})`;
+    const titleFinal = newTitle.trim() || `${newSize} Deal (${newBlock})`;
     const priceFinal = newPriceNote.trim() || (isUrdu ? "تازہ ترین ریٹ کے لیے رابطہ کریں" : "Contact for latest price");
 
     const newDealItem: PropertyListing = {
@@ -83,8 +104,8 @@ export default function FeaturedProperties() {
       title: titleFinal,
       titleEn: titleFinal,
       category: newCategory,
-      tag: isUrdu ? "✨ نیا اندراج" : "✨ New Entry",
-      tagEn: "✨ New Entry",
+      tag: isUrdu ? "✨ تصدیق شدہ پیشکش" : "✨ Verified Offer",
+      tagEn: "✨ Verified Offer",
       size: newPlotNumber.trim() ? `${newSize} (# ${newPlotNumber.trim()})` : newSize,
       sizeEn: newPlotNumber.trim() ? `${newSize} (# ${newPlotNumber.trim()})` : newSize,
       block: newBlock,
@@ -99,7 +120,7 @@ export default function FeaturedProperties() {
     const updated = [newDealItem, ...customDeals];
     saveCustomDeals(updated);
 
-    // Also offer 1-tap WhatsApp message creation
+    // Also send WhatsApp record
     let message = isUrdu 
       ? `السلام علیکم! محترم فریاد حسن گورائیہ صاحب (${OWNER_NAME})،\n\nنئی پراپرٹی ڈیل کا دفتری اندراج:\n\n`
       : `Hello Mr. ${OWNER_NAME_ENGLISH},\n\nNew Property Deal Record:\n\n`;
@@ -116,7 +137,7 @@ export default function FeaturedProperties() {
     const whatsappUrl = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 
-    // Reset Form and close
+    // Reset Form
     setIsAddModalOpen(false);
     setNewTitle("");
     setNewPlotNumber("");
@@ -126,28 +147,67 @@ export default function FeaturedProperties() {
     setNewRemarks("");
   };
 
-  const handleDeleteCustomDeal = (id: string, e: React.MouseEvent) => {
+  const handleDeleteDeal = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = customDeals.filter((item) => item.id !== id);
     saveCustomDeals(updated);
   };
 
   // Combine custom added deals with existing catalog
-  const allPropertyListings = [...customDeals, ...FEATURED_PROPERTIES];
+  const allPropertyListings = useMemo(() => {
+    return [...customDeals, ...FEATURED_PROPERTIES];
+  }, [customDeals]);
 
-  const filteredProperties = allPropertyListings.filter((item) => {
-    if (filter === "all") return true;
-    return item.category === filter;
-  });
+  // Comprehensive Search & Filter Logic
+  const filteredProperties = useMemo(() => {
+    return allPropertyListings.filter((item) => {
+      // 1. Category Filter
+      if (filter !== "all" && item.category !== filter) {
+        return false;
+      }
+
+      // 2. Block Dropdown Filter
+      if (selectedBlockFilter !== "all") {
+        const itemBlock = (item.block + " " + (item.blockEn || "")).toLowerCase();
+        if (!itemBlock.includes(selectedBlockFilter.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // 3. Text Search Query
+      if (searchQuery.trim() !== "") {
+        const q = searchQuery.toLowerCase().trim();
+        const searchable = [
+          item.title,
+          item.titleEn || "",
+          item.block,
+          item.blockEn || "",
+          item.size,
+          item.sizeEn || "",
+          item.tag,
+          item.priceNote,
+          item.features.join(" ")
+        ].join(" ").toLowerCase();
+
+        if (!searchable.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allPropertyListings, filter, selectedBlockFilter, searchQuery]);
 
   const handleInquireProperty = (prop: PropertyListing) => {
     const titleText = isUrdu ? prop.title : (prop.titleEn || prop.title);
     const blockText = isUrdu ? prop.block : (prop.blockEn || prop.block);
     const sizeText = isUrdu ? prop.size : (prop.sizeEn || prop.size);
 
+    const isDemand = prop.category === "demand";
+
     const text = isUrdu 
-      ? `السلام علیکم! فریاد حسن گورائیہ صاحب،\n\nمجھے اس پراپرٹی کی تفصیلات اور تازہ ترین ریٹ میں دلچسپی ہے:\n\n🏡 *${titleText}*\n📍 لوکیشن: ${blockText}\n📏 سائز: ${sizeText}\n\nبراہِ کرم اس کی دستیابی اور موجودہ فائنل ریٹ بتائیں۔ شکریہ!`
-      : `Hello Mr. ${OWNER_NAME_ENGLISH},\n\nI am interested in this property deal:\n\n🏡 *${titleText}*\n📍 Location: ${blockText}\n📏 Size: ${sizeText}\n\nPlease share its availability and latest final rate. Thank you!`;
+      ? `السلام علیکم! فریاد حسن گورائیہ صاحب،\n\nمجھے اس ${isDemand ? "خریدار ڈیمانڈ" : "پراپرٹی ڈیل"} میں دلچسپی ہے:\n\n🏡 *${titleText}*\n📍 لوکیشن: ${blockText}\n📏 سائز: ${sizeText}\n\nبراہِ کرم اس کی دستیابی اور موجودہ فائنل ریٹ بتائیں۔ شکریہ!`
+      : `Hello Mr. ${OWNER_NAME_ENGLISH},\n\nI am interested in this ${isDemand ? "buyer demand" : "property deal"}:\n\n🏡 *${titleText}*\n📍 Location: ${blockText}\n📏 Size: ${sizeText}\n\nPlease share its availability and latest final rate. Thank you!`;
 
     const url = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
@@ -174,27 +234,89 @@ export default function FeaturedProperties() {
           </div>
         </div>
         <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
-          {t.dealsAvailableBadge}
+          {filteredProperties.length} {isUrdu ? "ڈیلز دستیاب" : "Deals"}
         </span>
       </div>
 
-      {/* Add New Custom Deal Action Button */}
-      <div className="mt-3">
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.015 }}
-          whileTap={{ scale: 0.985 }}
-          onClick={() => setIsAddModalOpen(true)}
-          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white font-black text-xs sm:text-sm shadow-md border border-amber-300 flex items-center justify-center gap-2 cursor-pointer transition-all hover:brightness-105"
-          id="add-custom-deal-trigger-btn"
-        >
-          <PlusCircle size={16} className="text-amber-300" />
-          <span>{t.addCustomDealBtn}</span>
-        </motion.button>
+      {/* Admin Mode Bar if Logged In */}
+      {isAdmin ? (
+        <div className="mt-3 p-2.5 rounded-xl bg-amber-500/15 border-2 border-amber-400 text-amber-950 flex items-center justify-between gap-2 shadow-sm">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={16} className="text-amber-700 shrink-0" />
+            <span className="text-xs font-black">
+              {isUrdu ? `👑 ایڈمن موڈ فعال: ${OWNER_NAME}` : `👑 Admin Mode Active: ${OWNER_NAME}`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow cursor-pointer transition-colors"
+          >
+            <PlusCircle size={14} />
+            <span>{isUrdu ? "+ نئی ڈیل شامل کریں" : "+ Add Deal"}</span>
+          </button>
+        </div>
+      ) : (
+        /* Action Prompt for regular clients */
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => onNavigateToInquiry && onNavigateToInquiry("sell")}
+            className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 font-black text-xs border border-emerald-300 flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+          >
+            <ArrowRightLeft size={14} className="text-emerald-700" />
+            <span>{isUrdu ? "اپنا پلاٹ فروخت یا خرید کے لیے بھیجیں (100% پرائیویٹ)" : "Submit Your Plot For Sale / Purchase (100% Private)"}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Instant Search Bar */}
+      <div className="mt-3 relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={isUrdu ? "🔍 بلاک، سائز یا پلاٹ تلاش کریں (مثلاً: بلاک B، 10 مرلہ)..." : "🔍 Search block, size or plot (e.g. Block B, 10 Marla)..."}
+          className={`w-full bg-emerald-50/70 border-2 border-emerald-200 rounded-xl py-2 px-3.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white shadow-inner ${
+            isUrdu ? "text-right pl-8" : "text-left pr-8"
+          }`}
+        />
+        {searchQuery.trim() && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className={`absolute top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 cursor-pointer ${
+              isUrdu ? "left-2.5" : "right-2.5"
+            }`}
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1" id="property-category-tabs">
+      {/* Block Filter Dropdown */}
+      <div className="mt-2 flex items-center gap-2">
+        <label className="text-[10.5px] font-bold text-slate-600 shrink-0">
+          {isUrdu ? "بلاک منتخب کریں:" : "Filter Block:"}
+        </label>
+        <select
+          value={selectedBlockFilter}
+          onChange={(e) => setSelectedBlockFilter(e.target.value)}
+          className={`w-full bg-white border border-emerald-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer ${
+            isUrdu ? "text-right" : "text-left"
+          }`}
+        >
+          <option value="all">{isUrdu ? "تمام بلاکس (All Blocks)" : "All Blocks"}</option>
+          {ROYAL_PALM_BLOCKS.map((b) => (
+            <option key={b.id} value={b.name}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Filter Tabs (Category) */}
+      <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1" id="property-category-tabs">
         {[
           { id: "all", label: t.filterAll },
           { id: "residential", label: t.filterResidential },
@@ -206,7 +328,7 @@ export default function FeaturedProperties() {
             key={tab.id}
             type="button"
             onClick={() => setFilter(tab.id as any)}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer border ${
+            className={`px-3 py-1.5 rounded-xl text-[10.5px] font-bold whitespace-nowrap transition-all cursor-pointer border ${
               filter === tab.id
                 ? "bg-gradient-to-r from-emerald-700 to-emerald-600 text-white border-emerald-700 shadow-sm font-black"
                 : "bg-emerald-50 text-emerald-900 border-emerald-200 hover:border-emerald-400 hover:text-emerald-950"
@@ -220,108 +342,156 @@ export default function FeaturedProperties() {
       {/* Properties List */}
       <div className="space-y-3 mt-3.5" id="property-cards-list">
         <AnimatePresence mode="popLayout">
-          {filteredProperties.map((prop, idx) => {
-            const isCustom = prop.id.startsWith("custom-deal-");
-            const currentTitle = isUrdu ? prop.title : (prop.titleEn || prop.title);
-            const currentTag = isUrdu ? prop.tag : (prop.tagEn || prop.tag);
-            const currentSize = isUrdu ? prop.size : (prop.sizeEn || prop.size);
-            const currentBlock = isUrdu ? prop.block : (prop.blockEn || prop.block);
-            const currentPriceNote = isUrdu ? prop.priceNote : (prop.priceNoteEn || prop.priceNote);
-            const currentFeatures = isUrdu ? prop.features : (prop.featuresEn || prop.features);
+          {filteredProperties.length > 0 ? (
+            filteredProperties.map((prop, idx) => {
+              const isCustom = prop.id.startsWith("custom-deal-");
+              const isDemand = prop.category === "demand";
+              const currentTitle = isUrdu ? prop.title : (prop.titleEn || prop.title);
+              const currentTag = isUrdu ? prop.tag : (prop.tagEn || prop.tag);
+              const currentSize = isUrdu ? prop.size : (prop.sizeEn || prop.size);
+              const currentBlock = isUrdu ? prop.block : (prop.blockEn || prop.block);
+              const currentPriceNote = isUrdu ? prop.priceNote : (prop.priceNoteEn || prop.priceNote);
+              const currentFeatures = isUrdu ? prop.features : (prop.featuresEn || prop.features);
 
-            return (
-              <motion.div
-                key={prop.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.22, delay: idx * 0.04 }}
-                className={`p-3.5 rounded-2xl border-2 transition-all duration-300 shadow-sm flex flex-col justify-between gap-3 backdrop-blur-sm ${
-                  isCustom
-                    ? "bg-amber-50/50 border-amber-300 hover:border-amber-500"
-                    : "bg-emerald-50/40 border-emerald-200 hover:border-emerald-500"
-                }`}
-              >
-                {/* Card Top */}
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
-                        isCustom 
-                          ? "bg-amber-200 text-amber-950 border-amber-400"
-                          : "bg-amber-100 text-amber-900 border-amber-300"
-                      }`}>
-                        {currentTag}
-                      </span>
-                      {isCustom && (
-                        <span className="text-[9px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md border border-emerald-300">
-                          {t.customSavedBadge}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-emerald-900 font-bold bg-white px-2 py-0.5 rounded-lg border border-emerald-200">
-                        {currentBlock}
-                      </span>
-                      {isCustom && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteCustomDeal(prop.id, e)}
-                          title="Delete"
-                          className="p-1 rounded-md text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <h4 className="text-sm font-black text-slate-900 leading-snug">
-                    {currentTitle}
-                  </h4>
-
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60">
-                    <div>
-                      <span className="text-[10px] text-slate-500 block">{t.sizeText}</span>
-                      <span className="text-xs font-black text-slate-900">{currentSize}</span>
-                    </div>
-                    <div className={isUrdu ? "text-left" : "text-right"}>
-                      <span className="text-[10px] text-slate-500 block">{t.rateText}</span>
-                      <span className="text-[11px] font-black text-emerald-800">{currentPriceNote}</span>
-                    </div>
-                  </div>
-
-                  {/* Features Badges */}
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {currentFeatures.map((feat, fIdx) => (
-                      <span
-                        key={fIdx}
-                        className="text-[9px] font-semibold bg-white text-emerald-900 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1"
-                      >
-                        <Check size={10} className="text-emerald-600" />
-                        <span>{feat}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Inquire Action Button */}
-                <button
-                  type="button"
-                  onClick={() => handleInquireProperty(prop)}
-                  className="w-full py-2.5 px-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:brightness-105 text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 border border-emerald-500"
+              return (
+                <motion.div
+                  key={prop.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.22, delay: idx * 0.03 }}
+                  className={`p-3.5 rounded-2xl border-2 transition-all duration-300 shadow-sm flex flex-col justify-between gap-3 backdrop-blur-sm ${
+                    isDemand
+                      ? "bg-purple-50/70 border-purple-300 hover:border-purple-500"
+                      : isCustom
+                      ? "bg-amber-50/50 border-amber-300 hover:border-amber-500"
+                      : "bg-white hover:bg-emerald-50/40 border-emerald-200 hover:border-emerald-400"
+                  }`}
                 >
-                  <MessageCircle size={14} className="fill-white" />
-                  <span>{t.inquireDealBtn}</span>
-                </button>
-              </motion.div>
-            );
-          })}
+                  <div>
+                    {/* Top Row: Title + Tag */}
+                    <div className="flex items-start justify-between gap-2 pb-2 border-b border-emerald-100">
+                      <div className="flex flex-col">
+                        <span className="text-xs sm:text-sm font-black text-emerald-950 leading-tight">
+                          {currentTitle}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                          📍 {currentBlock}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span
+                          className={`text-[9.5px] font-black px-2 py-0.5 rounded-full border shadow-xs ${
+                            isDemand
+                              ? "bg-purple-100 text-purple-900 border-purple-300"
+                              : "bg-emerald-100 text-emerald-900 border-emerald-300"
+                          }`}
+                        >
+                          {currentTag}
+                        </span>
+
+                        {/* Admin Delete Button */}
+                        {isAdmin && isCustom && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteDeal(prop.id, e)}
+                            title={isUrdu ? "ڈیل ڈیلیٹ کریں" : "Delete Deal"}
+                            className="p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors cursor-pointer border border-red-300"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Middle Row: Size + Rate */}
+                    <div className="grid grid-cols-2 gap-2 mt-2.5 bg-emerald-50/60 p-2 rounded-xl border border-emerald-100/80">
+                      <div>
+                        <span className="text-[10px] text-slate-500 block font-semibold">
+                          {t.sizeText}
+                        </span>
+                        <span className="text-xs font-black text-emerald-900">
+                          {currentSize}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 block font-semibold">
+                          {t.rateText}
+                        </span>
+                        <span className="text-xs font-black text-amber-800">
+                          {currentPriceNote}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Features Badges */}
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {currentFeatures.map((feat, fIdx) => (
+                        <span
+                          key={fIdx}
+                          className="text-[9.5px] font-bold bg-white text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs"
+                        >
+                          ✓ {feat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom Action: WhatsApp Contact */}
+                  <div className="pt-2 border-t border-emerald-100/70">
+                    <button
+                      type="button"
+                      onClick={() => handleInquireProperty(prop)}
+                      className={`w-full py-2 px-3 rounded-xl text-white font-black text-xs shadow-md flex items-center justify-center gap-1.5 active:scale-98 transition-all hover:brightness-110 cursor-pointer border ${
+                        isDemand
+                          ? "bg-gradient-to-r from-purple-700 to-indigo-700 border-purple-500"
+                          : "bg-gradient-to-r from-[#25D366] to-[#128C7E] border-emerald-500"
+                      }`}
+                    >
+                      <MessageCircle size={14} className="fill-white" />
+                      <span>
+                        {isDemand
+                          ? isUrdu ? "اس خریدار ڈیمانڈ کے لیے رابطہ کریں" : "Contact for Buyer Demand"
+                          : t.inquireDealBtn}
+                      </span>
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })
+          ) : (
+            /* No Results Found Fallback */
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-5 text-center bg-emerald-50/60 rounded-2xl border-2 border-dashed border-emerald-300 space-y-2.5"
+            >
+              <p className="text-xs font-bold text-slate-700 leading-relaxed">
+                {isUrdu
+                  ? "آپ کی تلاش سے مطابقت رکھنے والا پلاٹ فی الحال لسٹ میں موجود نہیں ہے۔"
+                  : "No matching plot found for your search criteria."}
+              </p>
+              <p className="text-[11px] text-emerald-900 font-semibold">
+                {isUrdu
+                  ? "ہم سے رابطہ کریں، ہم آپ کے لیے مطلوبہ بلاک اور سائز کا پلاٹ فوری تلاش کر کے فراہم کریں گے!"
+                  : "Contact us directly and we will find your desired plot in this block immediately!"}
+              </p>
+              <a
+                href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! مجھے رائل پام سٹی میں مخصوص پلاٹ تلاش کروانا ہے۔")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-700 text-white font-black text-xs shadow hover:bg-emerald-800 transition-colors"
+              >
+                <MessageCircle size={13} className="fill-white" />
+                <span>{isUrdu ? "بن عباس پراپرٹیز سے معلوم کریں" : "Inquire with Bin Abbas Properties"}</span>
+              </a>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
-      {/* Modal: Add New Verbal / Custom Deal */}
+      {/* Modal: Add New Verbal / Custom Deal (Admin Only) */}
       <AnimatePresence>
         {isAddModalOpen && (
           <div
@@ -359,21 +529,24 @@ export default function FeaturedProperties() {
                 <X size={16} />
               </button>
 
-              <form onSubmit={handleAddDealSubmit} className="space-y-3 mt-1">
-                {/* Header */}
-                <div className="text-center pb-2 border-b border-emerald-100">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto mb-1 border border-emerald-300">
-                    <PlusCircle size={20} />
-                  </div>
+              {/* Modal Header */}
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <PlusCircle size={20} className="text-emerald-700" />
+                </div>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-emerald-950">
                     {t.addDealModalTitle}
                   </h3>
-                  <p className="text-[10px] text-slate-600 mt-0.5">
+                  <p className="text-[10px] text-slate-500 font-semibold">
                     {t.addDealModalSubtitle}
                   </p>
                 </div>
+              </div>
 
-                {/* 1. Category Switcher */}
+              {/* Add Deal Form */}
+              <form onSubmit={handleAddDealSubmit} className="space-y-3">
+                {/* 1. Category */}
                 <div>
                   <label className="block text-[11px] font-bold text-emerald-950 mb-1">
                     {t.customCategoryLabel}
@@ -416,63 +589,58 @@ export default function FeaturedProperties() {
                     className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white cursor-pointer ${isUrdu ? "text-right" : "text-left"}`}
                   >
                     {ROYAL_PALM_BLOCKS.map((b) => (
-                      <option key={b.id} value={isUrdu ? b.name : (b.nameEn || b.name)} className="bg-white text-slate-900">
-                        {isUrdu ? `${b.name} — (${b.desc})` : `${b.nameEn || b.name} — (${b.descEn || b.desc})`}
+                      <option key={b.id} value={b.name}>
+                        {b.name}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {/* 3. Size Buttons */}
-                <div>
-                  <label className="block text-[11px] font-bold text-emerald-950 mb-1">
-                    {t.customSizeLabel}
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                    {(newCategory === "commercial" ? commercialSizes : residentialSizes).map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => setNewSize(size)}
-                        className={`py-1.5 px-2 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer border truncate ${
-                          newSize === size
-                            ? "bg-emerald-700 text-white font-black border-emerald-700 shadow-sm"
-                            : "bg-emerald-50/70 text-emerald-900 border-emerald-200 hover:border-emerald-400"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                {/* 3. Size & Plot Number */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-emerald-950 mb-1">
+                      {t.customSizeLabel}
+                    </label>
+                    <select
+                      value={newSize}
+                      onChange={(e) => setNewSize(e.target.value)}
+                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white cursor-pointer ${isUrdu ? "text-right" : "text-left"}`}
+                    >
+                      {(newCategory === "commercial" ? commercialSizes : residentialSizes).map((s, idx) => (
+                        <option key={idx} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
-                {/* 4. Title & Plot Number */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-bold text-emerald-950 mb-1">
                       {t.customPlotNoLabel}
                     </label>
                     <input
                       type="text"
+                      placeholder={t.plotNoPlaceholder}
                       value={newPlotNumber}
                       onChange={(e) => setNewPlotNumber(e.target.value)}
-                      placeholder={t.plotNoPlaceholder}
-                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-emerald-950 mb-1">
-                      {t.customRateLabel}
-                    </label>
-                    <input
-                      type="text"
-                      value={newPriceNote}
-                      onChange={(e) => setNewPriceNote(e.target.value)}
-                      placeholder={t.demandPlaceholder}
-                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs text-emerald-900 font-bold placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
-                    />
-                  </div>
+                {/* 4. Demand / Rate */}
+                <div>
+                  <label className="block text-[11px] font-bold text-emerald-950 mb-1">
+                    {t.customRateLabel}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={isUrdu ? "مثلاً: 75 لاکھ یا مارکیٹ ریٹ" : "e.g. 75 Lacs"}
+                    value={newPriceNote}
+                    onChange={(e) => setNewPriceNote(e.target.value)}
+                    className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                  />
                 </div>
 
                 {/* 5. Custom Title */}
@@ -482,29 +650,29 @@ export default function FeaturedProperties() {
                   </label>
                   <input
                     type="text"
+                    placeholder={t.customTitlePlaceholder}
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder={t.customTitlePlaceholder}
-                    className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                    className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
                   />
                 </div>
 
-                {/* 6. Feature Tags Selector */}
+                {/* 6. Features Chips */}
                 <div>
                   <label className="block text-[11px] font-bold text-emerald-950 mb-1">
                     {t.customFeaturesLabel}
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {plotFeatures.map((feat) => {
+                  <div className="flex flex-wrap gap-1">
+                    {plotFeatures.map((feat, fIdx) => {
                       const isSelected = newSelectedFeatures.includes(feat);
                       return (
                         <button
-                          key={feat}
+                          key={fIdx}
                           type="button"
                           onClick={() => toggleFeature(feat)}
-                          className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                          className={`py-1 px-2 rounded-lg text-[10px] font-bold transition-all cursor-pointer border ${
                             isSelected
-                              ? "bg-emerald-700 text-white border-emerald-700"
+                              ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
                               : "bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100"
                           }`}
                         >
@@ -516,63 +684,62 @@ export default function FeaturedProperties() {
                   </div>
                 </div>
 
-                {/* 7. Client Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* 7. Client Name & Phone (Office Use) */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
                   <div>
-                    <label className="block text-[11px] font-bold text-emerald-950 mb-1">
+                    <label className="block text-[10.5px] font-bold text-slate-600 mb-1">
                       {t.customClientNameLabel}
                     </label>
                     <input
                       type="text"
+                      placeholder={t.ownerNamePlaceholder}
                       value={newClientName}
                       onChange={(e) => setNewClientName(e.target.value)}
-                      placeholder={t.ownerNamePlaceholder}
-                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                      className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold ${isUrdu ? "text-right" : "text-left"}`}
                     />
                   </div>
-
                   <div>
-                    <label className="block text-[11px] font-bold text-emerald-950 mb-1">
+                    <label className="block text-[10.5px] font-bold text-slate-600 mb-1">
                       {t.customClientPhoneLabel}
                     </label>
                     <input
                       type="text"
+                      placeholder={t.phonePlaceholder}
                       value={newClientPhone}
                       onChange={(e) => setNewClientPhone(e.target.value)}
-                      placeholder={t.phonePlaceholder}
-                      className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                      className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold ${isUrdu ? "text-right" : "text-left"}`}
                     />
                   </div>
                 </div>
 
                 {/* 8. Remarks */}
                 <div>
-                  <label className="block text-[11px] font-bold text-emerald-950 mb-1">
+                  <label className="block text-[10.5px] font-bold text-slate-600 mb-1">
                     {t.customRemarksLabel}
                   </label>
                   <textarea
+                    rows={2}
+                    placeholder={isUrdu ? "کوئی خاص دفتری یاددہانی یا تفصیل..." : "Office notes..."}
                     value={newRemarks}
                     onChange={(e) => setNewRemarks(e.target.value)}
-                    rows={2}
-                    placeholder={t.notesPlaceholderSell}
-                    className={`w-full bg-emerald-50/60 border-2 border-emerald-200 rounded-xl p-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white ${isUrdu ? "text-right" : "text-left"}`}
+                    className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold resize-none ${isUrdu ? "text-right" : "text-left"}`}
                   />
                 </div>
 
-                {/* Submit Action Buttons */}
-                <div className="pt-2 space-y-2">
+                {/* Submit & Cancel Buttons */}
+                <div className="pt-3 flex items-center gap-2">
                   <button
                     type="submit"
-                    className="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 hover:brightness-105 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 border border-emerald-600"
+                    className="flex-1 py-2.5 px-4 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white font-black text-xs rounded-xl shadow-md border border-amber-300 hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Send size={15} />
+                    <Send size={14} />
                     <span>{t.customSubmitBtn}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold text-xs rounded-xl transition-all border border-emerald-200 cursor-pointer text-center"
+                    className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
                   >
                     {t.cancelBtn}
                   </button>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { MapPin, Share2, Check, Download, CheckCircle2, Globe } from "lucide-react";
+import { MapPin, Share2, Check, Download, CheckCircle2, Globe, ShieldCheck, Lock } from "lucide-react";
 import { LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH, ADDRESS, ADDRESS_ENGLISH, GOOGLE_MAPS_URL } from "../data";
 import BinAbbasLogo from "./BinAbbasLogo";
 import { useLanguage } from "../context/LanguageContext";
+import { useAdmin } from "../context/AdminContext";
 import { getTranslation } from "../i18n";
 
 export default function Header() {
   const { language, isUrdu, toggleLanguage } = useLanguage();
+  const { isAdmin, setIsLoginModalOpen } = useAdmin();
   const t = getTranslation(language);
 
   const [copied, setCopied] = useState(false);
@@ -157,6 +159,23 @@ export default function Header() {
             ) : (
               <Share2 size={15} />
             )}
+          </motion.button>
+
+          {/* 4. Admin / Owner Portal Trigger Button */}
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            id="admin-login-header-btn"
+            onClick={() => setIsLoginModalOpen(true)}
+            className={`p-2 rounded-full border shadow-sm transition-all cursor-pointer focus:outline-none ${
+              isAdmin
+                ? "bg-amber-400 text-slate-950 border-amber-500 ring-2 ring-amber-300 animate-pulse"
+                : "bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-800 border-amber-300"
+            }`}
+            title={isAdmin ? (isUrdu ? "👑 ایڈمن موڈ فعال ہے" : "👑 Admin Mode Active") : (isUrdu ? "مالک / ایڈمن لاگ ان" : "Owner / Admin Login")}
+            aria-label="Admin Login"
+          >
+            <ShieldCheck size={15} className={isAdmin ? "text-slate-950" : "text-amber-700"} />
           </motion.button>
         </div>
 

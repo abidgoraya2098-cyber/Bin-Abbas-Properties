@@ -4,6 +4,8 @@ import Header from "./components/Header";
 import QuickLinksList from "./components/QuickLinksList";
 import FeaturedProperties from "./components/FeaturedProperties";
 import PlotInquiry from "./components/PlotInquiry";
+import SmartRateEstimator from "./components/SmartRateEstimator";
+import AdminLoginModal from "./components/AdminLoginModal";
 import SocietyGuide from "./components/SocietyGuide";
 import FAQSection from "./components/FAQSection";
 import SocialLinks from "./components/SocialLinks";
@@ -12,6 +14,7 @@ import Footer from "./components/Footer";
 import FloatingActionBar from "./components/FloatingActionBar";
 import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
+import { AdminProvider } from "./context/AdminContext";
 import { getTranslation } from "./i18n";
 
 type ActiveTab = "links" | "inquiry" | "deals" | "society";
@@ -206,7 +209,7 @@ function MainAppContent() {
               </motion.div>
             )}
 
-            {/* TAB 3: پراپرٹی ڈیلز (Featured Deals & Listings) */}
+            {/* TAB 3: پراپرٹی ڈیلز (Featured Deals, Smart Valuation & Listings) */}
             {activeTab === "deals" && (
               <motion.div
                 key={`tab-deals-${language}`}
@@ -214,8 +217,13 @@ function MainAppContent() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
+                className="space-y-2"
               >
-                <FeaturedProperties />
+                {/* 1. Interactive AI / Smart Rate Estimator Widget */}
+                <SmartRateEstimator />
+
+                {/* 2. Searchable Properties & Deals List */}
+                <FeaturedProperties onNavigateToInquiry={handleNavigateToInquiry} />
               </motion.div>
             )}
 
@@ -247,6 +255,9 @@ function MainAppContent() {
         <Footer />
       </div>
 
+      {/* Owner / Admin Authentication PIN Modal */}
+      <AdminLoginModal />
+
       {/* Smooth Movable 3-Action Floating Bar (کال، واٹس ایپ، لوکیشن) */}
       <FloatingActionBar />
     </div>
@@ -256,7 +267,9 @@ function MainAppContent() {
 export default function App() {
   return (
     <LanguageProvider>
-      <MainAppContent />
+      <AdminProvider>
+        <MainAppContent />
+      </AdminProvider>
     </LanguageProvider>
   );
 }
