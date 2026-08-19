@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -10,7 +10,7 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-const MASTER_PIN = "0320"; // Master PIN for Faryad Hassan Goraya
+const MASTER_PIN = "5225"; // Master PIN for Faryad Hassan Goraya
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
@@ -24,7 +24,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const login = (pin: string): boolean => {
-    if (pin.trim() === MASTER_PIN || pin.trim() === "03204800071") {
+    if (pin.trim() === MASTER_PIN || pin.trim() === "5225") {
       setIsAdmin(true);
       try {
         localStorage.setItem("bin_abbas_admin_auth", "true");
