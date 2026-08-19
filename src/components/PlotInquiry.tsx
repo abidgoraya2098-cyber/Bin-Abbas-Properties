@@ -150,6 +150,14 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
         </span>
       </div>
 
+      {/* 100% Privacy & Dealer Direct Guarantee Banner */}
+      <div className="mt-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/40 text-emerald-950 flex items-start gap-2">
+        <span className="text-sm leading-none shrink-0 mt-0.5">🔒</span>
+        <p className="text-[10px] sm:text-[10.5px] font-bold leading-relaxed text-emerald-900">
+          {t.privacyNotice}
+        </p>
+      </div>
+
       {/* Main Switcher: پلاٹ فروخت کریں vs پلاٹ خریدیں */}
       <div className="grid grid-cols-2 gap-2 mt-3 p-1.5 bg-emerald-50/90 rounded-2xl border border-emerald-200 shadow-inner">
         <button

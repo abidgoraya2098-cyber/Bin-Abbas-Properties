@@ -26,7 +26,7 @@ export default function FeaturedProperties() {
   const commercialSizes = isUrdu ? COMMERCIAL_PLOT_SIZES_URDU : COMMERCIAL_PLOT_SIZES_ENGLISH;
   const plotFeatures = isUrdu ? PLOT_FEATURES_URDU : PLOT_FEATURES_ENGLISH;
 
-  const [filter, setFilter] = useState<"all" | "residential" | "commercial" | "rent">("all");
+  const [filter, setFilter] = useState<"all" | "residential" | "commercial" | "rent" | "demand">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [customDeals, setCustomDeals] = useState<PropertyListing[]>([]);
 
@@ -53,7 +53,7 @@ export default function FeaturedProperties() {
   };
 
   // --- NEW DEAL FORM STATE (All Optional) ---
-  const [newCategory, setNewCategory] = useState<"residential" | "commercial" | "rent">("residential");
+  const [newCategory, setNewCategory] = useState<"residential" | "commercial" | "rent" | "demand">("residential");
   const [newBlock, setNewBlock] = useState(ROYAL_PALM_BLOCKS[0].name);
   const [newSize, setNewSize] = useState(residentialSizes[0]);
   const [newTitle, setNewTitle] = useState("");
@@ -199,6 +199,7 @@ export default function FeaturedProperties() {
           { id: "all", label: t.filterAll },
           { id: "residential", label: t.filterResidential },
           { id: "commercial", label: t.filterCommercial },
+          { id: "demand", label: t.filterDemand },
           { id: "rent", label: t.filterRent }
         ].map((tab) => (
           <button
@@ -377,10 +378,11 @@ export default function FeaturedProperties() {
                   <label className="block text-[11px] font-bold text-emerald-950 mb-1">
                     {t.customCategoryLabel}
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-4 gap-1">
                     {[
                       { id: "residential", label: t.residential },
                       { id: "commercial", label: t.commercial },
+                      { id: "demand", label: isUrdu ? "ڈیمانڈ" : "Demand" },
                       { id: "rent", label: t.filterRent }
                     ].map((c) => (
                       <button
@@ -391,7 +393,7 @@ export default function FeaturedProperties() {
                           if (c.id === "commercial") setNewSize(commercialSizes[0]);
                           else setNewSize(residentialSizes[0]);
                         }}
-                        className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        className={`py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer border text-center ${
                           newCategory === c.id
                             ? "bg-emerald-700 text-white font-black border-emerald-700 shadow-sm"
                             : "bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100"

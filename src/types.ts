@@ -34,7 +34,7 @@ export interface PropertyListing {
   id: string;
   title: string;
   titleEn?: string;
-  category: "residential" | "commercial" | "rent";
+  category: "residential" | "commercial" | "rent" | "demand";
   tag: string;
   tagEn?: string;
   size: string;

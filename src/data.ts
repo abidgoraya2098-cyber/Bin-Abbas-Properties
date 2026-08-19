@@ -402,6 +402,57 @@ export const FEATURED_PROPERTIES: readonly PropertyListing[] = Object.freeze([
     features: ["4 بیڈ رومز", "امپورٹڈ کچن", "فیملی کے لیے موزوں"],
     featuresEn: ["4 Bed Rooms", "Imported Kitchen", "Ideal for Family"],
     isHot: false
+  },
+  {
+    id: "prop-9",
+    title: "10 مرلہ پلاٹ فوری خریدار دستیاب",
+    titleEn: "10 Marla Plot Urgent Buyer Available",
+    category: "demand",
+    tag: "فوری خریدار 🎯",
+    tagEn: "Urgent Buyer 🎯",
+    size: "10 مرلہ",
+    sizeEn: "10 Marla",
+    block: "بلاک A یا B",
+    blockEn: "Block A or B",
+    priceNote: "کیش پیمنٹ / فوری سودا",
+    priceNoteEn: "Cash Payment / Instant Deal",
+    features: ["نقد ادائیگی", "فوری ٹرانسفر", "پرائم لوکیشن ترجیح"],
+    featuresEn: ["Cash Payment", "Instant Transfer", "Prime Location Preferred"],
+    isHot: true
+  },
+  {
+    id: "prop-10",
+    title: "5 مرلہ پلاٹ کی سنجیدہ ڈیمانڈ",
+    titleEn: "5 Marla Genuine Buyer Demand",
+    category: "demand",
+    tag: "خریدار موجود 🤝",
+    tagEn: "Buyer Waiting 🤝",
+    size: "5 مرلہ",
+    sizeEn: "5 Marla",
+    block: "بلاک C یا رائل بلاک",
+    blockEn: "Block C or Royal Block",
+    priceNote: "مارکیٹ ریٹ پر ڈیل",
+    priceNoteEn: "Deal at Market Rate",
+    features: ["مناسب ریٹ پر فوری سودا", "کلائنٹ تیار ہے"],
+    featuresEn: ["Instant Deal on Reasonable Rate", "Ready Client"],
+    isHot: true
+  },
+  {
+    id: "prop-11",
+    title: "2 یا 4 مرلہ کمرشل خریدار دستیاب",
+    titleEn: "2 or 4 Marla Commercial Buyer Available",
+    category: "demand",
+    tag: "کمرشل ڈیمانڈ 🏬",
+    tagEn: "Commercial Demand 🏬",
+    size: "2 / 4 مرلہ کمرشل",
+    sizeEn: "2 / 4 Marla Commercial",
+    block: "پام کمرشل",
+    blockEn: "Palm Commercial",
+    priceNote: "انویسٹمنٹ کلائنٹ",
+    priceNoteEn: "Investor Client",
+    features: ["مین بلیوارڈ کی ترجیح", "فوری بیعانہ و ٹرانسفر"],
+    featuresEn: ["Main Boulevard Preference", "Immediate Token & Transfer"],
+    isHot: true
   }
 ]);
 
@@ -456,10 +507,10 @@ export const SOCIETY_AMENITIES: readonly SocietyAmenity[] = Object.freeze([
   },
   {
     id: "parks",
-    title: "تھیم پارکس اور فیملی جھیل",
-    titleEn: "Theme Parks & Family Lake",
-    description: "خوبصورت فیملی پارکس، جوگنگ ٹریکس، جھیل اور بچوں کے پلے ایریاز۔",
-    descriptionEn: "Lush green botanical family parks, jogging tracks, water lake, and children's amusement zones.",
+    title: "تھیم پارکس اور گرین بیلٹس",
+    titleEn: "Theme Parks & Botanical Green Belts",
+    description: "خوبصورت فیملی پارکس، جوگنگ ٹریکس، وسیع گرین بیلٹس اور بچوں کے پلے ایریاز۔",
+    descriptionEn: "Lush green botanical family parks, jogging tracks, landscaped green belts, and children's amusement zones.",
     icon: "Trees"
   }
 ]);

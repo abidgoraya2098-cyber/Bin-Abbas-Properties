@@ -70,10 +70,12 @@ export const translations = {
     filterResidential: "رہائشی (Residential)",
     filterCommercial: "کمرشل (Commercial)",
     filterRent: "برائے کرایہ (Rent)",
+    filterDemand: "خریدار ڈیمانڈ (Buyer Demands)",
     sizeText: "پلاٹ سائز:",
     rateText: "ریٹ / ڈیمانڈ:",
     inquireDealBtn: "اس ڈیل کے لیے واٹس ایپ پر رابطہ کریں",
     customSavedBadge: "محفوظ شدہ اندراج",
+    privacyNotice: "🔒 100% پرائیویٹ اور محفوظ ڈیل: آپ کے درج کردہ کوائف (پلاٹ نمبر، موبائل نمبر، نام اور ڈیمانڈ) مکمل خفیہ ہیں اور صرف بن عباس پراپرٹیز (فریاد حسن گورائیہ) کو موصول ہوں گے۔ یہ کوائف کسی دوسرے صارف کو کبھی نظر نہیں آئیں گے۔",
 
     // Add Custom Deal Modal
     addDealModalTitle: "نئی پراپرٹی ڈیل / زبانی کسٹمر اندراج",
@@ -202,10 +204,12 @@ export const translations = {
     filterResidential: "Residential",
     filterCommercial: "Commercial",
     filterRent: "For Rent",
+    filterDemand: "Buyer Demands",
     sizeText: "Plot Size:",
     rateText: "Rate / Demand:",
     inquireDealBtn: "Inquire on WhatsApp about this Deal",
     customSavedBadge: "Custom Saved",
+    privacyNotice: "🔒 100% Private & Protected: Your submitted details (plot number, mobile number, name, and demand) remain completely confidential and are delivered exclusively to Bin Abbas Properties. No other user can see your private contact info.",
 
     // Add Custom Deal Modal
     addDealModalTitle: "Add New Deal / Client Plot Record",
