@@ -14,11 +14,13 @@ import {
   OWNER_NAME_ENGLISH 
 } from "../data";
 import { useLanguage } from "../context/LanguageContext";
+import { useNotifications } from "../context/NotificationContext";
 import { getTranslation } from "../i18n";
 import { estimateRoyalPalmPrice } from "../utils/rateEstimator";
 
 export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "sell" | "buy" }) {
   const { language, isUrdu } = useLanguage();
+  const { addCustomerInquiry } = useNotifications();
   const t = getTranslation(language);
 
   const [activeMode, setActiveMode] = useState<"sell" | "buy">(defaultMode);
@@ -106,6 +108,19 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
       ? `\nبراہِ کرم اس پلاٹ کی موجودہ تصدیق شدہ مارکیٹ ویلیو اور فوری سودے کی رہنمائی فرمائیں۔ شکریہ!`
       : `\nPlease provide current verified market rates and quick sale assistance for this plot. Thank you!`;
 
+    // Save inquiry to secure internal database & notify Admin
+    addCustomerInquiry({
+      type: "sell",
+      block: sellBlock,
+      size: sellSize,
+      plotNumber: sellPlotNumber.trim() || undefined,
+      category: sellCategory,
+      priceOrBudget: sellDemand.trim() || sellFinalPrice.trim() || undefined,
+      clientName: sellOwnerName.trim() || undefined,
+      clientPhone: sellContactPhone.trim() || undefined,
+      notes: sellNotes.trim() || undefined
+    });
+
     const whatsappUrl = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -113,6 +128,18 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
   // Handler for Buying Plot WhatsApp dispatch
   const handleBuySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Save inquiry to secure internal database & notify Admin
+    addCustomerInquiry({
+      type: "buy",
+      block: buyBlock,
+      size: buySize,
+      category: buyCategory,
+      priceOrBudget: buyBudget.trim() || undefined,
+      clientName: buyBuyerName.trim() || undefined,
+      clientPhone: buyContactPhone.trim() || undefined,
+      notes: buyNotes.trim() || undefined
+    });
 
     let message = isUrdu 
       ? `السلام علیکم! محترم فریاد حسن گورائیہ صاحب (${OWNER_NAME})،\n\nمجھے رائل پام سٹی میں *پلاٹ کی خریداری (Buy Plot)* کے لیے تفصیلات درکار ہیں:\n\n`

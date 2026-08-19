@@ -6,6 +6,8 @@ import FeaturedProperties from "./components/FeaturedProperties";
 import PlotInquiry from "./components/PlotInquiry";
 import SmartRateEstimator from "./components/SmartRateEstimator";
 import AdminLoginModal from "./components/AdminLoginModal";
+import NotificationModal from "./components/NotificationModal";
+import AdminInboxModal from "./components/AdminInboxModal";
 import SocietyGuide from "./components/SocietyGuide";
 import FAQSection from "./components/FAQSection";
 import SocialLinks from "./components/SocialLinks";
@@ -15,6 +17,7 @@ import FloatingActionBar from "./components/FloatingActionBar";
 import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { AdminProvider } from "./context/AdminContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import { getTranslation } from "./i18n";
 
 type ActiveTab = "links" | "inquiry" | "deals" | "society";
@@ -258,6 +261,12 @@ function MainAppContent() {
       {/* Owner / Admin Authentication PIN Modal */}
       <AdminLoginModal />
 
+      {/* Notifications Drawer / Modal */}
+      <NotificationModal />
+
+      {/* Admin Customer Plot Ads & Inquiries Inbox */}
+      <AdminInboxModal />
+
       {/* Smooth Movable 3-Action Floating Bar (کال، واٹس ایپ، لوکیشن) */}
       <FloatingActionBar />
     </div>
@@ -268,7 +277,9 @@ export default function App() {
   return (
     <LanguageProvider>
       <AdminProvider>
-        <MainAppContent />
+        <NotificationProvider>
+          <MainAppContent />
+        </NotificationProvider>
       </AdminProvider>
     </LanguageProvider>
   );

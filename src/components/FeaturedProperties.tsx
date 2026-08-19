@@ -30,6 +30,7 @@ import {
 import { PropertyListing } from "../types";
 import { useLanguage } from "../context/LanguageContext";
 import { useAdmin } from "../context/AdminContext";
+import { useNotifications } from "../context/NotificationContext";
 import { getTranslation } from "../i18n";
 
 interface FeaturedPropertiesProps {
@@ -40,6 +41,7 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
   const { language, isUrdu } = useLanguage();
   const t = getTranslation(language);
   const { isAdmin, setIsLoginModalOpen } = useAdmin();
+  const { broadcastPublicDeal } = useNotifications();
 
   const residentialSizes = isUrdu ? RESIDENTIAL_PLOT_SIZES_URDU : RESIDENTIAL_PLOT_SIZES_ENGLISH;
   const commercialSizes = isUrdu ? COMMERCIAL_PLOT_SIZES_URDU : COMMERCIAL_PLOT_SIZES_ENGLISH;
@@ -119,6 +121,9 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
 
     const updated = [newDealItem, ...customDeals];
     saveCustomDeals(updated);
+
+    // Broadcast live notification to all users
+    broadcastPublicDeal(titleFinal, newBlock, newSize, newCategory === "demand");
 
     // Also send WhatsApp record
     let message = isUrdu 

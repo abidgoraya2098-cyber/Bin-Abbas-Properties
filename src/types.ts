@@ -86,3 +86,33 @@ export interface BuyPlotFormData {
   buyerPhone?: string;
   notes?: string;
 }
+
+export interface CustomerInquiryRecord {
+  id: string;
+  type: "sell" | "buy";
+  timestamp: number;
+  dateFormatted: string;
+  block: string;
+  size: string;
+  plotNumber?: string;
+  category?: string;
+  priceOrBudget?: string;
+  clientName?: string;
+  clientPhone?: string;
+  notes?: string;
+  status: "new" | "contacted" | "published" | "archived";
+}
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  titleEn?: string;
+  message: string;
+  messageEn?: string;
+  timestamp: number;
+  timeFormatted: string;
+  targetRole: "all" | "admin";
+  type: "new_deal" | "customer_ad" | "system" | "demand";
+  isRead: boolean;
+  relatedId?: string;
+}

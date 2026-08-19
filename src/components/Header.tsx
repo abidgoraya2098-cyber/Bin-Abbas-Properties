@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { MapPin, Share2, Check, Download, CheckCircle2, Globe, ShieldCheck, Lock } from "lucide-react";
+import { MapPin, Share2, Check, Download, CheckCircle2, Globe, ShieldCheck, Lock, Bell } from "lucide-react";
 import { LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH, ADDRESS, ADDRESS_ENGLISH, GOOGLE_MAPS_URL } from "../data";
 import BinAbbasLogo from "./BinAbbasLogo";
 import { useLanguage } from "../context/LanguageContext";
 import { useAdmin } from "../context/AdminContext";
+import { useNotifications } from "../context/NotificationContext";
 import { getTranslation } from "../i18n";
 
 export default function Header() {
   const { language, isUrdu, toggleLanguage } = useLanguage();
   const { isAdmin, setIsLoginModalOpen } = useAdmin();
+  const { unreadCount, setIsNotificationModalOpen, adminUnreadInquiriesCount } = useNotifications();
   const t = getTranslation(language);
 
   const [copied, setCopied] = useState(false);
@@ -141,7 +143,25 @@ export default function Header() {
             <span className="font-sans font-black tracking-wide">{t.langToggle}</span>
           </motion.button>
 
-          {/* 3. Share Button */}
+          {/* 3. 🔔 Notification Bell Button */}
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            id="notification-bell-btn"
+            onClick={() => setIsNotificationModalOpen(true)}
+            className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/50 shadow-sm transition-all cursor-pointer relative focus:outline-none"
+            title={isUrdu ? "نوٹیفکیشنز دیکھیں" : "Notifications"}
+            aria-label="Notifications"
+          >
+            <Bell size={15} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm animate-bounce">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </motion.button>
+
+          {/* 4. Share Button */}
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
@@ -161,21 +181,26 @@ export default function Header() {
             )}
           </motion.button>
 
-          {/* 4. Admin / Owner Portal Trigger Button */}
+          {/* 5. Admin / Owner Portal Trigger Button */}
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
             id="admin-login-header-btn"
             onClick={() => setIsLoginModalOpen(true)}
-            className={`p-2 rounded-full border shadow-sm transition-all cursor-pointer focus:outline-none ${
+            className={`p-2 rounded-full border shadow-sm transition-all cursor-pointer relative focus:outline-none ${
               isAdmin
-                ? "bg-amber-400 text-slate-950 border-amber-500 ring-2 ring-amber-300 animate-pulse"
+                ? "bg-amber-400 text-slate-950 border-amber-500 ring-2 ring-amber-300"
                 : "bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-800 border-amber-300"
             }`}
             title={isAdmin ? (isUrdu ? "👑 ایڈمن موڈ فعال ہے" : "👑 Admin Mode Active") : (isUrdu ? "مالک / ایڈمن لاگ ان" : "Owner / Admin Login")}
             aria-label="Admin Login"
           >
             <ShieldCheck size={15} className={isAdmin ? "text-slate-950" : "text-amber-700"} />
+            {isAdmin && adminUnreadInquiriesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-amber-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
+                {adminUnreadInquiriesCount}
+              </span>
+            )}
           </motion.button>
         </div>
 
