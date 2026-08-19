@@ -110,8 +110,8 @@ export default function Header() {
 
         {/* Action Buttons: Install (Left), Language Switcher (Center), Share (Right) */}
         <div className="w-full flex items-center justify-between z-20 mb-2 gap-1.5">
-          {/* 1. Install Button */}
-          {!isStandalone ? (
+          {/* 1. Install Button (Hidden when standalone) */}
+          {!isStandalone && (
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
@@ -122,11 +122,6 @@ export default function Header() {
               <Download size={13} className="text-white animate-bounce" />
               <span>{t.installApp}</span>
             </motion.button>
-          ) : (
-            <span className="flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold text-emerald-800 bg-white/90 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
-              <CheckCircle2 size={12} className="text-emerald-600" />
-              <span>{t.installed}</span>
-            </span>
           )}
 
           {/* 2. 🌐 Bilingual Language Switcher Button (Urdu <-> English) */}

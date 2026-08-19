@@ -638,26 +638,8 @@ export default function BinAbbasLogo({
         onClick={() => setIsModalOpen(true)}
         className={`relative flex flex-col items-center text-center select-none cursor-pointer transition-all duration-300 group ${className}`} 
         id="bin-abbas-logo-box"
-        title={isUrdu ? "مکمل تھری ڈی ایچ ڈی لوگو دیکھیں یا تمام لوگوز موبائل میں محفوظ کریں" : "View 3D HD Logo or Save all logos to phone memory"}
+        title={isUrdu ? "لوگو ڈاؤن لوڈ کرنے یا دیکھنے کے لیے کلک کریں" : "Click to view or download official logo"}
       >
-        {/* Quick Indicator Overlay Badge */}
-        <div className="w-full flex items-center justify-between px-2 mb-1 z-10">
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-900 bg-amber-300/90 hover:bg-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/40 shadow-xs transition-transform duration-200 group-hover:scale-105">
-            <Sparkles size={11} className="text-amber-700" />
-            <span>{isUrdu ? "آفیشل 3D برانڈ لوگو" : "Official 3D Brand Logo"}</span>
-          </span>
-
-          <button
-            type="button"
-            onClick={(e) => handleSavePhotoToPhone(LOGO_COLLECTION[0], e)}
-            className="inline-flex items-center gap-1 text-[10.5px] font-black text-white bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 hover:brightness-110 active:scale-95 px-2.5 py-0.5 rounded-full border border-emerald-400 shadow-sm transition-all cursor-pointer"
-            title={isUrdu ? "براہِ راست تصویر موبائل میموری میں ڈاؤن لوڈ کریں" : "Save photo directly to phone memory"}
-          >
-            <Download size={11} className={isDownloading ? "animate-spin" : "animate-bounce"} />
-            <span>{isUrdu ? "فوٹو ڈاؤن لوڈ" : "Save Photo"}</span>
-          </button>
-        </div>
-
         {/* The 3D Master SVG Render with Crystal Clear Definition */}
         <div className="w-full flex items-center justify-center py-0.5 relative">
           <RenderMaster3DLogo showPhone={true} />

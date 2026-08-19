@@ -239,7 +239,9 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
           </div>
         </div>
         <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
-          {filteredProperties.length} {isUrdu ? "ڈیلز دستیاب" : "Deals"}
+          {filteredProperties.length > 0 
+            ? isUrdu ? `${filteredProperties.length} ڈیلز دستیاب` : `${filteredProperties.length} Deals` 
+            : isUrdu ? "پراپرٹی ہب" : "Property Hub"}
         </span>
       </div>
 
@@ -274,6 +276,66 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
           </button>
         </div>
       )}
+
+      {/* Showcase Hub Boxes: ہاٹ ڈیلز، کمرشل ہب، خریدار ڈیمانڈز */}
+      <div className="grid grid-cols-3 gap-2 mt-3" id="showcase-hubs-grid">
+        {/* Hub 1: Hot Deals */}
+        <button
+          type="button"
+          onClick={() => setFilter("all")}
+          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+            filter === "all"
+              ? "bg-gradient-to-b from-amber-100 to-amber-50 border-amber-400 shadow-sm"
+              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+          }`}
+        >
+          <span className="text-lg block">🔥</span>
+          <span className="text-xs font-black text-emerald-950 block mt-0.5">
+            {isUrdu ? "ہاٹ ڈیلز" : "Hot Deals"}
+          </span>
+          <span className="text-[9.5px] text-slate-500 font-bold block mt-0.5">
+            {isUrdu ? "تصدیق شدہ موقع" : "Verified Spot"}
+          </span>
+        </button>
+
+        {/* Hub 2: Commercial */}
+        <button
+          type="button"
+          onClick={() => setFilter("commercial")}
+          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+            filter === "commercial"
+              ? "bg-gradient-to-b from-amber-100 to-amber-50 border-amber-400 shadow-sm"
+              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+          }`}
+        >
+          <span className="text-lg block">🏬</span>
+          <span className="text-xs font-black text-emerald-950 block mt-0.5">
+            {isUrdu ? "کمرشل ہب" : "Commercial"}
+          </span>
+          <span className="text-[9.5px] text-slate-500 font-bold block mt-0.5">
+            {isUrdu ? "پام کمرشل" : "Palm Comm."}
+          </span>
+        </button>
+
+        {/* Hub 3: Buyer Demands */}
+        <button
+          type="button"
+          onClick={() => setFilter("demand")}
+          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+            filter === "demand"
+              ? "bg-gradient-to-b from-purple-100 to-purple-50 border-purple-400 shadow-sm"
+              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+          }`}
+        >
+          <span className="text-lg block">🎯</span>
+          <span className="text-xs font-black text-purple-950 block mt-0.5">
+            {isUrdu ? "خریدار ڈیمانڈز" : "Demands"}
+          </span>
+          <span className="text-[9.5px] text-purple-700 font-bold block mt-0.5">
+            {isUrdu ? "فوری خریدار" : "Active Buyers"}
+          </span>
+        </button>
+      </div>
 
       {/* Instant Search Bar */}
       <div className="mt-3 relative">
@@ -466,31 +528,48 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
               );
             })
           ) : (
-            /* No Results Found Fallback */
+            /* Clean Verified Showcase Fallback when no active deals */
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="p-5 text-center bg-emerald-50/60 rounded-2xl border-2 border-dashed border-emerald-300 space-y-2.5"
+              className="p-5 text-center bg-gradient-to-b from-white to-emerald-50/70 rounded-3xl border-2 border-emerald-300/80 shadow-md space-y-3"
             >
-              <p className="text-xs font-bold text-slate-700 leading-relaxed">
-                {isUrdu
-                  ? "آپ کی تلاش سے مطابقت رکھنے والا پلاٹ فی الحال لسٹ میں موجود نہیں ہے۔"
-                  : "No matching plot found for your search criteria."}
-              </p>
-              <p className="text-[11px] text-emerald-900 font-semibold">
-                {isUrdu
-                  ? "ہم سے رابطہ کریں، ہم آپ کے لیے مطلوبہ بلاک اور سائز کا پلاٹ فوری تلاش کر کے فراہم کریں گے!"
-                  : "Contact us directly and we will find your desired plot in this block immediately!"}
-              </p>
-              <a
-                href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! مجھے رائل پام سٹی میں مخصوص پلاٹ تلاش کروانا ہے۔")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-700 text-white font-black text-xs shadow hover:bg-emerald-800 transition-colors"
-              >
-                <MessageCircle size={13} className="fill-white" />
-                <span>{isUrdu ? "بن عباس پراپرٹیز سے معلوم کریں" : "Inquire with Bin Abbas Properties"}</span>
-              </a>
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 mx-auto flex items-center justify-center shadow-xs">
+                <Sparkles size={22} className="text-amber-700" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-black text-emerald-950">
+                  {isUrdu ? "رائل پام سٹی تصدیق شدہ پراپرٹی ہب" : "Royal Palm City Verified Property Hub"}
+                </h4>
+                <p className="text-[11px] text-slate-600 font-semibold mt-1 leading-relaxed max-w-sm mx-auto">
+                  {isUrdu
+                    ? "رائل پام سٹی کے کسی بھی بلاک (A, B, C, ایگزیکٹو، رائل یا پام کمرشل) میں تازہ ترین دستیاب پلاٹ و براہِ راست مالکان کی ڈیلز معلوم کرنے کے لیے ہم سے رابطہ کریں۔"
+                    : "Contact Bin Abbas Properties directly for verified on-spot deals and latest available plots in Royal Palm City."}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+                <a
+                  href={`https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent("السلام علیکم! محترم فریاد حسن گورائیہ صاحب، مجھے رائل پام سٹی میں دستیاب تازہ ترین پلاٹس اور ریٹ لسٹ درکار ہے۔")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-black text-xs shadow-md hover:brightness-105 transition-all"
+                >
+                  <MessageCircle size={14} className="fill-white" />
+                  <span>{isUrdu ? "تازہ ترین لسٹ واٹس ایپ پر منگوائیں" : "Get Price List on WhatsApp"}</span>
+                </a>
+
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition-colors"
+                  >
+                    <PlusCircle size={14} />
+                    <span>{isUrdu ? "+ نئی ڈیل درج کریں" : "+ Add Deal"}</span>
+                  </button>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
