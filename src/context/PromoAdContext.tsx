@@ -31,11 +31,18 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
-  // 100% Clean: No hardcoded/pre-made ads! Only shows whatever Admin creates.
+  // 100% Clean: Pure Admin Ads Only (All legacy dummy/sample ads are automatically purged)
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: PromoAdItem[] = JSON.parse(saved);
+      // Completely remove any legacy dummy sample ads
+      const cleanAds = parsed.filter((a) => !a.id.startsWith("promo-ad-"));
+      if (cleanAds.length !== parsed.length) {
+        localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanAds));
+      }
+      return cleanAds;
     } catch {
       return [];
     }
