@@ -20,10 +20,10 @@ export default function FloatingActionBar() {
   const handleLocationClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Universal mobile & desktop handler to ensure Google Maps always opens
+    // Universal mobile & desktop handler to ensure Google Maps always opens exact Palm Commercial office
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     const mapsTarget = isIOS 
-      ? `https://maps.apple.com/?q=Royal+Palm+City+Gujranwala` 
+      ? `https://maps.apple.com/?q=Palm+Commercial+Royal+Palm+City+Gujranwala` 
       : GOOGLE_MAPS_URL;
       
     window.open(mapsTarget, "_blank", "noopener,noreferrer") || (window.location.href = mapsTarget);

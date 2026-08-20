@@ -21,10 +21,10 @@ export const SUBTITLE = "BIN ABBAS PROPERTIES";
 export const SUBTITLE_ENGLISH = "Real Estate & Builders";
 export const LOCATION_TAGLINE = "رائل پام سٹی، گوجرانوالہ";
 export const LOCATION_TAGLINE_ENGLISH = "Royal Palm City, Gujranwala";
-export const ADDRESS = "بن عباس پراپرٹیز، رائل پام سٹی، گوجرانوالہ (پام کمرشل 235)";
-export const ADDRESS_ENGLISH = "Bin Abbas Properties, Royal Palm City, Gujranwala (Palm Commercial 235)";
-export const GOOGLE_MAPS_URL = "https://maps.google.com/?q=Royal+Palm+City+Gujranwala";
-export const GOOGLE_MAPS_NAV_URL = "https://maps.google.com/?daddr=Royal+Palm+City+Gujranwala";
+export const ADDRESS = "بن عباس پراپرٹیز، پام کمرشل 235، مین مارکیٹ، رائل پام سٹی، گوجرانوالہ";
+export const ADDRESS_ENGLISH = "Bin Abbas Properties, Palm Commercial 235, Main Market, Royal Palm City, Gujranwala";
+export const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Palm+Commercial+Royal+Palm+City+Gujranwala+Bin+Abbas+Properties";
+export const GOOGLE_MAPS_NAV_URL = "https://www.google.com/maps/dir/?api=1&destination=Palm+Commercial+Royal+Palm+City+Gujranwala";
 
 export const QUICK_LINKS: readonly QuickLink[] = Object.freeze([
   {
