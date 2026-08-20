@@ -32,7 +32,7 @@ import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { CustomerInquiryRecord, PropertyListing, PromoAdItem } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
-import { saveMediaBlob } from "../utils/mediaStorage";
+import { saveMediaBlob, fileToDataUrl } from "../utils/mediaStorage";
 
 export default function AdminInboxModal() {
   const { 
@@ -80,10 +80,17 @@ export default function AdminInboxModal() {
       setAdType(mediaKind);
       setAdFileName(file.name);
 
+      // Convert to permanent Base64 Data URL
+      const dataUrl = await fileToDataUrl(file);
       const mediaId = `media-${Date.now()}`;
-      await saveMediaBlob(mediaId, file);
-      const previewUrl = URL.createObjectURL(file);
-      setAdMediaUrl(previewUrl);
+      await saveMediaBlob(mediaId, dataUrl);
+
+      // If dataUrl < 2.5MB, store dataUrl directly for 100% instant cross-device rendering; else store mediaId
+      if (dataUrl.length < 2500000) {
+        setAdMediaUrl(dataUrl);
+      } else {
+        setAdMediaUrl(mediaId);
+      }
     } catch (err) {
       console.warn("Upload error:", err);
     } finally {

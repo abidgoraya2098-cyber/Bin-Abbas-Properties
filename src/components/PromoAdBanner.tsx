@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Play, Sparkles, Image, MessageCircle, ArrowLeft, ArrowRight, Eye } from "lucide-react";
+import { Play, Sparkles, Image, MessageCircle, ArrowLeft, ArrowRight, Eye, Video, FileText } from "lucide-react";
 import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useAdmin } from "../context/AdminContext";
@@ -32,9 +32,7 @@ export default function PromoAdBanner() {
       <div className="flex flex-col gap-2.5">
         {activeAds.map((ad, idx) => {
           const isVideo = ad.type === "video";
-          const displayImage = isVideo
-            ? ad.thumbnailUrl || "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"
-            : ad.mediaUrl;
+          const isImage = ad.type === "image";
 
           return (
             <motion.div
@@ -48,13 +46,27 @@ export default function PromoAdBanner() {
               className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0a4d30] via-[#083c25] to-[#042416] text-white p-3 sm:p-3.5 border-2 border-amber-400/80 shadow-[0_8px_20px_rgba(10,50,30,0.18)] cursor-pointer group select-none"
             >
               <div className="flex items-center gap-3">
-                {/* Thumbnail Preview with Play / Zoom Icon */}
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-amber-300/40 bg-black/40">
-                  <img
-                    src={displayImage}
-                    alt={ad.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                {/* Thumbnail Preview */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-amber-300/40 bg-black/50 flex items-center justify-center">
+                  {isVideo && ad.mediaUrl ? (
+                    <video
+                      src={ad.mediaUrl}
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isImage && ad.mediaUrl ? (
+                    <img
+                      src={ad.mediaUrl}
+                      alt={ad.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-emerald-900 flex items-center justify-center text-amber-300">
+                      <FileText size={28} />
+                    </div>
+                  )}
+
                   {/* Floating Play or Image Badge */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
                     <div className="w-8 h-8 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -66,8 +78,8 @@ export default function PromoAdBanner() {
                     </div>
                   </div>
 
-                  <span className="absolute bottom-1 right-1 bg-black/75 px-1 py-0.5 rounded text-[8px] font-black text-amber-300">
-                    {isVideo ? "VIDEO" : "PHOTO"}
+                  <span className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[8px] font-black text-amber-300">
+                    {isVideo ? "VIDEO" : isImage ? "PHOTO" : "NOTICE"}
                   </span>
                 </div>
 
@@ -88,17 +100,19 @@ export default function PromoAdBanner() {
                     {isUrdu ? ad.title : (ad.titleEn || ad.title)}
                   </h4>
 
-                  <p className="text-[10.5px] text-emerald-100/90 line-clamp-2 mt-1 leading-snug font-medium">
-                    {isUrdu ? ad.caption : (ad.captionEn || ad.caption)}
-                  </p>
+                  {ad.caption && (
+                    <p className="text-[10.5px] text-emerald-100/90 line-clamp-2 mt-1 leading-snug font-medium">
+                      {isUrdu ? ad.caption : (ad.captionEn || ad.caption)}
+                    </p>
+                  )}
 
                   <div className="mt-2 flex items-center justify-between pt-1 border-t border-emerald-700/60">
                     <span className="text-[10px] text-amber-300 font-bold flex items-center gap-1">
                       <MessageCircle size={11} />
-                      <span>{isUrdu ? "تفصیل و رابطہ دیکھیں" : "View Details & Buy"}</span>
+                      <span>{isUrdu ? "فل سکرین دیکھیں اور خریدیں" : "View Full Screen & Buy"}</span>
                     </span>
 
-                    <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-amber-300">
+                    <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-amber-400 group-hover:text-slate-950 transition-colors">
                       {isUrdu ? <ArrowLeft size={11} /> : <ArrowRight size={11} />}
                     </div>
                   </div>

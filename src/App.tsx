@@ -65,6 +65,13 @@ function MainAppContent() {
       setIsInAppBrowser(true);
     }
 
+    // Request notification permission smoothly
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      setTimeout(() => {
+        Notification.requestPermission().catch(() => {});
+      }, 3500);
+    }
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);

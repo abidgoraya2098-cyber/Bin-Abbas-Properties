@@ -1,6 +1,6 @@
 /**
  * 📦 High-Capacity Persistent IndexedDB Media Storage for Admin Gallery Uploads
- * Allows seamless offline storage and playback of large videos and photos on mobile.
+ * Stores media as persistent Base64 Data URLs and Blobs for reliable playback across all devices & reloads.
  */
 
 const DB_NAME = "BinAbbasMediaDB";
@@ -28,21 +28,36 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function saveMediaBlob(id: string, file: Blob | File | string): Promise<string> {
+/** Convert a File or Blob to a permanent Base64 Data URL */
+export function fileToDataUrl(file: File | Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string): Promise<string> {
   try {
+    let dataToStore = dataOrFile;
+    if (dataOrFile instanceof File || dataOrFile instanceof Blob) {
+      dataToStore = await fileToDataUrl(dataOrFile);
+    }
+
     const db = await openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
       
-      const item = { id, data: file, timestamp: Date.now() };
+      const item = { id, data: dataToStore, timestamp: Date.now() };
       const req = store.put(item);
 
       req.onsuccess = () => resolve(id);
       req.onerror = () => reject(req.error);
     });
   } catch (err) {
-    console.warn("Could not save to IndexedDB, fallback:", err);
+    console.warn("Could not save to IndexedDB:", err);
     return id;
   }
 }
@@ -61,7 +76,7 @@ export async function getMediaBlob(id: string): Promise<string | null> {
           if (typeof raw === "string") {
             resolve(raw);
           } else if (raw instanceof Blob || raw instanceof File) {
-            resolve(URL.createObjectURL(raw));
+            fileToDataUrl(raw).then(resolve).catch(() => resolve(null));
           } else {
             resolve(null);
           }

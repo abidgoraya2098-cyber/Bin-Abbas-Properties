@@ -164,7 +164,37 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       console.warn("Badge error", e);
     }
 
-    // Broadcast Public Notification
+    // Trigger Native System / Push Notification outside the app
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+      if (Notification.permission === "granted") {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification(`🔥 نیا ایڈ: ${newAd.title}`, {
+              body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+              icon: "/icon.svg",
+              badge: "/icon.svg",
+              vibrate: [200, 100, 200],
+              tag: `bin-abbas-ad-${newAd.id}`
+            });
+          }).catch(() => {
+            new Notification(`🔥 نیا ایڈ: ${newAd.title}`, {
+              body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+              icon: "/icon.svg"
+            });
+          });
+        } else {
+          new Notification(`🔥 نیا ایڈ: ${newAd.title}`, {
+            body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+            icon: "/icon.svg"
+          });
+        }
+      }
+    }
+
+    // Broadcast In-App Notification
     const typeLabel = newAd.type === "video" 
       ? "ویڈیو ایڈ" 
       : newAd.type === "image" 
