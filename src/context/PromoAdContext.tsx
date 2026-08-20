@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { PromoAdItem } from "../types";
 import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
+import { getMediaBlob, deleteMediaBlob } from "../utils/mediaStorage";
 
 interface PromoAdContextType {
   ads: PromoAdItem[];
@@ -26,74 +27,17 @@ interface PromoAdContextType {
 
 const PromoAdContext = createContext<PromoAdContextType | undefined>(undefined);
 
-// Initial Sample High-End Real Estate Ads
-const INITIAL_PROMO_ADS: PromoAdItem[] = [
-  {
-    id: "promo-ad-palm-commercial",
-    type: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&q=80",
-    title: "خصوصی آفر: پرائم کمرشل دکان (پام کمرشل 235)",
-    titleEn: "Exclusive Offer: Prime Commercial Shop (Palm Commercial 235)",
-    caption: "رائل پام سٹی کی مرکزی ترین مین مارکیٹ میں پام کمرشل 235 پر شاندار کمرشل دکان برائے فروخت دستیاب ہے۔ تمام جدید سہولیات، فوری قبضہ اور بہترین رینٹل انکم کی گارنٹی۔",
-    captionEn: "Prime commercial shop available for instant sale at Palm Commercial 235, Royal Palm City Gujranwala. High rental yield and instant possession.",
-    price: "ڈیمانڈ: 1 کروڑ 65 لاکھ",
-    priceEn: "Demand: 1.65 Crore PKR",
-    location: "پام کمرشل 235، مین مارکیٹ، رائل پام سٹی، گوجرانوالہ",
-    locationEn: "Palm Commercial 235, Main Market, Royal Palm City, Gujranwala",
-    whatsAppMessage: "السلام علیکم فریاد حسن گورائیہ صاحب! میں نے ایپ پر پام کمرشل 235 کی دکان کا ایڈ دیکھا ہے، مجھے یہ خریدنی ہے، براہ کرم معلومات دیں۔",
-    createdAt: Date.now() - 3600000 * 2,
-    isActive: true,
-    isHot: true,
-    viewCount: 184
-  },
-  {
-    id: "promo-ad-luxury-villa",
-    type: "video",
-    mediaUrl: "https://assets.mixkit.co/videos/preview/mixkit-modern-suburban-house-exterior-tour-41484-large.mp4",
-    thumbnailUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
-    title: "ویڈیو ٹور: 10 مرلہ برانڈ نیو لگژری ڈیزائنر ولا (بلاک B)",
-    titleEn: "Video Tour: 10 Marla Luxury Designer Villa (Block B)",
-    caption: "5 کشادہ بیڈ رومز بمعہ اٹیچ باتھ، 2 اٹالین کچن، ڈرائنگ و ڈائننگ، امپورٹڈ سینیٹری و ٹائل فٹنگز، سرونٹ کوارٹر اور سولر پینلز انسٹالڈ۔ رائل پام سٹی کے بہترین بلاک میں فوری شفٹنگ کے لیے تیار۔",
-    captionEn: "Brand new 10 Marla modern house in Block B, Royal Palm City. 5 Master Bedrooms, 2 Luxury Kitchens, Designer Interior, Solar System Installed.",
-    price: "ڈیمانڈ: 3 کروڑ 75 لاکھ",
-    priceEn: "Demand: 3.75 Crore PKR",
-    location: "بلاک B، رائل پام سٹی، گوجرانوالہ",
-    locationEn: "Block B, Royal Palm City, Gujranwala",
-    whatsAppMessage: "السلام علیکم فریاد حسن گورائیہ صاحب! میں نے ایپ پر بلاک B کے 10 مرلہ گھر کا ویڈیو ایڈ دیکھا ہے۔ برائے مہربانی وزٹ کا وقت اور فائنل ریٹ بتائیں۔",
-    createdAt: Date.now() - 3600000 * 5,
-    isActive: true,
-    isHot: true,
-    viewCount: 312
-  },
-  {
-    id: "promo-ad-urgent-plot",
-    type: "text_only",
-    title: "🔥 فوری کیش آفر: 5 مرلہ برائے فروخت (بلاک A)",
-    titleEn: "🔥 Hot Cash Offer: 5 Marla Plot (Block A)",
-    caption: "بلاک A کی مین 50 فٹ سڑک کے نزدیک، تمام واجبات ادا شدہ، فوری رجسٹری انتقال دستیاب۔ فوری خریدار رابطہ فرمائیں۔",
-    captionEn: "Near Main 50ft Road in Block A. All dues clear, instant registry transfer available.",
-    price: "ڈیمانڈ: 48 لاکھ (فائنل)",
-    priceEn: "Demand: 48 Lac PKR",
-    location: "بلاک A، رائل پام سٹی، گوجرانوالہ",
-    locationEn: "Block A, Royal Palm City, Gujranwala",
-    whatsAppMessage: "السلام علیکم فریاد حسن گورائیہ صاحب! مجھے بلاک A کے 5 مرلہ پلاٹ (ڈیمانڈ 48 لاکھ) کا سودا فائنل کرنا ہے۔ براہ کرم رابطہ کریں۔",
-    createdAt: Date.now() - 3600000 * 8,
-    isActive: true,
-    isHot: false,
-    viewCount: 95
-  }
-];
-
 export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
+  // 100% Clean: No hardcoded/pre-made ads! Only shows whatever Admin creates.
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
-      return saved ? JSON.parse(saved) : INITIAL_PROMO_ADS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_PROMO_ADS;
+      return [];
     }
   });
 
@@ -105,7 +49,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     try {
       const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
       const latestAdTime = ads.length > 0 ? Math.max(...ads.map((a) => a.createdAt)) : 0;
-      return latestAdTime > lastSeenTime;
+      return latestAdTime > lastSeenTime && ads.some(a => a.isActive);
     } catch {
       return false;
     }
@@ -151,6 +95,8 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const openAd = (indexOrAd?: number | PromoAdItem) => {
+    if (activeAds.length === 0) return;
+
     if (typeof indexOrAd === "number") {
       setCurrentAdIndex(indexOrAd);
     } else if (indexOrAd && typeof indexOrAd === "object") {
@@ -236,6 +182,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const deletePromoAd = (id: string) => {
     const updated = ads.filter((item) => item.id !== id);
     saveAds(updated);
+    deleteMediaBlob(id).catch(() => {});
     if (currentAdIndex >= updated.filter(a => a.isActive).length) {
       setCurrentAdIndex(0);
     }
