@@ -17,10 +17,10 @@ import SocialLinks from "./components/SocialLinks";
 import Feedback from "./components/Feedback";
 import Footer from "./components/Footer";
 import FloatingActionBar from "./components/FloatingActionBar";
-import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "lucide-react";
+import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info, Video } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
-import { AdminProvider } from "./context/AdminContext";
-import { NotificationProvider } from "./context/NotificationContext";
+import { AdminProvider, useAdmin } from "./context/AdminContext";
+import { NotificationProvider, useNotifications } from "./context/NotificationContext";
 import { PromoAdProvider, usePromoAds } from "./context/PromoAdContext";
 import { getTranslation } from "./i18n";
 
@@ -30,6 +30,8 @@ function MainAppContent() {
   const { language, isUrdu, dir } = useLanguage();
   const t = getTranslation(language);
   const { activeAds, openAd } = usePromoAds();
+  const { isAdmin, setIsLoginModalOpen } = useAdmin();
+  const { setIsAdminInboxOpen } = useNotifications();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("links");
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
@@ -155,6 +157,34 @@ function MainAppContent() {
 
         {/* 1. Header with Official 3D Brand Logo & Actions */}
         <Header />
+
+        {/* 👑 Admin Direct Ad Creator Banner (Always clearly visible for Admin) */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={() => setIsAdminInboxOpen(true)}
+            id="admin-direct-ad-creator-banner"
+            className="my-3 p-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 flex items-center justify-between gap-2 shadow-lg border-2 border-amber-600 cursor-pointer hover:brightness-105 active:scale-98 transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center shadow-md shrink-0">
+                <Video size={18} />
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-black block leading-tight text-slate-950">
+                  {isUrdu ? "👑 ایڈمن پورٹل: ➕ نیا ویڈیو یا تصویر ایڈ بنائیں" : "👑 Admin: ➕ Create Video / Photo Ad"}
+                </span>
+                <span className="text-[10px] text-slate-800 font-bold block">
+                  {isUrdu ? "موبائل گیلری سے ویڈیو/تصویر منتخب کر کے شائع کریں" : "Upload photo/video from gallery & publish live"}
+                </span>
+              </div>
+            </div>
+            <div className="px-2.5 py-1.5 rounded-xl bg-slate-950 text-amber-300 font-black text-xs shrink-0 shadow-md">
+              {isUrdu ? "ایڈ لگائیں ➕" : "Add Ad ➕"}
+            </div>
+          </motion.div>
+        )}
 
         {/* 🌟 Featured Admin Promo Video/Image Ad Banner */}
         <PromoAdBanner />

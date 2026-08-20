@@ -1,6 +1,6 @@
 import React from "react";
 import { MapPin, Navigation, ShieldCheck, Zap, Building, ShoppingBag, Trees, Fuel, Landmark, ExternalLink } from "lucide-react";
-import { SOCIETY_AMENITIES, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL } from "../data";
+import { SOCIETY_AMENITIES, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL, ROYAL_PALM_BLOCKS } from "../data";
 import { useLanguage } from "../context/LanguageContext";
 import { getTranslation } from "../i18n";
 
@@ -79,6 +79,31 @@ export default function SocietyGuide() {
             </div>
           );
         })}
+      </div>
+
+      {/* 🗺️ Complete Society Blocks Directory (Blocks A to M & Extensions) */}
+      <div className="mt-4 pt-3 border-t border-emerald-100">
+        <h4 className="text-xs sm:text-sm font-black text-emerald-950 mb-2 flex items-center justify-between">
+          <span>{isUrdu ? "🏛️ رائل پام سٹی تمام بلاکس و ایکسٹینشنز کی تفصیل (A تا M)" : "🏛️ All Society Blocks & Extensions (A to M)"}</span>
+          <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">A to M & Ext</span>
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+          {ROYAL_PALM_BLOCKS.map((block) => (
+            <div key={block.id} className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2">
+              <span className="w-6 h-6 rounded-lg bg-emerald-700 text-amber-300 font-black text-[10px] flex items-center justify-center shrink-0 shadow-sm">
+                {block.id.slice(0, 3)}
+              </span>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-slate-900 block truncate">
+                  {isUrdu ? block.name : (block.nameEn || block.name)}
+                </span>
+                <span className="text-[10px] text-slate-600 font-semibold block leading-tight">
+                  {isUrdu ? block.desc : (block.descEn || block.desc)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Google Maps / Office Location Action Card */}

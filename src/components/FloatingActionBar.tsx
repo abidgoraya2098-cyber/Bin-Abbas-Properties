@@ -1,12 +1,16 @@
 import React from "react";
 import { motion, useDragControls } from "motion/react";
-import { Phone, MessageCircle, MapPin } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Video } from "lucide-react";
 import { CONTACT_PHONE, GOOGLE_MAPS_URL } from "../data";
 import { useLanguage } from "../context/LanguageContext";
+import { useAdmin } from "../context/AdminContext";
+import { useNotifications } from "../context/NotificationContext";
 import { getTranslation } from "../i18n";
 
 export default function FloatingActionBar() {
   const { language, isUrdu } = useLanguage();
+  const { isAdmin } = useAdmin();
+  const { setIsAdminInboxOpen } = useNotifications();
   const t = getTranslation(language);
   const dragControls = useDragControls();
 
@@ -44,11 +48,22 @@ export default function FloatingActionBar() {
         {/* Dedicated Drag Handle Bar (Drags only when touching this handle) */}
         <div 
           onPointerDown={(e) => dragControls.start(e)}
-          className="flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing py-1 touch-none" 
-          title={isUrdu ? "بار کو اوپر یا نیچے کریں" : "Drag bar"}
+          className="w-full flex items-center justify-center py-1 cursor-grab active:cursor-grabbing touch-none"
+          title="Drag up or down"
         >
           <div className="w-12 h-1 bg-emerald-400/80 rounded-full"></div>
         </div>
+
+        {/* 👑 Admin Quick Create Ad Button */}
+        {isAdmin && (
+          <button
+            onClick={() => setIsAdminInboxOpen(true)}
+            className="w-full py-1.5 px-3 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md border border-amber-600 cursor-pointer active:scale-95 transition-all"
+          >
+            <Video size={14} className="text-slate-950" />
+            <span>{isUrdu ? "👑 ایڈمن: ➕ نیا ویڈیو یا تصویر ایڈ بنائیں" : "👑 Admin: ➕ Create Video / Photo Ad"}</span>
+          </button>
+        )}
 
         {/* 3 Core Action Buttons */}
         <div className="flex items-center justify-around gap-2 text-center">

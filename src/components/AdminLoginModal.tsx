@@ -1,12 +1,14 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ShieldCheck, Lock, X, LogOut, CheckCircle, AlertCircle } from "lucide-react";
+import { ShieldCheck, Lock, X, LogOut, CheckCircle, AlertCircle, Video } from "lucide-react";
 import { useAdmin } from "../context/AdminContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useNotifications } from "../context/NotificationContext";
 import { OWNER_NAME } from "../data";
 
 export default function AdminLoginModal() {
   const { isAdmin, login, logout, isLoginModalOpen, setIsLoginModalOpen } = useAdmin();
+  const { setIsAdminInboxOpen } = useNotifications();
   const { isUrdu } = useLanguage();
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
@@ -17,6 +19,8 @@ export default function AdminLoginModal() {
     if (success) {
       setPin("");
       setError(false);
+      setIsLoginModalOpen(false);
+      setIsAdminInboxOpen(true);
     } else {
       setError(true);
     }

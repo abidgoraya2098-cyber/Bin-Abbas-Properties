@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { MapPin, Share2, Check, Download, CheckCircle2, Globe, ShieldCheck, Lock, Bell } from "lucide-react";
+import { MapPin, Share2, Check, Download, CheckCircle2, Globe, ShieldCheck, Lock, Bell, Video, PlusCircle } from "lucide-react";
 import { LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH, ADDRESS, ADDRESS_ENGLISH, GOOGLE_MAPS_URL } from "../data";
 import BinAbbasLogo from "./BinAbbasLogo";
 import { useLanguage } from "../context/LanguageContext";
@@ -12,7 +12,7 @@ import { getTranslation } from "../i18n";
 export default function Header() {
   const { language, isUrdu, toggleLanguage } = useLanguage();
   const { isAdmin, setIsLoginModalOpen } = useAdmin();
-  const { unreadCount, setIsNotificationModalOpen, adminUnreadInquiriesCount } = useNotifications();
+  const { unreadCount, setIsNotificationModalOpen, adminUnreadInquiriesCount, setIsAdminInboxOpen } = useNotifications();
   const { hasUnseenNewAd } = usePromoAds();
   const t = getTranslation(language);
 
@@ -112,10 +112,10 @@ export default function Header() {
         {/* Ambient Top Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Action Buttons: Left Controls (Language + Notifications) & Right Controls (Install, Share, Admin) */}
-        <div className="w-full flex items-center justify-between z-20 mb-2 gap-2">
+        {/* Action Buttons: Left Controls (Language + Notifications + Create Ad) & Right Controls (Install, Share, Admin) */}
+        <div className="w-full flex flex-wrap items-center justify-between z-20 mb-2 gap-1.5">
           {/* Left Cluster: Quick Controls */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {/* 1. 🌐 Bilingual Language Switcher Button (Urdu <-> English) */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -146,6 +146,26 @@ export default function Header() {
                   {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
                 </span>
               )}
+            </motion.button>
+
+            {/* 👑 3. ➕ Create Ad / Admin Ads Button (Highly Visible Gold Button) */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              id="header-create-ad-btn"
+              onClick={() => {
+                if (isAdmin) {
+                  setIsAdminInboxOpen(true);
+                } else {
+                  setIsLoginModalOpen(true);
+                }
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-md border border-amber-500 hover:brightness-105 transition-all cursor-pointer"
+              title={isUrdu ? "ویڈیو یا تصویر ایڈ لگائیں" : "Create Video / Photo Ad"}
+              aria-label="Create Ad"
+            >
+              <Video size={13} className="text-slate-950" />
+              <span className="font-black tracking-tight">{isUrdu ? "➕ ایڈ لگائیں" : "➕ Create Ad"}</span>
             </motion.button>
           </div>
 

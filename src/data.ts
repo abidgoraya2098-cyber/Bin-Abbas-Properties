@@ -150,11 +150,25 @@ export const ROYAL_PALM_BLOCKS: readonly SocietyBlockInfo[] = Object.freeze([
     descEn: "Near Main Entrance & Central Grand Mosque"
   },
   { 
+    id: "A-Ext", 
+    name: "بلاک A ایکسٹینشن (A-Ext)", 
+    nameEn: "Block A Extension",
+    desc: "پُرسکون رہائش و پرائم ڈویلپمنٹ سیکٹر",
+    descEn: "Peaceful Living & Prime Development Sector"
+  },
+  { 
     id: "B", 
     name: "بلاک B", 
     nameEn: "Block B",
     desc: "خوبصورت فیملی پارک اور پُرسکون رہائش",
     descEn: "Scenic Family Park & Peaceful Residence"
+  },
+  { 
+    id: "B-Ext", 
+    name: "بلاک B ایکسٹینشن (B-Ext)", 
+    nameEn: "Block B Extension",
+    desc: "نئی پرکشش رہائشی اور انویسٹمنٹ کیٹگری",
+    descEn: "Attractive New Residential & Investment Zone"
   },
   { 
     id: "C", 
@@ -164,11 +178,25 @@ export const ROYAL_PALM_BLOCKS: readonly SocietyBlockInfo[] = Object.freeze([
     descEn: "Rapidly Developing Prime Location"
   },
   { 
+    id: "C-Ext", 
+    name: "بلاک C ایکسٹینشن (C-Ext)", 
+    nameEn: "Block C Extension",
+    desc: "نئے پلاٹس اور جدید ماسٹر پلان سیکٹر",
+    descEn: "New Plots & Modern Master-Planned Sector"
+  },
+  { 
     id: "D", 
     name: "بلاک D", 
     nameEn: "Block D",
     desc: "رہائش و محفوظ ترین سرمایہ کاری",
     descEn: "Ideal Living & Secure Investment"
+  },
+  { 
+    id: "D-Ext", 
+    name: "بلاک D ایکسٹینشن (D-Ext)", 
+    nameEn: "Block D Extension",
+    desc: "بہترین فیوچر گروتھ سیکٹر",
+    descEn: "High Future Growth Sector"
   },
   { 
     id: "E", 
@@ -178,11 +206,74 @@ export const ROYAL_PALM_BLOCKS: readonly SocietyBlockInfo[] = Object.freeze([
     descEn: "High Market Value & Fully Developed"
   },
   { 
+    id: "E-Ext", 
+    name: "بلاک E ایکسٹینشن (E-Ext)", 
+    nameEn: "Block E Extension",
+    desc: "وسیع سڑکیں اور شاندار انویسٹمنٹ آپشنز",
+    descEn: "Wide Roads & Attractive Investment Options"
+  },
+  { 
     id: "F", 
     name: "بلاک F", 
     nameEn: "Block F",
     desc: "پرکشش رہائشی سیکٹر بلاک",
     descEn: "Attractive Residential Sector"
+  },
+  { 
+    id: "F-Ext", 
+    name: "بلاک F ایکسٹینشن (F-Ext)", 
+    nameEn: "Block F Extension",
+    desc: "ترقیاتی کاموں کے ساتھ نیا سیکٹر",
+    descEn: "Upcoming Development Sector"
+  },
+  { 
+    id: "G", 
+    name: "بلاک G", 
+    nameEn: "Block G",
+    desc: "کمیونٹی پارک اور جدید سہولیات کے نزدیک",
+    descEn: "Near Community Park & Modern Amenities"
+  },
+  { 
+    id: "H", 
+    name: "بلاک H", 
+    nameEn: "Block H",
+    desc: "شاندار لوکیشن و پرسکون رہائش",
+    descEn: "Prime Location & Serene Environment"
+  },
+  { 
+    id: "I", 
+    name: "بلاک I", 
+    nameEn: "Block I",
+    desc: "مناسب ریٹس اور بہترین کیش انویسٹمنٹ",
+    descEn: "Affordable Rates & High Cash Return"
+  },
+  { 
+    id: "J", 
+    name: "بلاک J", 
+    nameEn: "Block J",
+    desc: "5 و 10 مرلہ رہائشی پلاٹس کا سیکٹر",
+    descEn: "5 & 10 Marla Residential Plots Sector"
+  },
+  { 
+    id: "K", 
+    name: "بلاک K", 
+    nameEn: "Block K",
+    desc: "نئی منصوبہ بندی اور وسیع راستے",
+    descEn: "New Planning & Wide Roads Network"
+  },
+  { 
+    id: "L", 
+    name: "بلاک L", 
+    nameEn: "Block L",
+    desc: "مستقبل کی تیز رفتار ترقی کا مرکز",
+    descEn: "Fast-Paced Future Development Zone"
+  },
+  { 
+    id: "M", 
+    name: "بلاک M", 
+    nameEn: "Block M",
+    desc: "جدید رہائشی بلاک اور اعلیٰ سرمایہ کاری موقع",
+    descEn: "Modern Residential Block & Prime Investment"
   },
   { 
     id: "Exec", 
