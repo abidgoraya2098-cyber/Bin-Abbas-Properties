@@ -94,9 +94,9 @@ function MainAppContent() {
       id="app-root-container"
       dir={dir}
     >
-      {/* 🌟 Fast & Ultra-Clean 2-Second Luxury 3D Logo Reveal Splash Screen */}
+      {/* 🌟 4K Real Estate Motion Graphics Splash Screen */}
       {showSplashScreen && (
-        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={2000} />
+        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={2500} />
       )}
 
       {/* Ambient Lighting Background Orbs */}
