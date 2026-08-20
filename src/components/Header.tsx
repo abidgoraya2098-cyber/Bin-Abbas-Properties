@@ -6,13 +6,17 @@ import BinAbbasLogo from "./BinAbbasLogo";
 import { useLanguage } from "../context/LanguageContext";
 import { useAdmin } from "../context/AdminContext";
 import { useNotifications } from "../context/NotificationContext";
+import { usePromoAds } from "../context/PromoAdContext";
 import { getTranslation } from "../i18n";
 
 export default function Header() {
   const { language, isUrdu, toggleLanguage } = useLanguage();
   const { isAdmin, setIsLoginModalOpen } = useAdmin();
   const { unreadCount, setIsNotificationModalOpen, adminUnreadInquiriesCount } = useNotifications();
+  const { hasUnseenNewAd } = usePromoAds();
   const t = getTranslation(language);
+
+  const totalUnreadCount = unreadCount + (hasUnseenNewAd ? 1 : 0);
 
   const [copied, setCopied] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -149,9 +153,9 @@ export default function Header() {
             aria-label="Notifications"
           >
             <Bell size={15} />
-            {unreadCount > 0 && (
+            {totalUnreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm animate-bounce">
-                {unreadCount > 9 ? "9+" : unreadCount}
+                {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
               </span>
             )}
           </motion.button>

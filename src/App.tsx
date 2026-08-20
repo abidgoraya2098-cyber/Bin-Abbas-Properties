@@ -9,6 +9,8 @@ import SmartRateEstimator from "./components/SmartRateEstimator";
 import AdminLoginModal from "./components/AdminLoginModal";
 import NotificationModal from "./components/NotificationModal";
 import AdminInboxModal from "./components/AdminInboxModal";
+import PromoAdModal from "./components/PromoAdModal";
+import PromoAdBanner from "./components/PromoAdBanner";
 import SocietyGuide from "./components/SocietyGuide";
 import FAQSection from "./components/FAQSection";
 import SocialLinks from "./components/SocialLinks";
@@ -19,6 +21,7 @@ import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info } from "l
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { AdminProvider } from "./context/AdminContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { PromoAdProvider, usePromoAds } from "./context/PromoAdContext";
 import { getTranslation } from "./i18n";
 
 type ActiveTab = "links" | "inquiry" | "deals" | "society";
@@ -26,6 +29,7 @@ type ActiveTab = "links" | "inquiry" | "deals" | "society";
 function MainAppContent() {
   const { language, isUrdu, dir } = useLanguage();
   const t = getTranslation(language);
+  const { featuredAd, openAd, hasUnseenNewAd } = usePromoAds();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("links");
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
@@ -65,6 +69,16 @@ function MainAppContent() {
     };
   }, []);
 
+  // When splash screen finishes, if there's a new unseen featured ad, pop it up automatically!
+  const handleSplashFinish = () => {
+    setShowSplashScreen(false);
+    if (featuredAd && hasUnseenNewAd) {
+      setTimeout(() => {
+        openAd(featuredAd);
+      }, 500);
+    }
+  };
+
   const handleOpenInChrome = () => {
     const cleanUrl = window.location.href.replace(/^https?:\/\//, "");
     window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
@@ -96,7 +110,7 @@ function MainAppContent() {
     >
       {/* 🌟 4K Real Estate Motion Graphics Splash Screen */}
       {showSplashScreen && (
-        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={2500} />
+        <SplashScreen onFinish={handleSplashFinish} duration={2500} />
       )}
 
       {/* Ambient Lighting Background Orbs */}
@@ -139,64 +153,50 @@ function MainAppContent() {
           </motion.div>
         )}
 
-        {/* Offline Mode Status Banner */}
-        {!isOnline && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-850 to-emerald-900 text-white flex flex-col gap-1 shadow-lg border-2 border-amber-400/80"
-            id="offline-status-banner"
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <p className="text-xs font-black text-amber-200">
-                {t.offlineTitle}
-              </p>
-            </div>
-            <p className="text-[10.5px] text-emerald-100 font-semibold leading-relaxed">
-              {t.offlineDesc}
-            </p>
-          </motion.div>
-        )}
-
-        {/* 1. Seamless Luxury Header & Logo (With Language Switcher) */}
+        {/* 1. Header with Official 3D Brand Logo & Actions */}
         <Header />
 
-        {/* 2. Modern 4 Navigation Tab Buttons */}
-        <div className="mt-3.5" id="app-nav-buttons-container">
-          <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-emerald-50/90 rounded-2xl border-2 border-emerald-200 shadow-inner">
+        {/* 🌟 Featured Admin Promo Video/Image Ad Banner */}
+        <PromoAdBanner />
+
+        {/* 2. Main 4-Tab Navigation Bar */}
+        <div className="my-3.5" id="main-navigation-tabs">
+          <div className="grid grid-cols-4 gap-1 p-1 bg-emerald-950/10 backdrop-blur-md rounded-2xl border border-amber-400/40 shadow-inner">
             {tabOptions.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <motion.button
                   key={tab.id}
-                  type="button"
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 cursor-pointer text-center ${
+                  id={`tab-btn-${tab.id}`}
+                  className={`py-2 px-1 rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all duration-300 relative cursor-pointer ${
                     isActive
-                      ? "bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white font-black shadow-md border border-amber-300 scale-[1.02]"
-                      : "text-emerald-950 hover:text-emerald-900 hover:bg-emerald-100/70"
+                      ? "bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 text-amber-300 font-black shadow-md border border-amber-400/50"
+                      : "text-slate-700 hover:text-emerald-900 hover:bg-white/50 font-bold"
                   }`}
-                  id={`nav-tab-${tab.id}`}
                 >
-                  <Icon 
-                    size={16} 
-                    className={`mb-1 transition-transform duration-200 ${
-                      isActive ? "text-amber-300 scale-110" : "text-emerald-700"
-                    }`} 
-                  />
-                  <span className="leading-tight truncate w-full">{tab.label}</span>
-                </button>
+                  <Icon size={16} className={isActive ? "text-amber-300" : "text-slate-600"} />
+                  <span className="text-[10px] sm:text-[11px] leading-none tracking-tight block">
+                    {tab.label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTabIndicator"
+                      className="absolute -bottom-1 w-6 h-0.5 bg-amber-400 rounded-full shadow-[0_0_6px_#f59e0b]"
+                    />
+                  )}
+                </motion.button>
               );
             })}
           </div>
         </div>
 
-        {/* 3. Active Tab Content with Smooth Transitions */}
-        <div className="mt-2.5" id="tab-content-wrapper">
+        {/* 3. Dynamic Tab Content Area */}
+        <div className="mt-2" id="tab-content-area">
           <AnimatePresence mode="wait">
-            {/* TAB 1: اہم روابط (Main WhatsApp Quick Links & FAQs) */}
+            {/* TAB 1: اہم روابط (Main Hub & Quick Action Links) */}
             {activeTab === "links" && (
               <motion.div
                 key={`tab-links-${language}`}
@@ -269,13 +269,16 @@ function MainAppContent() {
         <Footer />
       </motion.div>
 
+      {/* 🌟 Interactive Promotional Video & Photo Ad Popup Modal */}
+      <PromoAdModal />
+
       {/* Owner / Admin Authentication PIN Modal */}
       <AdminLoginModal />
 
       {/* Notifications Drawer / Modal */}
       <NotificationModal />
 
-      {/* Admin Customer Plot Ads & Inquiries Inbox */}
+      {/* Admin Customer Plot Ads & Inquiries Inbox with Ads Manager */}
       <AdminInboxModal />
 
       {/* Smooth Movable 3-Action Floating Bar (کال، واٹس ایپ، لوکیشن) */}
@@ -289,7 +292,9 @@ export default function App() {
     <LanguageProvider>
       <AdminProvider>
         <NotificationProvider>
-          <MainAppContent />
+          <PromoAdProvider>
+            <MainAppContent />
+          </PromoAdProvider>
         </NotificationProvider>
       </AdminProvider>
     </LanguageProvider>

@@ -1,7 +1,8 @@
-﻿import React from "react";
+import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, X, CheckCheck, Trash2, Sparkles, Send, ShieldAlert, ArrowRight, ShieldCheck } from "lucide-react";
+import { Bell, X, CheckCheck, Trash2, Sparkles, Send, ShieldAlert, ArrowRight, ShieldCheck, Video } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
+import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useAdmin } from "../context/AdminContext";
 
@@ -18,6 +19,7 @@ export default function NotificationModal() {
     setIsAdminInboxOpen
   } = useNotifications();
 
+  const { featuredAd, openAd, activeAds } = usePromoAds();
   const { isUrdu } = useLanguage();
   const { isAdmin } = useAdmin();
 
@@ -80,6 +82,29 @@ export default function NotificationModal() {
               </div>
             </div>
 
+            {/* Featured Active Ad Shortcut Banner in Notification Center */}
+            {featuredAd && (
+              <div 
+                onClick={() => {
+                  setIsNotificationModalOpen(false);
+                  openAd(featuredAd);
+                }}
+                className="my-2 p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black text-xs flex items-center justify-between shadow-md border border-amber-500 cursor-pointer hover:brightness-105 transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="p-1 rounded-lg bg-slate-950 text-amber-300">
+                    <Video size={13} />
+                  </span>
+                  <span className="truncate max-w-[230px]">
+                    {isUrdu ? `خصوصی ایڈ: ${featuredAd.title}` : `Featured Ad: ${featuredAd.title}`}
+                  </span>
+                </div>
+                <span className="text-[10px] bg-slate-950 text-white px-2 py-0.5 rounded-full shrink-0">
+                  {isUrdu ? "دیکھیں" : "View"}
+                </span>
+              </div>
+            )}
+
             {/* Actions Bar */}
             {notifications.length > 0 && (
               <div className="flex items-center justify-between py-2 border-b border-slate-100 text-[11px]">
@@ -104,10 +129,11 @@ export default function NotificationModal() {
             )}
 
             {/* Notifications List */}
-            <div className="overflow-y-auto space-y-2.5 my-3 pr-1 flex-1 max-h-[50vh]">
+            <div className="overflow-y-auto space-y-2.5 my-3 pr-1 flex-1 max-h-[45vh]">
               {notifications.length > 0 ? (
                 notifications.map((n) => {
                   const isAdminNotif = n.targetRole === "admin";
+                  const isPromoNotif = n.type === "promo_ad" || n.title.includes("ویڈیو") || n.title.includes("تصویر");
                   const title = isUrdu ? n.title : (n.titleEn || n.title);
                   const msg = isUrdu ? n.message : (n.messageEn || n.message);
 
@@ -119,6 +145,9 @@ export default function NotificationModal() {
                         if (isAdminNotif && isAdmin) {
                           setIsNotificationModalOpen(false);
                           setIsAdminInboxOpen(true);
+                        } else if (isPromoNotif && featuredAd) {
+                          setIsNotificationModalOpen(false);
+                          openAd(featuredAd);
                         }
                       }}
                       className={`p-3 rounded-2xl border transition-all cursor-pointer relative ${
@@ -157,6 +186,11 @@ export default function NotificationModal() {
                             <span>{isUrdu ? "کوائف دیکھیں" : "View Lead"}</span>
                             <ArrowRight size={11} />
                           </span>
+                        ) : isPromoNotif && featuredAd ? (
+                          <span className="text-emerald-800 font-black flex items-center gap-0.5">
+                            <span>{isUrdu ? "ایڈ کھولیں" : "Open Ad"}</span>
+                            <ArrowRight size={11} />
+                          </span>
                         ) : null}
                       </div>
                     </div>
@@ -182,7 +216,7 @@ export default function NotificationModal() {
                   className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow transition-colors cursor-pointer"
                 >
                   <ShieldCheck size={15} />
-                  <span>{isUrdu ? "کسٹمر ایڈز و انکوائریز ان باکس کھولیں" : "Open Customer Leads Inbox"}</span>
+                  <span>{isUrdu ? "ایڈمن کنٹرول سنٹر و ایڈز مینیجر" : "Open Admin Control Center & Ads Manager"}</span>
                 </button>
               </div>
             )}

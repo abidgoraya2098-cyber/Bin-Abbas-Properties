@@ -112,7 +112,27 @@ export interface AppNotification {
   timestamp: number;
   timeFormatted: string;
   targetRole: "all" | "admin";
-  type: "new_deal" | "customer_ad" | "system" | "demand";
+  type: "new_deal" | "customer_ad" | "system" | "demand" | "promo_ad";
   isRead: boolean;
   relatedId?: string;
+}
+
+export interface PromoAdItem {
+  id: string;
+  type: "image" | "video";
+  mediaUrl: string; // Image URL / Base64 or Video URL (MP4, YouTube, Vimeo, WebM)
+  thumbnailUrl?: string;
+  title: string;
+  titleEn?: string;
+  caption: string;
+  captionEn?: string;
+  price?: string;
+  priceEn?: string;
+  location?: string;
+  locationEn?: string;
+  whatsAppMessage?: string;
+  createdAt: number;
+  isActive: boolean;
+  isHot?: boolean;
+  viewCount?: number;
 }
