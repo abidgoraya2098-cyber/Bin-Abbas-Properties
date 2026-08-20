@@ -94,9 +94,9 @@ function MainAppContent() {
   };
 
   const tabOptions = [
-    { id: "links", label: t.tabLinks, icon: LayoutGrid },
     { id: "inquiry", label: t.tabInquiry, icon: ArrowRightLeft },
     { id: "deals", label: t.tabDeals, icon: Sparkles },
+    { id: "links", label: t.tabLinks, icon: LayoutGrid },
     { id: "society", label: t.tabSociety, icon: Navigation }
   ];
 

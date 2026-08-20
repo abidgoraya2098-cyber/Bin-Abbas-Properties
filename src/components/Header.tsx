@@ -112,95 +112,101 @@ export default function Header() {
         {/* Ambient Top Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Action Buttons: Install (Left), Language Switcher (Center), Share (Right) */}
-        <div className="w-full flex items-center justify-between z-20 mb-2 gap-1.5">
-          {/* 1. Install Button (Hidden when standalone) */}
-          {!isStandalone && (
+        {/* Action Buttons: Left Controls (Language + Notifications) & Right Controls (Install, Share, Admin) */}
+        <div className="w-full flex items-center justify-between z-20 mb-2 gap-2">
+          {/* Left Cluster: Quick Controls */}
+          <div className="flex items-center gap-1.5">
+            {/* 1. 🌐 Bilingual Language Switcher Button (Urdu <-> English) */}
             <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              id="header-install-btn"
-              onClick={handleInstallClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-black text-[11px] sm:text-xs shadow-md border border-emerald-400 transition-all cursor-pointer hover:brightness-110"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleLanguage}
+              id="header-language-toggle-btn"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs border border-amber-400/70 shadow-xs transition-all cursor-pointer select-none"
+              title={isUrdu ? "Switch App to English" : "ایپ کو اردو میں تبدیل کریں"}
+              aria-label="Language Switcher"
             >
-              <Download size={13} className="text-white animate-bounce" />
-              <span>{t.installApp}</span>
+              <Globe size={13} className="text-emerald-700 shrink-0" />
+              <span className="font-sans font-black tracking-wide leading-none">{t.langToggle}</span>
             </motion.button>
-          )}
 
-          {/* 2. 🌐 Bilingual Language Switcher Button (Urdu <-> English) */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleLanguage}
-            id="header-language-toggle-btn"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs border border-amber-400/70 shadow-sm transition-all cursor-pointer"
-            title={isUrdu ? "Switch App to English" : "ایپ کو اردو میں تبدیل کریں"}
-            aria-label="Language Switcher"
-          >
-            <Globe size={13} className="text-emerald-700" />
-            <span className="font-sans font-black tracking-wide">{t.langToggle}</span>
-          </motion.button>
+            {/* 2. 🔔 Notification Bell Button */}
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
+              id="notification-bell-btn"
+              onClick={() => setIsNotificationModalOpen(true)}
+              className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/60 shadow-xs transition-all cursor-pointer relative focus:outline-none"
+              title={isUrdu ? "نوٹیفکیشنز دیکھیں" : "Notifications"}
+              aria-label="Notifications"
+            >
+              <Bell size={15} />
+              {totalUnreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm animate-bounce">
+                  {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
+                </span>
+              )}
+            </motion.button>
+          </div>
 
-          {/* 3. 🔔 Notification Bell Button */}
-          <motion.button
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            id="notification-bell-btn"
-            onClick={() => setIsNotificationModalOpen(true)}
-            className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/50 shadow-sm transition-all cursor-pointer relative focus:outline-none"
-            title={isUrdu ? "نوٹیفکیشنز دیکھیں" : "Notifications"}
-            aria-label="Notifications"
-          >
-            <Bell size={15} />
-            {totalUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm animate-bounce">
-                {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
-              </span>
+          {/* Right Cluster: Actions & Owner Portal */}
+          <div className="flex items-center gap-1.5">
+            {/* 3. Install Button (Hidden when standalone) */}
+            {!isStandalone && (
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                id="header-install-btn"
+                onClick={handleInstallClick}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white font-black text-[11px] shadow-xs border border-amber-300 transition-all cursor-pointer hover:brightness-110"
+              >
+                <Download size={12} className="text-amber-300 animate-bounce" />
+                <span>{t.installApp}</span>
+              </motion.button>
             )}
-          </motion.button>
 
-          {/* 4. Share Button */}
-          <motion.button
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            id="share-button"
-            onClick={handleShare}
-            className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/50 shadow-sm transition-all cursor-pointer focus:outline-none"
-            title={t.shareApp}
-            aria-label={t.shareApp}
-          >
-            {copied ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 px-1">
-                <Check size={14} />
-                <span>{t.copied}</span>
-              </span>
-            ) : (
-              <Share2 size={15} />
-            )}
-          </motion.button>
+            {/* 4. Share Button */}
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
+              id="share-button"
+              onClick={handleShare}
+              className="p-2 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-amber-400/60 shadow-xs transition-all cursor-pointer focus:outline-none"
+              title={t.shareApp}
+              aria-label={t.shareApp}
+            >
+              {copied ? (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 px-0.5">
+                  <Check size={14} />
+                  <span>{t.copied}</span>
+                </span>
+              ) : (
+                <Share2 size={15} />
+              )}
+            </motion.button>
 
-          {/* 5. Admin / Owner Portal Trigger Button */}
-          <motion.button
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            id="admin-login-header-btn"
-            onClick={() => setIsLoginModalOpen(true)}
-            className={`p-2 rounded-full border shadow-sm transition-all cursor-pointer relative focus:outline-none ${
-              isAdmin
-                ? "bg-amber-400 text-slate-950 border-amber-500 ring-2 ring-amber-300"
-                : "bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-800 border-amber-300"
-            }`}
-            title={isAdmin ? (isUrdu ? "👑 ایڈمن موڈ فعال ہے" : "👑 Admin Mode Active") : (isUrdu ? "مالک / ایڈمن لاگ ان" : "Owner / Admin Login")}
-            aria-label="Admin Login"
-          >
-            <ShieldCheck size={15} className={isAdmin ? "text-slate-950" : "text-amber-700"} />
-            {isAdmin && adminUnreadInquiriesCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
-                {adminUnreadInquiriesCount}
-              </span>
-            )}
-          </motion.button>
+            {/* 5. Admin / Owner Portal Trigger Button */}
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
+              id="admin-login-header-btn"
+              onClick={() => setIsLoginModalOpen(true)}
+              className={`p-2 rounded-full border shadow-xs transition-all cursor-pointer relative focus:outline-none ${
+                isAdmin
+                  ? "bg-amber-400 text-slate-950 border-amber-500 ring-2 ring-amber-300"
+                  : "bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-800 border-amber-300"
+              }`}
+              title={isAdmin ? (isUrdu ? "👑 ایڈمن موڈ فعال ہے" : "👑 Admin Mode Active") : (isUrdu ? "مالک / ایڈمن لاگ ان" : "Owner / Admin Login")}
+              aria-label="Admin Login"
+            >
+              <ShieldCheck size={15} className={isAdmin ? "text-slate-950" : "text-amber-700"} />
+              {isAdmin && adminUnreadInquiriesCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-amber-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
+                  {adminUnreadInquiriesCount}
+                </span>
+              )}
+            </motion.button>
+          </div>
         </div>
 
         {/* Main Logo Component (Official 3D Brand Logo) */}
