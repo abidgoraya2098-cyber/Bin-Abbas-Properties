@@ -170,26 +170,31 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
         Notification.requestPermission();
       }
       if (Notification.permission === "granted") {
+        const notifOptions = {
+          body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+          icon: "/icon.svg",
+          badge: "/icon.svg",
+          vibrate: [200, 100, 200],
+          tag: `bin-abbas-ad-${newAd.id}`,
+          data: { url: "/", adId: newAd.id }
+        };
+
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification(`🔥 نیا ایڈ: ${newAd.title}`, {
-              body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
-              icon: "/icon.svg",
-              badge: "/icon.svg",
-              vibrate: [200, 100, 200],
-              tag: `bin-abbas-ad-${newAd.id}`
-            });
+            reg.showNotification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
           }).catch(() => {
-            new Notification(`🔥 نیا ایڈ: ${newAd.title}`, {
-              body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
-              icon: "/icon.svg"
-            });
+            const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
+            fallbackNotif.onclick = () => {
+              window.focus();
+              fallbackNotif.close();
+            };
           });
         } else {
-          new Notification(`🔥 نیا ایڈ: ${newAd.title}`, {
-            body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
-            icon: "/icon.svg"
-          });
+          const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
+          fallbackNotif.onclick = () => {
+            window.focus();
+            fallbackNotif.close();
+          };
         }
       }
     }

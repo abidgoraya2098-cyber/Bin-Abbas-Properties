@@ -1,5 +1,5 @@
 // Progressive Web App Service Worker for Bin Abbas Real Estate - Complete 100% Offline Engine
-const CACHE_NAME = "bin-abbas-real-estate-offline-v8";
+const CACHE_NAME = "bin-abbas-real-estate-offline-v9";
 
 const CORE_ASSETS = [
   "/",
@@ -42,6 +42,28 @@ self.addEventListener("activate", (event) => {
         })
       );
     }).then(() => self.clients.claim())
+  );
+});
+
+// 🔔 Notification Click Handler: Opens/Focuses the App directly when notification is clicked
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const urlToOpen = (event.notification.data && event.notification.data.url) || "/";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // If the app is already open in background, focus and bring it to front
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      // If not already open, open the app in a new window/tab
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
 
