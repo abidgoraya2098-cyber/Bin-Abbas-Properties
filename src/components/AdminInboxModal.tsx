@@ -352,36 +352,36 @@ export default function AdminInboxModal() {
                           </label>
                         </div>
 
-                        {/* Direct Link Alternative */}
+                        {/* Direct Link Alternative (Optional) */}
                         <div className="pt-1">
                           <span className="text-[10px] text-slate-500 block mb-1">
-                            {isUrdu ? "یا انٹرنیٹ / یوٹیوب کا براہ راست لنک درج کریں:" : "Or enter direct web / YouTube link:"}
+                            {isUrdu ? "یا یوٹیوب / انٹرنیٹ لنک (اختیاری):" : "Or YouTube / Web Link (Optional):"}
                           </span>
                           <input
-                            type="url"
-                            value={adMediaUrl.startsWith("blob:") ? "" : adMediaUrl}
+                            type="text"
+                            value={adMediaUrl.startsWith("data:") || adMediaUrl.startsWith("media-") ? "" : adMediaUrl}
                             onChange={(e) => {
                               setAdMediaUrl(e.target.value);
                               if (e.target.value.includes(".mp4") || e.target.value.includes("youtu")) {
                                 setAdType("video");
-                              } else {
+                              } else if (e.target.value.trim()) {
                                 setAdType("image");
                               }
                             }}
-                            placeholder="https://... (تصویر یا ویڈیو کا لنک)"
+                            placeholder={isUrdu ? "اگر انٹرنیٹ یا یوٹیوب کا لنک ہو تو درج کریں (اختیاری)" : "https://youtube.com/... (Optional)"}
                             className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
                           />
                         </div>
 
                         {/* Upload Status / Preview Indicator */}
                         {adMediaUrl && (
-                          <div className="p-2 rounded-xl bg-emerald-100/80 border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 font-bold">
+                          <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 font-bold">
                             <div className="flex items-center gap-1.5 truncate">
-                              <CheckCircle size={14} className="text-emerald-700 shrink-0" />
-                              <span className="truncate">{adFileName || (adType === "video" ? "ویڈیو لوڈ ہو گئی" : "تصویر لوڈ ہو گئی")}</span>
+                              <CheckCircle size={15} className="text-emerald-700 shrink-0" />
+                              <span className="truncate">{adFileName || (adType === "video" ? "ویڈیو کامیابی سے لوڈ ہو گئی" : "تصویر کامیابی سے لوڈ ہو گئی")}</span>
                             </div>
-                            <span className="text-[10px] bg-emerald-800 text-white px-2 py-0.5 rounded-full shrink-0">
-                              {adType === "video" ? "VIDEO" : "PHOTO"}
+                            <span className="text-[10px] bg-emerald-800 text-white px-2.5 py-0.5 rounded-full shrink-0">
+                              {adType === "video" ? "VIDEO READY" : "PHOTO READY"}
                             </span>
                           </div>
                         )}
