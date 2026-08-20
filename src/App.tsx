@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Header from "./components/Header";
+import SplashScreen from "./components/SplashScreen";
 import QuickLinksList from "./components/QuickLinksList";
 import FeaturedProperties from "./components/FeaturedProperties";
 import PlotInquiry from "./components/PlotInquiry";
@@ -30,6 +31,7 @@ function MainAppContent() {
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine !== false : true);
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
 
   useEffect(() => {
     // Online & Offline Event Listeners
@@ -92,6 +94,11 @@ function MainAppContent() {
       id="app-root-container"
       dir={dir}
     >
+      {/* 🌟 Luxury 3D Animated App Intro & Splash Screen */}
+      {showSplashScreen && (
+        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={1850} />
+      )}
+
       {/* Ambient Lighting Background Orbs */}
       <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[520px] h-[360px] bg-amber-400/10 rounded-full blur-[110px]"></div>
@@ -100,7 +107,10 @@ function MainAppContent() {
       </div>
 
       {/* Main Luxury App Card Container */}
-      <div 
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
         className="relative z-10 w-full max-w-[440px] gold-luxury-card rounded-3xl p-3.5 sm:p-5 transition-all duration-300"
         id="main-app-card"
       >
@@ -256,7 +266,7 @@ function MainAppContent() {
 
         {/* 6. Footer */}
         <Footer />
-      </div>
+      </motion.div>
 
       {/* Owner / Admin Authentication PIN Modal */}
       <AdminLoginModal />
