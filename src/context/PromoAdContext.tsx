@@ -74,13 +74,13 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const activeAds = ads.filter((ad) => ad.isActive);
   const currentAd = activeAds[currentAdIndex] || activeAds[0] || null;
 
-  // ⏱️ Auto-rotate through multiple ads (Changes ad every 6 seconds if multiple ads exist and not paused)
+  // ⏱️ Auto-rotate through multiple ads (15 seconds per ad so users can comfortably read details)
   useEffect(() => {
     if (!isAdPopupOpen || activeAds.length <= 1 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentAdIndex((prev) => (prev + 1) % activeAds.length);
-    }, 6000);
+    }, 15000);
 
     return () => clearInterval(timer);
   }, [isAdPopupOpen, activeAds.length, isPaused, currentAdIndex]);
