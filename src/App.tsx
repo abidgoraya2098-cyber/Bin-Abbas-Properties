@@ -94,9 +94,9 @@ function MainAppContent() {
       id="app-root-container"
       dir={dir}
     >
-      {/* 🌟 Professional Animated Splash Screen (3-5 Seconds with Soft Sound & Tips) */}
+      {/* 🌟 Fast & Ultra-Clean 2-Second Luxury 3D Logo Reveal Splash Screen */}
       {showSplashScreen && (
-        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={4200} />
+        <SplashScreen onFinish={() => setShowSplashScreen(false)} duration={2000} />
       )}
 
       {/* Ambient Lighting Background Orbs */}
