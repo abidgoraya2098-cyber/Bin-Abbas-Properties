@@ -111,6 +111,7 @@ function MainAppContent() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: showSplashScreen ? 0 : 1, scale: 1 }}
         transition={{ duration: 0.35 }}
+        style={{ visibility: showSplashScreen ? "hidden" : "visible" }}
         className="relative z-10 w-full max-w-[440px] gold-luxury-card rounded-3xl p-3.5 sm:p-5 transition-all duration-300"
         id="main-app-card"
       >
