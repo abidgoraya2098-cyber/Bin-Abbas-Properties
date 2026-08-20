@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   X, 
@@ -9,41 +9,62 @@ import {
   MapPin, 
   Tag, 
   Play, 
+  Pause,
   Check, 
-  ExternalLink,
-  Eye
+  ChevronLeft, 
+  ChevronRight, 
+  Volume2, 
+  VolumeX,
+  Eye,
+  FileText
 } from "lucide-react";
 import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { CONTACT_PHONE, OWNER_NAME } from "../data";
 
 export default function PromoAdModal() {
-  const { selectedAd, isAdPopupOpen, closeAdPopup } = usePromoAds();
+  const { 
+    activeAds, 
+    currentAdIndex, 
+    currentAd, 
+    isAdPopupOpen, 
+    closeAdPopup, 
+    nextAd, 
+    prevAd, 
+    goToAdIndex,
+    isPaused,
+    setIsPaused 
+  } = usePromoAds();
+
   const { isUrdu } = useLanguage();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
-  if (!selectedAd) return null;
+  if (!isAdPopupOpen || !currentAd || activeAds.length === 0) return null;
 
-  const handleWhatsAppClick = () => {
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const defaultMsg = isUrdu
-      ? `السلام علیکم فریاد حسن گورائیہ صاحب (${OWNER_NAME})!\n\nمیں نے بن عباس پراپرٹیز ایپ پر یہ ایڈ دیکھا ہے:\n📌 *${selectedAd.title}*\n💰 قیمت: ${selectedAd.price || "معلومات درکار"}\n📍 مقام: ${selectedAd.location || "رائل پام سٹی"}\n\nمجھے یہ پراپرٹی خریدنی ہے / مزید معلومات درکار ہیں۔ کیا آپ مجھے مزید تفصیلات فراہم کر سکتے ہیں؟`
-      : `Hello Faryad Hassan Goraya (${OWNER_NAME}),\n\nI saw this ad on Bin Abbas Properties app:\n📌 *${selectedAd.titleEn || selectedAd.title}*\n💰 Price: ${selectedAd.priceEn || selectedAd.price}\n\nI am interested in buying/getting more details. Please share available information.`;
+      ? `السلام علیکم فریاد حسن گورائیہ صاحب (${OWNER_NAME})!\n\nمیں نے بن عباس پراپرٹیز ایپ پر یہ ایڈ دیکھا ہے:\n📌 *${currentAd.title}*\n${currentAd.price ? `💰 قیمت: ${currentAd.price}\n` : ""}${currentAd.location ? `📍 مقام: ${currentAd.location}\n` : ""}\nمجھے یہ پراپرٹی خریدنی ہے / مزید معلومات درکار ہیں۔ براہ کرم رہنمائی فرمائیں۔`
+      : `Hello Faryad Hassan Goraya (${OWNER_NAME}),\n\nI saw this ad on Bin Abbas Properties app:\n📌 *${currentAd.titleEn || currentAd.title}*\n${currentAd.price ? `💰 Price: ${currentAd.priceEn || currentAd.price}\n` : ""}\nI am interested in buying/getting details. Please guide me.`;
 
-    const messageText = selectedAd.whatsAppMessage || defaultMsg;
+    const messageText = currentAd.whatsAppMessage || defaultMsg;
     const url = `https://wa.me/${CONTACT_PHONE}?text=${encodeURIComponent(messageText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const handleCallClick = () => {
+  const handleCallClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(`tel:+${CONTACT_PHONE}`, "_self");
   };
 
-  const handleShareClick = () => {
-    const shareText = `🌟 *${selectedAd.title}*\n💰 ${selectedAd.price || ""}\n📍 ${selectedAd.location || ""}\n\n📲 بن عباس پراپرٹیز رائل پام سٹی ایپ پر مزید دیکھیں! رابطہ: 0320.4800071`;
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareText = `🌟 *${currentAd.title}*\n${currentAd.price ? `💰 ${currentAd.price}\n` : ""}${currentAd.location ? `📍 ${currentAd.location}\n` : ""}\n📲 بن عباس پراپرٹیز رائل پام سٹی ایپ پر لائیو ایڈ دیکھیں! رابطہ: 0320.4800071`;
     
     if (navigator.share) {
       navigator.share({
-        title: selectedAd.title,
+        title: currentAd.title,
         text: shareText,
         url: window.location.href
       }).catch(() => {});
@@ -54,156 +75,240 @@ export default function PromoAdModal() {
     }
   };
 
-  const isVideo = selectedAd.type === "video";
+  const isVideo = currentAd.type === "video";
+  const isImage = currentAd.type === "image";
+  const isTextOnly = currentAd.type === "text_only" || (!currentAd.mediaUrl && !isVideo && !isImage);
 
   return (
     <AnimatePresence>
       {isAdPopupOpen && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
-          id="promo-ad-popup-overlay"
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-xl select-none"
+          id="promo-ad-fullscreen-overlay"
+          onPointerDown={() => setIsPaused(true)}
+          onPointerUp={() => setIsPaused(false)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-400 my-auto text-slate-900"
-            id="promo-ad-popup-card"
+            key={`promo-modal-${currentAd.id}`}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-[440px] sm:max-w-md h-[92vh] max-h-[820px] bg-gradient-to-b from-slate-950 via-slate-900 to-[#041a10] rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] border-2 border-amber-400 flex flex-col justify-between"
+            id="promo-ad-fullscreen-card"
           >
-            {/* Top Glowing Header Bar */}
-            <div className="bg-gradient-to-r from-[#0a4d30] via-[#063822] to-[#032415] text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-amber-400/40">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                  <Sparkles size={16} />
-                </span>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
-                    {isUrdu ? "خصوصی پروموشنل ایڈ" : "Special Featured Ad"}
-                  </span>
-                  <h3 className="text-xs sm:text-sm font-black text-white leading-tight">
-                    {isUrdu ? selectedAd.title : (selectedAd.titleEn || selectedAd.title)}
-                  </h3>
+            {/* 🌟 1. TOP STORY SEGMENTED PROGRESS BARS (MULTIPLE ADS AUTO ROTATE) */}
+            <div className="absolute top-0 inset-x-0 z-30 p-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex flex-col gap-2">
+              {/* Progress Bars */}
+              {activeAds.length > 1 && (
+                <div className="flex items-center gap-1.5 w-full">
+                  {activeAds.map((ad, idx) => (
+                    <div
+                      key={`progress-${ad.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToAdIndex(idx);
+                      }}
+                      className="flex-1 h-1 rounded-full bg-white/30 overflow-hidden cursor-pointer"
+                    >
+                      <div
+                        className={`h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-300 ${
+                          idx < currentAdIndex
+                            ? "w-full"
+                            : idx === currentAdIndex
+                            ? isPaused
+                              ? "w-1/2"
+                              : "w-full animate-[progress_6s_linear]"
+                            : "w-0"
+                        }`}
+                      />
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
 
-              {/* Close Button */}
-              <button
-                onClick={closeAdPopup}
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                title={isUrdu ? "بند کریں" : "Close"}
-              >
-                <X size={18} />
-              </button>
+              {/* Header Controls (Logo Tag + Multi-Ad Counter + Close Button) */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2">
+                  <div className="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md border border-amber-300">
+                    <Sparkles size={12} className="text-slate-950" />
+                    <span>{isUrdu ? "خصوصی پروموشنل ایڈ" : "Featured Ad"}</span>
+                  </div>
+
+                  {activeAds.length > 1 && (
+                    <span className="text-[10px] text-amber-200 font-bold bg-black/50 px-2 py-0.5 rounded-full border border-white/20">
+                      {currentAdIndex + 1} / {activeAds.length}
+                    </span>
+                  )}
+                </div>
+
+                {/* (X) CLOSE BUTTON - Persists until user closes */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeAdPopup();
+                  }}
+                  id="promo-ad-close-btn"
+                  className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center border border-white/30 hover:border-amber-400 transition-all cursor-pointer shadow-lg active:scale-90"
+                  title={isUrdu ? "ایڈ بند کریں" : "Close"}
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
-            {/* Media Display Area (Video Player or High-Res Image) */}
-            <div className="relative w-full bg-slate-950 aspect-video flex items-center justify-center overflow-hidden">
-              {isVideo ? (
-                selectedAd.mediaUrl.includes("youtube.com") || selectedAd.mediaUrl.includes("youtu.be") ? (
+            {/* 🌟 2. FULL MEDIA DISPLAY AREA (FULL SCREEN VIDEO OR IMAGE OR TEXT BANNER) */}
+            <div className="relative w-full flex-1 overflow-hidden flex items-center justify-center bg-black">
+              {isVideo && currentAd.mediaUrl ? (
+                currentAd.mediaUrl.includes("youtube.com") || currentAd.mediaUrl.includes("youtu.be") ? (
                   <iframe
                     src={
-                      selectedAd.mediaUrl.includes("watch?v=")
-                        ? selectedAd.mediaUrl.replace("watch?v=", "embed/")
-                        : selectedAd.mediaUrl.replace("youtu.be/", "youtube.com/embed/")
+                      currentAd.mediaUrl.includes("watch?v=")
+                        ? `${currentAd.mediaUrl.replace("watch?v=", "embed/")}?autoplay=1&mute=1&loop=1`
+                        : `${currentAd.mediaUrl.replace("youtu.be/", "youtube.com/embed/")}?autoplay=1&mute=1&loop=1`
                     }
-                    title={selectedAd.title}
+                    title={currentAd.title}
                     className="w-full h-full border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
                 ) : (
                   <video
-                    src={selectedAd.mediaUrl}
-                    poster={selectedAd.thumbnailUrl}
+                    src={currentAd.mediaUrl}
+                    poster={currentAd.thumbnailUrl}
                     controls
                     autoPlay
+                    loop
+                    muted={isMuted}
                     playsInline
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover sm:object-contain"
                   />
                 )
-              ) : (
+              ) : isImage && currentAd.mediaUrl ? (
                 <img
-                  src={selectedAd.mediaUrl}
-                  alt={selectedAd.title}
-                  className="w-full h-full object-cover sm:object-contain hover:scale-105 transition-transform duration-500"
+                  src={currentAd.mediaUrl}
+                  alt={currentAd.title}
+                  className="w-full h-full object-cover sm:object-contain"
                 />
+              ) : (
+                /* Text-Only Luxury Announcement Card */
+                <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0a4d30] via-[#063822] to-[#032415] text-white">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center mb-4 text-amber-300 shadow-xl">
+                    <FileText size={32} />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-widest text-amber-300 mb-2">
+                    {isUrdu ? "بن عباس پراپرٹیز خصوصی آفر" : "Bin Abbas Properties Special Offer"}
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black leading-snug text-white max-w-xs">
+                    {isUrdu ? currentAd.title : (currentAd.titleEn || currentAd.title)}
+                  </h2>
+                  {currentAd.price && (
+                    <div className="mt-3 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg border border-amber-300">
+                      {currentAd.price}
+                    </div>
+                  )}
+                </div>
               )}
 
-              {/* Badge Overlay */}
-              <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-300/60 text-amber-300 text-[10px] font-black flex items-center gap-1">
-                {isVideo ? <Play size={10} className="fill-amber-300" /> : <Tag size={10} />}
-                <span>{isVideo ? (isUrdu ? "ویڈیو ایڈ" : "Video Ad") : (isUrdu ? "تصویر ایڈ" : "Image Ad")}</span>
-              </div>
+              {/* Navigation Left / Right Buttons (When multiple ads exist) */}
+              {activeAds.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevAd();
+                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center border border-white/20 backdrop-blur-sm cursor-pointer z-20"
+                    title="Previous Ad"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextAd();
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center border border-white/20 backdrop-blur-sm cursor-pointer z-20"
+                    title="Next Ad"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </>
+              )}
             </div>
 
-            {/* Content & Caption Section */}
-            <div className="p-4 sm:p-5 space-y-3.5 bg-gradient-to-b from-white to-[#f4faf6]">
-              {/* Title & Price Row */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 pb-3">
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-[#064e3b] leading-snug">
-                    {isUrdu ? selectedAd.title : (selectedAd.titleEn || selectedAd.title)}
+            {/* 🌟 3. BOTTOM FLOATING AD DETAILS & PROMINENT WHATSAPP BUY BUTTON */}
+            <div className="relative z-30 bg-gradient-to-t from-black via-black/95 to-black/60 p-4 sm:p-5 pt-3 text-white flex flex-col gap-2.5 border-t border-amber-400/40">
+              {/* Title & Price Header */}
+              <div className="flex items-start justify-between gap-2 text-right">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base sm:text-lg font-black text-white leading-snug drop-shadow">
+                    {isUrdu ? currentAd.title : (currentAd.titleEn || currentAd.title)}
                   </h2>
-                  {selectedAd.location && (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1 font-bold">
-                      <MapPin size={13} className="text-emerald-700 shrink-0" />
-                      <span>{isUrdu ? selectedAd.location : (selectedAd.locationEn || selectedAd.location)}</span>
+
+                  {currentAd.location && (
+                    <div className="flex items-center gap-1 text-xs text-amber-200 mt-0.5 font-bold">
+                      <MapPin size={12} className="text-amber-400 shrink-0" />
+                      <span className="truncate">{isUrdu ? currentAd.location : (currentAd.locationEn || currentAd.location)}</span>
                     </div>
                   )}
                 </div>
 
-                {selectedAd.price && (
-                  <div className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md border border-amber-500">
-                    {isUrdu ? selectedAd.price : (selectedAd.priceEn || selectedAd.price)}
+                {currentAd.price && (
+                  <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md border border-amber-300 shrink-0">
+                    {isUrdu ? currentAd.price : (currentAd.priceEn || currentAd.price)}
                   </div>
                 )}
               </div>
 
-              {/* Caption / Description */}
-              <div className="bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200/80">
-                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-semibold whitespace-pre-line text-right">
-                  {isUrdu ? selectedAd.caption : (selectedAd.captionEn || selectedAd.caption)}
-                </p>
-              </div>
+              {/* Optional Caption & Details */}
+              {currentAd.caption && (
+                <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl border border-white/10 max-h-20 overflow-y-auto">
+                  <p className="text-[11px] sm:text-xs text-emerald-100 leading-relaxed font-semibold text-right whitespace-pre-line">
+                    {isUrdu ? currentAd.caption : (currentAd.captionEn || currentAd.caption)}
+                  </p>
+                </div>
+              )}
 
               {/* 🌟 PROMINENT WHATSAPP ACTION BUTTON: "ابھی خریدنے کے لیے رابطہ کریں" */}
               <div className="pt-1 flex flex-col gap-2">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={handleWhatsAppClick}
                   id="promo-ad-whatsapp-buy-btn"
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#25D366] via-[#20ba59] to-[#128C7E] hover:brightness-105 text-white font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-[0_8px_20px_rgba(37,211,102,0.35)] border border-emerald-400 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#25D366] via-[#20ba59] to-[#128C7E] hover:brightness-110 text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(37,211,102,0.45)] border border-emerald-300 cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                    <MessageCircle size={17} className="fill-white" />
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <MessageCircle size={15} className="fill-white" />
                   </div>
                   <span>{isUrdu ? "🟢 ابھی خریدنے کے لیے واٹس ایپ پر رابطہ کریں" : "🟢 Contact on WhatsApp to Buy Now"}</span>
                 </motion.button>
 
-                {/* Secondary Action Buttons (Direct Call & Share) */}
+                {/* Secondary Direct Call & Share Buttons */}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleCallClick}
-                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 border border-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                    className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <Phone size={13} className="text-emerald-700" />
+                    <Phone size={13} className="text-amber-300" />
                     <span>{isUrdu ? "فوری کال کریں" : "Call Directly"}</span>
                   </button>
 
                   <button
                     onClick={handleShareClick}
-                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-50 text-slate-800 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                    className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {copied ? (
                       <>
-                        <Check size={13} className="text-emerald-600" />
-                        <span className="text-emerald-700">{isUrdu ? "لنک کاپی ہو گیا" : "Copied"}</span>
+                        <Check size={13} className="text-emerald-400" />
+                        <span className="text-emerald-300">{isUrdu ? "لنک کاپی ہو گیا" : "Copied"}</span>
                       </>
                     ) : (
                       <>
-                        <Share2 size={13} className="text-amber-700" />
+                        <Share2 size={13} className="text-amber-300" />
                         <span>{isUrdu ? "ایڈ شیئر کریں" : "Share Ad"}</span>
                       </>
                     )}

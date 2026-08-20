@@ -22,7 +22,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Upload,
-  Play
+  Play,
+  FileText
 } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
@@ -52,9 +53,9 @@ export default function AdminInboxModal() {
   const [activeTab, setActiveTab] = useState<"leads" | "ads">("leads");
   const [filterType, setFilterType] = useState<"all" | "sell" | "buy">("all");
 
-  // New Ad Form State
+  // New Ad Form State (Media & Details are Completely Optional)
   const [isCreateAdOpen, setIsCreateAdOpen] = useState(false);
-  const [adType, setAdType] = useState<"image" | "video">("image");
+  const [adType, setAdType] = useState<"image" | "video" | "text_only">("image");
   const [adMediaUrl, setAdMediaUrl] = useState("");
   const [adThumbnailUrl, setAdThumbnailUrl] = useState("");
   const [adTitle, setAdTitle] = useState("");
@@ -80,30 +81,30 @@ export default function AdminInboxModal() {
 
   const handleCreateAdSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adTitle.trim() || !adMediaUrl.trim()) {
-      alert(isUrdu ? "برائے مہربانی ایڈ کا عنوان اور تصویر/ویڈیو کا لنک فراہم کریں۔" : "Please provide title and image/video url.");
+    if (!adTitle.trim()) {
+      alert(isUrdu ? "برائے مہربانی ایڈ کا عنوان درج فرمائیں۔" : "Please provide an ad title.");
       return;
     }
 
     addPromoAd({
       type: adType,
-      mediaUrl: adMediaUrl.trim(),
+      mediaUrl: adMediaUrl.trim() || undefined,
       thumbnailUrl: adThumbnailUrl.trim() || undefined,
       title: adTitle.trim(),
       titleEn: adTitle.trim(),
-      caption: adCaption.trim() || "رائل پام سٹی گوجرانوالہ میں شاندار موقع۔ برائے فوری رابطہ بن عباس پراپرٹیز۔",
-      captionEn: adCaption.trim(),
-      price: adPrice.trim() || "خصوصی ڈیل",
-      priceEn: adPrice.trim() || "Special Deal",
-      location: adLocation.trim(),
-      locationEn: adLocation.trim(),
+      caption: adCaption.trim() || undefined,
+      captionEn: adCaption.trim() || undefined,
+      price: adPrice.trim() || undefined,
+      priceEn: adPrice.trim() || undefined,
+      location: adLocation.trim() || undefined,
+      locationEn: adLocation.trim() || undefined,
       whatsAppMessage: adWhatsAppMsg.trim() || undefined,
       isActive: true,
       isHot: isAdHot
     });
 
     alert(isUrdu 
-      ? "✅ نیا ویڈیو/تصویر ایڈ کامیابی کے ساتھ ایپ پر شائع کر دیا گیا ہے اور تمام صارفین کو پش نوٹیفکیشن بھیج دیا گیا ہے!" 
+      ? "✅ ایڈ کامیابی کے ساتھ ایپ پر شائع کر دیا گیا ہے اور تمام صارفین کو پش نوٹیفکیشن بھیج دیا گیا ہے!" 
       : "✅ New promotional ad has been published and broadcast to all users!");
 
     // Reset Form
@@ -438,7 +439,7 @@ export default function AdminInboxModal() {
                   </button>
                 </div>
 
-                {/* Create New Ad Form */}
+                {/* Create New Ad Form (Optional Media & Details) */}
                 <AnimatePresence>
                   {isCreateAdOpen && (
                     <motion.form
@@ -450,78 +451,92 @@ export default function AdminInboxModal() {
                     >
                       <h4 className="text-xs sm:text-sm font-black text-emerald-950 flex items-center gap-1.5 border-b border-amber-300 pb-2">
                         <Sparkles size={15} className="text-amber-600" />
-                        <span>{isUrdu ? "نیا ویڈیو یا تصویر ایڈ شائع کریں" : "Create New Video or Image Ad"}</span>
+                        <span>{isUrdu ? "نیا ایڈ شامل کریں (تصویر و ویڈیو اختیاری ہے)" : "Create New Ad (Media Optional)"}</span>
                       </h4>
 
-                      {/* Ad Type Selector */}
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Ad Type Selector (Image, Video, or Text Only) */}
+                      <div className="grid grid-cols-3 gap-1.5">
                         <button
                           type="button"
                           onClick={() => setAdType("image")}
-                          className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                          className={`py-2 px-2 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1 border transition-all cursor-pointer ${
                             adType === "image"
                               ? "bg-emerald-800 text-white border-emerald-900 shadow-sm"
                               : "bg-white text-slate-700 border-slate-200"
                           }`}
                         >
-                          <Image size={14} />
-                          <span>{isUrdu ? "📷 تصویر ایڈ (Image)" : "Image Ad"}</span>
+                          <Image size={13} />
+                          <span>{isUrdu ? "📷 تصویر" : "Image"}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setAdType("video")}
-                          className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                          className={`py-2 px-2 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1 border transition-all cursor-pointer ${
                             adType === "video"
                               ? "bg-amber-500 text-slate-950 border-amber-600 shadow-sm font-black"
                               : "bg-white text-slate-700 border-slate-200"
                           }`}
                         >
-                          <Video size={14} />
-                          <span>{isUrdu ? "🎥 ویڈیو ایڈ (Video)" : "Video Ad"}</span>
+                          <Video size={13} />
+                          <span>{isUrdu ? "🎥 ویڈیو" : "Video"}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setAdType("text_only")}
+                          className={`py-2 px-2 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1 border transition-all cursor-pointer ${
+                            adType === "text_only"
+                              ? "bg-slate-900 text-amber-300 border-slate-950 shadow-sm font-black"
+                              : "bg-white text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          <FileText size={13} />
+                          <span>{isUrdu ? "📝 صرف تحریر" : "Text Only"}</span>
                         </button>
                       </div>
 
-                      {/* Media URL / Upload */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-800 block">
-                          {adType === "video" 
-                            ? (isUrdu ? "ویڈیو کا لنک (MP4 یا YouTube لنک):" : "Video URL (MP4 / YouTube Link):") 
-                            : (isUrdu ? "تصویر کا لنک یا موبائل سے اپ لوڈ کریں:" : "Image URL or Upload from Device:")}
-                        </label>
-                        
-                        <input
-                          type="url"
-                          required
-                          value={adMediaUrl}
-                          onChange={(e) => setAdMediaUrl(e.target.value)}
-                          placeholder={adType === "video" ? "https://.../video.mp4 یا youtube لنک" : "https://.../image.jpg"}
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
-                        />
+                      {/* Media URL / Upload (Optional) */}
+                      {adType !== "text_only" && (
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-800 block">
+                            {adType === "video" 
+                              ? (isUrdu ? "ویڈیو لنک (اختیاری - MP4 یا YouTube):" : "Video URL (Optional - MP4 / YouTube):") 
+                              : (isUrdu ? "تصویر کا لنک یا موبائل سے منتخب کریں (اختیاری):" : "Image URL or Upload (Optional):")}
+                          </label>
+                          
+                          <input
+                            type="url"
+                            value={adMediaUrl}
+                            onChange={(e) => setAdMediaUrl(e.target.value)}
+                            placeholder={adType === "video" ? "https://.../video.mp4 یا youtube لنک" : "https://.../image.jpg"}
+                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
+                          />
 
-                        {adType === "image" && (
-                          <div className="flex items-center gap-2 pt-1">
-                            <label className="py-1.5 px-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-300 text-[11px] font-bold text-emerald-900 flex items-center gap-1.5 cursor-pointer shadow-sm">
-                              <Upload size={12} />
-                              <span>{isUrdu ? "موبائل/کمپیوٹر سے تصویر منتخب کریں" : "Upload Image File"}</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageFileUpload}
-                                className="hidden"
-                              />
-                            </label>
-                            {adMediaUrl.startsWith("data:image") && (
-                              <span className="text-[10px] text-emerald-700 font-bold">✓ تصویر لوڈ ہو گئی</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                          {adType === "image" && (
+                            <div className="flex items-center gap-2 pt-1">
+                              <label className="py-1.5 px-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-300 text-[11px] font-bold text-emerald-900 flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                <Upload size={12} />
+                                <span>{isUrdu ? "موبائل/کمپیوٹر سے تصویر منتخب کریں" : "Upload Image File"}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageFileUpload}
+                                  className="hidden"
+                                />
+                              </label>
+                              {adMediaUrl.startsWith("data:image") && (
+                                <span className="text-[10px] text-emerald-700 font-bold">✓ تصویر منتخب ہو گئی</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                      {/* Title */}
+                      {/* Title (Required) */}
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "ایڈ کا عنوان (Title):" : "Ad Title:"}
+                          {isUrdu ? "ایڈ کا عنوان (Title - ضروری):" : "Ad Title (Required):"}
                         </label>
                         <input
                           type="text"
@@ -529,15 +544,15 @@ export default function AdminInboxModal() {
                           value={adTitle}
                           onChange={(e) => setAdTitle(e.target.value)}
                           placeholder={isUrdu ? "مثلاً: شاندار 10 مرلہ برانڈ نیو بنگلہ (بلاک B)" : "e.g. 10 Marla Brand New Villa"}
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
+                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans font-bold"
                         />
                       </div>
 
-                      {/* Price & Location */}
+                      {/* Price & Location (Optional) */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="text-[11px] font-bold text-slate-800 block">
-                            {isUrdu ? "قیمت / ڈیمانڈ (Price):" : "Demand Price:"}
+                            {isUrdu ? "قیمت / ڈیمانڈ (اختیاری):" : "Demand Price (Optional):"}
                           </label>
                           <input
                             type="text"
@@ -550,7 +565,7 @@ export default function AdminInboxModal() {
 
                         <div>
                           <label className="text-[11px] font-bold text-slate-800 block">
-                            {isUrdu ? "لوکیشن (Location):" : "Location:"}
+                            {isUrdu ? "لوکیشن (اختیاری):" : "Location (Optional):"}
                           </label>
                           <input
                             type="text"
@@ -562,30 +577,30 @@ export default function AdminInboxModal() {
                         </div>
                       </div>
 
-                      {/* Caption / Description */}
+                      {/* Caption / Description (Optional) */}
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "کیپشن اور مکمل تفصیل (Caption):" : "Caption & Full Description:"}
+                          {isUrdu ? "کیپشن اور تفصیل (اختیاری):" : "Caption & Details (Optional):"}
                         </label>
                         <textarea
                           rows={3}
                           value={adCaption}
                           onChange={(e) => setAdCaption(e.target.value)}
-                          placeholder={isUrdu ? "5 بیڈ رومز، لگژری کچن، پرائم لوکیشن، فوری سودا دستیاب..." : "Details..."}
+                          placeholder={isUrdu ? "تفصیل درج کریں (اگر ہو تو)..." : "Details..."}
                           className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
                         />
                       </div>
 
-                      {/* WhatsApp Custom Text */}
+                      {/* WhatsApp Custom Text (Optional) */}
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "واٹس ایپ میسج ٹیکسٹ (اختیاری):" : "Custom WhatsApp Message (Optional):"}
+                          {isUrdu ? "کسٹم واٹس ایپ پیغام (اختیاری):" : "Custom WhatsApp Message (Optional):"}
                         </label>
                         <input
                           type="text"
                           value={adWhatsAppMsg}
                           onChange={(e) => setAdWhatsAppMsg(e.target.value)}
-                          placeholder={isUrdu ? "السلام علیکم! میں یہ پراپرٹی خریدنا چاہتا ہوں۔" : "Hello, I want to buy this plot."}
+                          placeholder={isUrdu ? "السلام علیکم! مجھے یہ پراپرٹی خریدنی ہے۔" : "Hello, I want to buy this plot."}
                           className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                       </div>
@@ -598,7 +613,7 @@ export default function AdminInboxModal() {
                         className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md border border-amber-400 cursor-pointer"
                       >
                         <Sparkles size={16} className="text-amber-300" />
-                        <span>{isUrdu ? "🚀 ایڈ شائع کریں اور تمام صارفین کو نوٹیفکیشن بھیجیں" : "Publish Ad & Broadcast Notification"}</span>
+                        <span>{isUrdu ? "🚀 ایڈ شائع کریں اور فل سکرین پاپ اپ لائیو کریں" : "Publish Ad & Go Live on Full-Screen Pop-up"}</span>
                       </motion.button>
                     </motion.form>
                   )}
@@ -612,11 +627,12 @@ export default function AdminInboxModal() {
                       <p className="text-xs font-bold">{isUrdu ? "کوئی ایڈ موجود نہیں ہے۔ نیا ایڈ شامل کریں۔" : "No promo ads created yet."}</p>
                     </div>
                   ) : (
-                    ads.map((ad) => {
+                    ads.map((ad, idx) => {
                       const isVideo = ad.type === "video";
+                      const isImg = ad.type === "image";
                       const displayImg = isVideo
                         ? ad.thumbnailUrl || "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80"
-                        : ad.mediaUrl;
+                        : ad.mediaUrl || "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=300&q=80";
 
                       return (
                         <div
@@ -627,28 +643,36 @@ export default function AdminInboxModal() {
                               : "bg-slate-100 border-slate-200 opacity-60"
                           }`}
                         >
-                          {/* Thumbnail */}
+                          {/* Thumbnail / Icon */}
                           <div 
-                            onClick={() => openAd(ad)}
-                            className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-900 cursor-pointer group"
-                            title="Click to Preview"
+                            onClick={() => openAd(idx)}
+                            className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-900 cursor-pointer group flex items-center justify-center"
+                            title="Click to Preview on Full Screen"
                           >
-                            <img src={displayImg} alt={ad.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              {isVideo ? <Play size={14} className="text-white fill-white" /> : <Eye size={14} className="text-white" />}
-                            </div>
+                            {ad.mediaUrl ? (
+                              <>
+                                <img src={displayImg} alt={ad.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                  {isVideo ? <Play size={14} className="text-white fill-white" /> : <Eye size={14} className="text-white" />}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="w-full h-full bg-emerald-900 text-amber-300 flex items-center justify-center">
+                                <FileText size={20} />
+                              </div>
+                            )}
                           </div>
 
                           {/* Info */}
                           <div className="flex-1 min-w-0 text-right">
                             <div className="flex items-center justify-between gap-1 mb-0.5">
                               <span className="text-[9px] font-black px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                                {isVideo ? "ویڈیو ایڈ" : "تصویر ایڈ"}
+                                {isVideo ? "ویڈیو ایڈ" : isImg ? "تصویر ایڈ" : "تحریری ایڈ"}
                               </span>
                               <span className="text-[9px] text-slate-500 font-bold">{ad.viewCount || 1} ویوز</span>
                             </div>
                             <h4 className="text-xs font-black text-slate-900 truncate">{ad.title}</h4>
-                            <p className="text-[10.5px] text-emerald-800 font-bold">{ad.price || "ڈیل"}</p>
+                            <p className="text-[10.5px] text-emerald-800 font-bold">{ad.price || "خصوصی پیشکش"}</p>
                           </div>
 
                           {/* Actions */}
@@ -662,9 +686,9 @@ export default function AdminInboxModal() {
                             </button>
 
                             <button
-                              onClick={() => openAd(ad)}
+                              onClick={() => openAd(idx)}
                               className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer"
-                              title="Preview Ad Popup"
+                              title="Preview on Full Screen"
                             >
                               <Eye size={14} />
                             </button>

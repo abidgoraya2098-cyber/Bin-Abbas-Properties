@@ -119,12 +119,12 @@ export interface AppNotification {
 
 export interface PromoAdItem {
   id: string;
-  type: "image" | "video";
-  mediaUrl: string; // Image URL / Base64 or Video URL (MP4, YouTube, Vimeo, WebM)
+  type?: "image" | "video" | "text_only";
+  mediaUrl?: string; // Optional Image URL / Base64 or Video URL (MP4, YouTube, Vimeo, WebM)
   thumbnailUrl?: string;
   title: string;
   titleEn?: string;
-  caption: string;
+  caption?: string;
   captionEn?: string;
   price?: string;
   priceEn?: string;

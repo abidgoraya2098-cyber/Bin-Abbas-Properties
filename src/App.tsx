@@ -29,7 +29,7 @@ type ActiveTab = "links" | "inquiry" | "deals" | "society";
 function MainAppContent() {
   const { language, isUrdu, dir } = useLanguage();
   const t = getTranslation(language);
-  const { featuredAd, openAd, hasUnseenNewAd } = usePromoAds();
+  const { activeAds, openAd } = usePromoAds();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("links");
   const [inquiryDefaultMode, setInquiryDefaultMode] = useState<"sell" | "buy">("sell");
@@ -69,13 +69,13 @@ function MainAppContent() {
     };
   }, []);
 
-  // When splash screen finishes, if there's a new unseen featured ad, pop it up automatically!
+  // When splash screen finishes, if there are active ads, pop up the full-screen promo modal!
   const handleSplashFinish = () => {
     setShowSplashScreen(false);
-    if (featuredAd && hasUnseenNewAd) {
+    if (activeAds.length > 0) {
       setTimeout(() => {
-        openAd(featuredAd);
-      }, 500);
+        openAd(0);
+      }, 400);
     }
   };
 

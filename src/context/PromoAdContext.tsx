@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
 import { PromoAdItem } from "../types";
 import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
@@ -6,11 +6,16 @@ import { useAdmin } from "./AdminContext";
 interface PromoAdContextType {
   ads: PromoAdItem[];
   activeAds: PromoAdItem[];
-  featuredAd: PromoAdItem | null;
-  selectedAd: PromoAdItem | null;
+  currentAdIndex: number;
+  currentAd: PromoAdItem | null;
   isAdPopupOpen: boolean;
-  openAd: (ad: PromoAdItem) => void;
+  isPaused: boolean;
+  setIsPaused: (paused: boolean) => void;
+  openAd: (indexOrAd?: number | PromoAdItem) => void;
   closeAdPopup: () => void;
+  nextAd: () => void;
+  prevAd: () => void;
+  goToAdIndex: (index: number) => void;
   addPromoAd: (adData: Omit<PromoAdItem, "id" | "createdAt" | "viewCount">) => PromoAdItem;
   updatePromoAd: (id: string, adData: Partial<PromoAdItem>) => void;
   deletePromoAd: (id: string) => void;
@@ -29,7 +34,7 @@ const INITIAL_PROMO_ADS: PromoAdItem[] = [
     mediaUrl: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&q=80",
     title: "خصوصی آفر: پرائم کمرشل دکان (پام کمرشل 235)",
     titleEn: "Exclusive Offer: Prime Commercial Shop (Palm Commercial 235)",
-    caption: "رائل پام سٹی کی مرکزی ترین مین مارکیٹ میں پام کمرشل 235 پر شاندار کمرشل دکان برائے فروخت دستیاب ہے۔ تمام جدید سہولیات، فوری قبضہ اور بہترین رینٹل انکم کی گارنٹی۔ برائے فوری رابطہ بن عباس پراپرٹیز۔",
+    caption: "رائل پام سٹی کی مرکزی ترین مین مارکیٹ میں پام کمرشل 235 پر شاندار کمرشل دکان برائے فروخت دستیاب ہے۔ تمام جدید سہولیات، فوری قبضہ اور بہترین رینٹل انکم کی گارنٹی۔",
     captionEn: "Prime commercial shop available for instant sale at Palm Commercial 235, Royal Palm City Gujranwala. High rental yield and instant possession.",
     price: "ڈیمانڈ: 1 کروڑ 65 لاکھ",
     priceEn: "Demand: 1.65 Crore PKR",
@@ -39,7 +44,7 @@ const INITIAL_PROMO_ADS: PromoAdItem[] = [
     createdAt: Date.now() - 3600000 * 2,
     isActive: true,
     isHot: true,
-    viewCount: 142
+    viewCount: 184
   },
   {
     id: "promo-ad-luxury-villa",
@@ -58,7 +63,24 @@ const INITIAL_PROMO_ADS: PromoAdItem[] = [
     createdAt: Date.now() - 3600000 * 5,
     isActive: true,
     isHot: true,
-    viewCount: 289
+    viewCount: 312
+  },
+  {
+    id: "promo-ad-urgent-plot",
+    type: "text_only",
+    title: "🔥 فوری کیش آفر: 5 مرلہ برائے فروخت (بلاک A)",
+    titleEn: "🔥 Hot Cash Offer: 5 Marla Plot (Block A)",
+    caption: "بلاک A کی مین 50 فٹ سڑک کے نزدیک، تمام واجبات ادا شدہ، فوری رجسٹری انتقال دستیاب۔ فوری خریدار رابطہ فرمائیں۔",
+    captionEn: "Near Main 50ft Road in Block A. All dues clear, instant registry transfer available.",
+    price: "ڈیمانڈ: 48 لاکھ (فائنل)",
+    priceEn: "Demand: 48 Lac PKR",
+    location: "بلاک A، رائل پام سٹی، گوجرانوالہ",
+    locationEn: "Block A, Royal Palm City, Gujranwala",
+    whatsAppMessage: "السلام علیکم فریاد حسن گورائیہ صاحب! مجھے بلاک A کے 5 مرلہ پلاٹ (ڈیمانڈ 48 لاکھ) کا سودا فائنل کرنا ہے۔ براہ کرم رابطہ کریں۔",
+    createdAt: Date.now() - 3600000 * 8,
+    isActive: true,
+    isHot: false,
+    viewCount: 95
   }
 ];
 
@@ -75,8 +97,9 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
-  const [selectedAd, setSelectedAd] = useState<PromoAdItem | null>(null);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const [isAdPopupOpen, setIsAdPopupOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [hasUnseenNewAd, setHasUnseenNewAd] = useState<boolean>(() => {
     try {
@@ -88,7 +111,6 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
-  // Save ads to localStorage
   const saveAds = (items: PromoAdItem[]) => {
     setAds(items);
     try {
@@ -99,24 +121,58 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const activeAds = ads.filter((ad) => ad.isActive);
-  const featuredAd = activeAds.find((ad) => ad.isHot) || activeAds[0] || null;
+  const currentAd = activeAds[currentAdIndex] || activeAds[0] || null;
 
-  // Open Ad in Popup Modal
-  const openAd = (ad: PromoAdItem) => {
-    setSelectedAd(ad);
+  // ⏱️ Auto-rotate through multiple ads (Changes ad every 6 seconds if multiple ads exist and not paused)
+  useEffect(() => {
+    if (!isAdPopupOpen || activeAds.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % activeAds.length);
+    }, 6000);
+
+    return () => clearInterval(timer);
+  }, [isAdPopupOpen, activeAds.length, isPaused, currentAdIndex]);
+
+  const nextAd = () => {
+    if (activeAds.length === 0) return;
+    setCurrentAdIndex((prev) => (prev + 1) % activeAds.length);
+  };
+
+  const prevAd = () => {
+    if (activeAds.length === 0) return;
+    setCurrentAdIndex((prev) => (prev - 1 + activeAds.length) % activeAds.length);
+  };
+
+  const goToAdIndex = (index: number) => {
+    if (index >= 0 && index < activeAds.length) {
+      setCurrentAdIndex(index);
+    }
+  };
+
+  const openAd = (indexOrAd?: number | PromoAdItem) => {
+    if (typeof indexOrAd === "number") {
+      setCurrentAdIndex(indexOrAd);
+    } else if (indexOrAd && typeof indexOrAd === "object") {
+      const idx = activeAds.findIndex((a) => a.id === indexOrAd.id);
+      setCurrentAdIndex(idx >= 0 ? idx : 0);
+    } else {
+      setCurrentAdIndex(0);
+    }
     setIsAdPopupOpen(true);
     markAdsAsSeen();
 
     // Increment View Count
-    const updated = ads.map((item) => 
-      item.id === ad.id ? { ...item, viewCount: (item.viewCount || 0) + 1 } : item
-    );
-    saveAds(updated);
+    if (currentAd) {
+      const updated = ads.map((item) => 
+        item.id === currentAd.id ? { ...item, viewCount: (item.viewCount || 0) + 1 } : item
+      );
+      saveAds(updated);
+    }
   };
 
   const closeAdPopup = () => {
     setIsAdPopupOpen(false);
-    setSelectedAd(null);
   };
 
   const markAdsAsSeen = () => {
@@ -131,7 +187,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Add new promo ad (Admin Only)
+  // Add new promo ad (Admin Only - Media, Caption, Price, Location are ALL OPTIONAL)
   const addPromoAd = (
     adData: Omit<PromoAdItem, "id" | "createdAt" | "viewCount">
   ): PromoAdItem => {
@@ -156,7 +212,12 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Broadcast Public Notification
-    const typeLabel = newAd.type === "video" ? "ویڈیو ایڈ" : "خصوصی تصویر ایڈ";
+    const typeLabel = newAd.type === "video" 
+      ? "ویڈیو ایڈ" 
+      : newAd.type === "image" 
+      ? "تصویر ایڈ" 
+      : "خصوصی اعلان / ایڈ";
+
     broadcastPublicDeal(
       `🔥 نیا ${typeLabel}: ${newAd.title}`,
       newAd.location || "رائل پام سٹی",
@@ -175,6 +236,9 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const deletePromoAd = (id: string) => {
     const updated = ads.filter((item) => item.id !== id);
     saveAds(updated);
+    if (currentAdIndex >= updated.filter(a => a.isActive).length) {
+      setCurrentAdIndex(0);
+    }
   };
 
   const toggleAdActive = (id: string) => {
@@ -189,11 +253,16 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       value={{
         ads,
         activeAds,
-        featuredAd,
-        selectedAd,
+        currentAdIndex,
+        currentAd,
         isAdPopupOpen,
+        isPaused,
+        setIsPaused,
         openAd,
         closeAdPopup,
+        nextAd,
+        prevAd,
+        goToAdIndex,
         addPromoAd,
         updatePromoAd,
         deletePromoAd,
