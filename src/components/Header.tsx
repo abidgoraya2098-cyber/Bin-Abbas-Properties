@@ -147,26 +147,6 @@ export default function Header() {
                 </span>
               )}
             </motion.button>
-
-            {/* 👑 3. ➕ Create Ad / Admin Ads Button (Highly Visible Gold Button) */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              id="header-create-ad-btn"
-              onClick={() => {
-                if (isAdmin) {
-                  setIsAdminInboxOpen(true);
-                } else {
-                  setIsLoginModalOpen(true);
-                }
-              }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-md border border-amber-500 hover:brightness-105 transition-all cursor-pointer"
-              title={isUrdu ? "ویڈیو یا تصویر ایڈ لگائیں" : "Create Video / Photo Ad"}
-              aria-label="Create Ad"
-            >
-              <Video size={13} className="text-slate-950" />
-              <span className="font-black tracking-tight">{isUrdu ? "➕ ایڈ لگائیں" : "➕ Create Ad"}</span>
-            </motion.button>
           </div>
 
           {/* Right Cluster: Actions & Owner Portal */}
