@@ -100,6 +100,14 @@ export default function SocietyGuide() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
           <a
             href={GOOGLE_MAPS_URL}
+            onClick={(e) => {
+              e.preventDefault();
+              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+              const mapsTarget = isIOS 
+                ? `https://maps.apple.com/?q=Royal+Palm+City+Gujranwala` 
+                : GOOGLE_MAPS_URL;
+              window.open(mapsTarget, "_blank", "noopener,noreferrer") || (window.location.href = mapsTarget);
+            }}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 hover:brightness-105 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer border border-emerald-500 active:scale-95 text-center"
@@ -111,6 +119,14 @@ export default function SocietyGuide() {
 
           <a
             href={GOOGLE_MAPS_NAV_URL}
+            onClick={(e) => {
+              e.preventDefault();
+              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+              const mapsTarget = isIOS 
+                ? `https://maps.apple.com/?daddr=Royal+Palm+City+Gujranwala` 
+                : GOOGLE_MAPS_NAV_URL;
+              window.open(mapsTarget, "_blank", "noopener,noreferrer") || (window.location.href = mapsTarget);
+            }}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-2.5 px-3 bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer border border-emerald-600 active:scale-95 text-center"

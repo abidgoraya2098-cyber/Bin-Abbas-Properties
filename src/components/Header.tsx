@@ -206,6 +206,14 @@ export default function Header() {
         <a 
           id="address-card"
           href={GOOGLE_MAPS_URL}
+          onClick={(e) => {
+            e.preventDefault();
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+            const mapsTarget = isIOS 
+              ? `https://maps.apple.com/?q=Royal+Palm+City+Gujranwala` 
+              : GOOGLE_MAPS_URL;
+            window.open(mapsTarget, "_blank", "noopener,noreferrer") || (window.location.href = mapsTarget);
+          }}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full max-w-xs mt-2.5 flex items-center justify-center gap-2.5 bg-white/95 hover:bg-emerald-50 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-emerald-200 text-center shadow-sm transition-all cursor-pointer group"
