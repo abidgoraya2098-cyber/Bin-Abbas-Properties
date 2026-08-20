@@ -198,30 +198,30 @@ function MainAppContent() {
 
         {/* 2. Main 4-Tab Navigation Bar */}
         <div className="my-3.5" id="main-navigation-tabs">
-          <div className="grid grid-cols-4 gap-1 p-1 bg-emerald-950/10 backdrop-blur-md rounded-2xl border border-amber-400/40 shadow-inner">
+          <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-emerald-950/10 backdrop-blur-md rounded-2xl border-2 border-amber-400/40 shadow-inner">
             {tabOptions.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <motion.button
                   key={tab.id}
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
                   id={`tab-btn-${tab.id}`}
-                  className={`py-2 px-1 rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all duration-300 relative cursor-pointer ${
+                  className={`py-2.5 px-1 rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all duration-300 relative cursor-pointer ${
                     isActive
-                      ? "bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 text-amber-300 font-black shadow-md border border-amber-400/50"
-                      : "text-slate-700 hover:text-emerald-900 hover:bg-white/50 font-bold"
+                      ? "bg-gradient-to-r from-[#094027] via-[#0d5434] to-[#094027] text-amber-300 font-black shadow-[0_4px_15px_rgba(10,50,30,0.35)] border-2 border-amber-400"
+                      : "text-slate-700 hover:text-emerald-950 hover:bg-white/70 font-bold"
                   }`}
                 >
-                  <Icon size={16} className={isActive ? "text-amber-300" : "text-slate-600"} />
+                  <Icon size={16} className={isActive ? "text-amber-300 animate-pulse" : "text-emerald-900"} />
                   <span className="text-[10px] sm:text-[11px] leading-none tracking-tight block">
                     {tab.label}
                   </span>
                   {isActive && (
                     <motion.div
                       layoutId="activeTabIndicator"
-                      className="absolute -bottom-1 w-6 h-0.5 bg-amber-400 rounded-full shadow-[0_0_6px_#f59e0b]"
+                      className="absolute -bottom-1.5 w-7 h-1 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 rounded-full shadow-[0_0_8px_#f59e0b]"
                     />
                   )}
                 </motion.button>
