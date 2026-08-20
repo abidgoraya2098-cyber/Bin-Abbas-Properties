@@ -6,45 +6,86 @@ import { BUSINESS_NAME, ENGLISH_NAME, LOCATION_TAGLINE, LOCATION_TAGLINE_ENGLISH
 
 interface SplashScreenProps {
   onFinish?: () => void;
-  duration?: number; // in milliseconds (default: 10000ms = 10s)
+  duration?: number; // in milliseconds (default: 4200ms = ~4.2 seconds)
 }
 
-export default function SplashScreen({ onFinish, duration = 10000 }: SplashScreenProps) {
+// 🔔 Soft UI Notification Chime (High-End Crystalline Chime using Web Audio API)
+function playSoftNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+    
+    const now = ctx.currentTime;
+    // Gentle melodic harmonic triad (D5 -> A5 -> D6) with soft exponential decay
+    const notes = [587.33, 880, 1174.66];
+    
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+      
+      gain.gain.setValueAtTime(0, now + idx * 0.07);
+      gain.gain.linearRampToValueAtTime(0.08, now + idx * 0.07 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.07 + 0.75);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(now + idx * 0.07);
+      osc.stop(now + idx * 0.07 + 0.8);
+    });
+  } catch (err) {
+    // Silently continue if autoplay audio policy is restricted
+  }
+}
+
+export default function SplashScreen({ onFinish, duration = 4200 }: SplashScreenProps) {
   const { isUrdu } = useLanguage();
   const [isVisible, setIsVisible] = useState(true);
-  const [timeLeft, setTimeLeft] = useState<number>(Math.ceil(duration / 1000));
-  const [phase, setPhase] = useState<number>(1); // 1 to 4 animation phases
+  const [tipIndex, setTipIndex] = useState(0);
+
+  // 4 Rotating Welcome Tips / Instructions (باری باری تبدیل ہونے والے 4 مفید پیغامات)
+  const rotatingTipsUrdu = [
+    "✨ خوش آمدید! بن عباس پراپرٹیز — رائل پام سٹی، گوجرانوالہ",
+    "🏡 5، 10 مرلہ، 1 و 2 کنال رہائشی اور کمرشل پلاٹس کی تصدیق شدہ خرید و فروخت",
+    "📊 روزانہ کے تازہ ترین ریٹس، فائل ٹرانسفر اور فوری انکوائری کی سہولت",
+    "📞 رابطہ و رہنمائی: 0320.4800071 (فریاد حسن گورائیہ)"
+  ];
+
+  const rotatingTipsEnglish = [
+    "✨ Welcome to Bin Abbas Properties — Royal Palm City, Gujranwala",
+    "🏡 Verified 5, 10 Marla, 1 & 2 Kanal Residential & Commercial Plots",
+    "📊 Live Market Rates, Transparent File Transfers & Direct Plot Inquiries",
+    "📞 Direct Call & WhatsApp: 0320.4800071 (Faryad Hassan Goraya)"
+  ];
+
+  const currentTips = isUrdu ? rotatingTipsUrdu : rotatingTipsEnglish;
 
   useEffect(() => {
-    // 10s Countdown Timer
-    const countdownInterval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // 1. Play Soft Professional UI Notification Sound
+    playSoftNotificationChime();
 
-    // Dynamic animation stages throughout the 10 seconds
-    const phase2Timer = setTimeout(() => setPhase(2), 2500);
-    const phase3Timer = setTimeout(() => setPhase(3), 5500);
-    const phase4Timer = setTimeout(() => setPhase(4), 8000);
+    // 2. Rotate through the 4 tips during the 4.2s duration (approx ~1s each)
+    const tipInterval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % currentTips.length);
+    }, duration / 4);
 
-    // Auto close at 10s
-    const mainTimer = setTimeout(() => {
+    // 3. Smooth Fade Out & Transition directly into main app
+    const closeTimer = setTimeout(() => {
       handleClose();
     }, duration);
 
     return () => {
-      clearInterval(countdownInterval);
-      clearTimeout(phase2Timer);
-      clearTimeout(phase3Timer);
-      clearTimeout(phase4Timer);
-      clearTimeout(mainTimer);
+      clearInterval(tipInterval);
+      clearTimeout(closeTimer);
     };
-  }, [duration]);
+  }, [duration, currentTips.length]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -53,232 +94,172 @@ export default function SplashScreen({ onFinish, duration = 10000 }: SplashScree
     }
   };
 
-  // Phase subtitle messages in Urdu & English
-  const phaseMessagesUrdu = [
-    "خوش آمدید! بن عباس پراپرٹیز",
-    "رائل پام سٹی کا سب سے بااعتماد اور تصدیق شدہ ادارہ",
-    "پلاٹس کی فوری خرید و فروخت اور محفوظ ترین سرمایہ کاری",
-    "ایپ کا ہوم پیج کھل رہا ہے..."
-  ];
-
-  const phaseMessagesEnglish = [
-    "Welcome to Bin Abbas Properties!",
-    "Your Most Trusted Real Estate Partner in Royal Palm City",
-    "Verified Plots Buying, Selling & High-Yield Investments",
-    "Opening Main Application..."
-  ];
-
-  const currentPhaseMessage = isUrdu 
-    ? phaseMessagesUrdu[phase - 1] 
-    : phaseMessagesEnglish[phase - 1];
-
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          key="cinematic-10s-splash"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.08, filter: "blur(8px)" }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-[#031d11] via-[#073620] to-[#02130a] text-white select-none overflow-hidden touch-manipulation"
-          id="app-cinematic-intro"
+          key="app-splash-screen"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 1.04, filter: "blur(5px)" }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          onClick={handleClose}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-[#031d11] via-[#073620] to-[#02130a] text-white select-none overflow-hidden touch-manipulation cursor-pointer"
+          id="app-splash-screen-root"
         >
-          {/* 🌟 1. Dynamic Ambient Lighting & Floating Gold Particle Rays */}
+          {/* 🌟 1. Ambient Background Glows */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {/* Top Gold Radial Beam */}
             <motion.div 
               animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.35, 0.65, 0.35],
-                rotate: [0, 45, 0]
+                scale: [1, 1.2, 1],
+                opacity: [0.35, 0.55, 0.35]
               }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-32 left-1/2 -translate-x-1/2 w-[480px] h-[480px] bg-amber-400/25 rounded-full blur-[110px]"
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-28 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-400/25 rounded-full blur-[100px]"
             />
-            {/* Center Emerald Luminous Aura */}
             <motion.div 
               animate={{ 
-                scale: [0.9, 1.25, 0.9],
-                opacity: [0.3, 0.6, 0.3]
+                scale: [0.9, 1.15, 0.9],
+                opacity: [0.25, 0.45, 0.25]
               }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute top-1/3 left-1/2 -translate-x-1/2 w-88 h-88 bg-emerald-400/25 rounded-full blur-[100px]"
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+              className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-emerald-400/20 rounded-full blur-[90px]"
             />
-            {/* Bottom Warm Gold Reflection */}
-            <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-amber-500/20 rounded-full blur-[120px]" />
+            <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/15 rounded-full blur-[110px]" />
           </div>
 
-          {/* 🌟 2. Top Header Bar: Countdown & Skip Button */}
+          {/* 🌟 2. Top Bar: Official Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="z-20 w-full max-w-[420px] flex items-center justify-between pt-2 px-1"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="z-10 pt-2 flex items-center justify-between w-full max-w-[380px] px-1"
           >
-            {/* Live Countdown Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-amber-400/50 text-amber-300 shadow-md backdrop-blur-md text-xs font-black">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-              <span>{timeLeft}s</span>
-              <span className="text-[10px] text-emerald-200/80 font-bold">
-                {isUrdu ? "اینیمیشن" : "Intro"}
-              </span>
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-900/80 border border-amber-400/40 text-amber-300 shadow-md backdrop-blur-md text-[11px] font-black">
+              <Sparkles size={12} className="text-amber-400 animate-spin" style={{ animationDuration: "4s" }} />
+              <span>{isUrdu ? "رائل پام سٹی، گوجرانوالہ" : "Royal Palm City, Gujranwala"}</span>
             </div>
 
-            {/* Skip / Enter Directly Button */}
-            <button
-              type="button"
-              onClick={handleClose}
-              className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-lg border border-amber-300 active:scale-95 hover:brightness-110 cursor-pointer transition-all"
-            >
+            {/* Quick Skip Button */}
+            <span className="text-[10px] text-amber-300/80 hover:text-amber-200 underline flex items-center gap-0.5 font-bold">
               <span>{isUrdu ? "ایپ کھولیں" : "Open App"}</span>
-              <ArrowRight size={13} className={isUrdu ? "rotate-180" : ""} />
-            </button>
+              <ArrowRight size={10} className={isUrdu ? "rotate-180" : ""} />
+            </span>
           </motion.div>
 
-          {/* 🌟 3. Center: 10-Second 3D Animated Logo Master Showcase */}
-          <div className="relative z-10 flex flex-col items-center justify-center my-auto w-full max-w-[380px] px-2 text-center">
+          {/* 🌟 3. Center: Exactly Original Logo & Balanced Brand Name with Smooth Subtle Zoom/Pulse */}
+          <div className="relative z-10 flex flex-col items-center justify-center my-auto w-full max-w-[360px] px-2 text-center">
             
-            {/* Multi-Layered Pulsating Golden Orbit Rings */}
+            {/* Pulsating Golden Halo Ring Behind Logo */}
             <motion.div
               animate={{ 
-                scale: [0.9, 1.12, 0.9],
-                rotate: 360,
-                opacity: [0.4, 0.85, 0.4]
+                scale: [0.95, 1.06, 0.95],
+                opacity: [0.5, 0.85, 0.5]
               }}
-              transition={{ 
-                rotate: { duration: 12, repeat: Infinity, ease: "linear" },
-                scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-              }}
-              className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full border-2 border-dashed border-amber-400/40 shadow-[0_0_60px_rgba(245,206,94,0.3)] pointer-events-none"
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute w-56 h-56 sm:w-60 sm:h-60 rounded-full border-2 border-amber-400/40 shadow-[0_0_45px_rgba(245,206,94,0.3)] pointer-events-none"
             />
 
+            {/* Original Master 3D Logo (Smooth Subtle Zoom-in & Pulse Effect) */}
             <motion.div
+              initial={{ scale: 0.65, opacity: 0, y: 20 }}
               animate={{ 
-                scale: [1.1, 0.95, 1.1],
-                rotate: -360,
-                opacity: [0.3, 0.6, 0.3]
+                scale: [0.98, 1.03, 0.98],
+                opacity: 1,
+                y: 0 
               }}
               transition={{ 
-                rotate: { duration: 16, repeat: Infinity, ease: "linear" },
-                scale: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
-                opacity: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+                scale: { duration: 2.8, repeat: Infinity, ease: "easeInOut" },
+                opacity: { duration: 0.6 },
+                y: { duration: 0.6 }
               }}
-              className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-emerald-400/30 pointer-events-none"
-            />
-
-            {/* 🌟 THE 3D MASTER LOGO PLAQUE WITH CONTINUOUS 3D TILT & SHIMMER */}
-            <motion.div
-              initial={{ scale: 0.2, y: 40, opacity: 0 }}
-              animate={{ 
-                scale: 1, 
-                y: [0, -6, 0],
-                opacity: 1
-              }}
-              transition={{ 
-                scale: { type: "spring", stiffness: 220, damping: 18, duration: 1 },
-                y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }
-              }}
-              className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-3xl p-1.5 bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 shadow-[0_25px_60px_rgba(0,0,0,0.7)] flex items-center justify-center mb-4 cursor-pointer"
-              onClick={handleClose}
+              className="relative w-44 h-44 sm:w-48 sm:h-48 rounded-3xl p-1 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 shadow-[0_20px_50px_rgba(0,0,0,0.65)] flex items-center justify-center mb-3.5"
             >
               {/* Inner Plaque Layer */}
-              <div className="w-full h-full rounded-[22px] bg-gradient-to-b from-[#ffffff] via-[#f5fbf7] to-[#d3f0de] flex items-center justify-center p-2 overflow-hidden shadow-inner relative">
-                
-                {/* 3D Master PNG Logo */}
+              <div className="w-full h-full rounded-[22px] bg-gradient-to-b from-[#ffffff] via-[#f5fbf7] to-[#d6f0e0] flex items-center justify-center p-2 overflow-hidden shadow-inner relative">
                 <img 
                   src="/Bin-Abbas-Properties-Logo.png" 
-                  alt="Bin Abbas Properties Master 3D Logo"
+                  alt="Bin Abbas Properties Official Logo"
                   className="w-full h-full object-contain drop-shadow-md select-none"
                 />
 
-                {/* Multiple Continuous Shimmer Light Beams Sweeping Across */}
+                {/* Shimmer Light Reflection Sweep Across the Logo */}
                 <motion.div
-                  animate={{ 
-                    x: ["-180%", "240%"],
-                    opacity: [0, 0.9, 0]
-                  }}
-                  transition={{ 
-                    duration: 2.2, 
-                    repeat: Infinity, 
-                    repeatDelay: 1.2,
-                    ease: "easeInOut" 
-                  }}
-                  className="absolute inset-0 w-2/3 h-full bg-gradient-to-r from-transparent via-white/85 to-transparent skew-x-12 pointer-events-none"
+                  initial={{ x: "-150%", opacity: 0 }}
+                  animate={{ x: "200%", opacity: [0, 0.85, 0] }}
+                  transition={{ duration: 1.4, delay: 0.3, ease: "easeInOut" }}
+                  className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/75 to-transparent skew-x-12 pointer-events-none"
                 />
               </div>
-
-              {/* Glowing Corner Accents */}
-              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-300 shadow-[0_0_10px_#fde047]"></div>
-              <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 rounded-full bg-amber-300 shadow-[0_0_10px_#fde047]"></div>
             </motion.div>
 
-            {/* 🌟 ANIMATED BRAND TYPOGRAPHY */}
+            {/* Balanced Brand Name Under Logo */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               className="space-y-1"
             >
-              <h1 className="text-2xl sm:text-3xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-300 to-amber-100 drop-shadow-[0_2px_12px_rgba(245,206,94,0.4)]">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-300 to-amber-100 drop-shadow-[0_2px_10px_rgba(245,206,94,0.35)]">
                 {isUrdu ? BUSINESS_NAME : ENGLISH_NAME}
               </h1>
 
-              <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-black tracking-widest text-emerald-200 uppercase">
-                <Building size={14} className="text-amber-400" />
+              <div className="flex items-center justify-center gap-1 text-xs sm:text-sm font-bold tracking-widest text-emerald-200 uppercase">
+                <Building size={13} className="text-amber-400" />
                 <span>{isUrdu ? "BIN ABBAS PROPERTIES" : "REAL ESTATE & BUILDERS"}</span>
               </div>
             </motion.div>
 
-            {/* 🌟 3D Embossed Mobile Phone Plaque Animation (Phase 3 highlight) */}
+            {/* Verified Phone Contact Badge */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 1 }}
-              className="mt-2.5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl border border-amber-200"
+              transition={{ duration: 0.4, delay: 0.45 }}
+              className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black text-xs shadow-md border border-amber-200"
             >
-              <Phone size={13} className="text-emerald-950 fill-emerald-950" />
+              <Phone size={12} className="text-emerald-950 fill-emerald-950" />
               <span className="font-sans font-black tracking-wider">{CONTACT_PHONE_DISPLAY}</span>
             </motion.div>
-
-            {/* Dynamic Stage Info Subtitle */}
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={`phase-msg-${phase}`}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3 }}
-                className="text-xs text-amber-200/90 font-bold mt-2.5 h-6 flex items-center justify-center gap-1"
-              >
-                <Sparkles size={12} className="text-amber-400" />
-                <span>{currentPhaseMessage}</span>
-              </motion.p>
-            </AnimatePresence>
           </div>
 
-          {/* 🌟 4. Bottom Section: 10-Second Progress Bar & Phase Steppers */}
+          {/* 🌟 4. Bottom: 3 to 4 Rotating Useful Tips & Animated Loading Line (Progress Bar) */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="z-20 w-full max-w-[340px] flex flex-col items-center gap-2 pb-3"
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="z-10 w-full max-w-[340px] flex flex-col items-center gap-2 pb-2 text-center"
           >
-            {/* 10-Second Smooth Linear Golden Progress Bar */}
-            <div className="w-full h-2 bg-emerald-950/90 rounded-full overflow-hidden border border-amber-400/40 shadow-inner p-0.5">
+            {/* Dynamic Rotating Tip / Welcome Message */}
+            <div className="min-h-[38px] flex items-center justify-center px-2">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={`splash-tip-${tipIndex}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-[11.5px] sm:text-xs text-amber-200 font-bold leading-snug drop-shadow-sm flex items-center justify-center gap-1"
+                >
+                  <span>{currentTips[tipIndex]}</span>
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            {/* Animated Golden Loading Line (Progress Bar) */}
+            <div className="w-full h-1.5 bg-emerald-950/80 rounded-full overflow-hidden border border-amber-400/40 p-0.5 shadow-inner">
               <motion.div
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: duration / 1000, ease: "linear" }}
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 shadow-[0_0_12px_#f5ce5e]"
+                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 shadow-[0_0_10px_#f5ce5e]"
               />
             </div>
 
-            {/* Bottom Location & CEO Info */}
-            <div className="flex items-center justify-between w-full text-[11px] text-emerald-200/90 font-bold px-1 mt-0.5">
+            {/* Bottom Footer Info */}
+            <div className="flex items-center justify-between w-full text-[10.5px] text-emerald-200/80 font-bold px-1 mt-0.5">
               <span className="flex items-center gap-1 text-amber-300 font-black">
-                <MapPin size={12} className="text-emerald-400" />
-                <span>{isUrdu ? "رائل پام سٹی، گوجرانوالہ" : "Royal Palm City"}</span>
+                <ShieldCheck size={12} className="text-emerald-400" />
+                <span>{isUrdu ? "تصدیق شدہ ادارہ" : "Verified Agency"}</span>
               </span>
 
               <span className="text-emerald-100 font-bold">
