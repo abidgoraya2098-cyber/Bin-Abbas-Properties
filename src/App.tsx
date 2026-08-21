@@ -17,7 +17,7 @@ import SocialLinks from "./components/SocialLinks";
 import Feedback from "./components/Feedback";
 import Footer from "./components/Footer";
 import FloatingActionBar from "./components/FloatingActionBar";
-import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info, Video } from "lucide-react";
+import { Sparkles, ArrowRightLeft, Navigation, LayoutGrid, Globe, Info, Video, Bell, X } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { NotificationProvider, useNotifications } from "./context/NotificationContext";

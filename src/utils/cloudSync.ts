@@ -183,68 +183,54 @@ export async function syncDeviceRegistration(): Promise<void> {
 // 🛡️ Strict filter to permanently eliminate dummy/sample ads
 export function isRealCustomAd(a: PromoAdItem | null | undefined): boolean {
   if (!a || !a.id) return false;
-  if (a.id.startsWith("ad-initial-royal-palm-1") || a.id.startsWith("promo-ad-")) return false;
+  if (a.id.startsWith("ad-initial-") || a.id.startsWith("promo-ad-") || a.id.includes("royal-palm-1")) return false;
   if (typeof a.mediaUrl === "string" && a.mediaUrl.includes("photo-1600596542815-ffad4c1539a9")) return false;
-  if (typeof a.title === "string" && a.title.includes("پام بلاک رائل پام سٹی") && (!a.createdAt || a.createdAt === 1724000000000)) return false;
+  if (!a.title || a.title.trim() === "" || a.title === "dummy") return false;
   return true;
 }
 
-// 🌐 Fetch All Global Ads from Cloud in Real-Time with Bi-Directional Auto-Reconciliation
+// 🌐 Fetch All Global Ads from Cloud in Real-Time
 export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[] | null> {
-  let cloudAds: PromoAdItem[] = [];
+  let cloudAds: PromoAdItem[] | null = null;
+  let deletedIds: string[] = [];
 
   try {
+    const rawDeleted = await executeRedisCommand(["GET", "bin_abbas:deleted_ads"]);
+    if (rawDeleted) {
+      try {
+        deletedIds = JSON.parse(rawDeleted);
+      } catch {}
+    }
+
     const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
     if (rawAds) {
       const parsed = JSON.parse(rawAds);
       if (Array.isArray(parsed)) {
-        cloudAds = parsed.filter(isRealCustomAd);
+        cloudAds = parsed.filter(isRealCustomAd).filter((a) => !deletedIds.includes(a.id));
       }
     }
   } catch (e) {
     console.warn("Error fetching ads from redis:", e);
   }
 
-  // Local Storage Ads Cache
+  // If cloud responded, cloud is authoritative
+  if (cloudAds !== null) {
+    try {
+      localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cloudAds));
+    } catch {}
+    return cloudAds;
+  }
+
+  // Fallback to local storage only if offline
   let localSaved: PromoAdItem[] = [];
   try {
     const rawLocal = localStorage.getItem("bin_abbas_promo_ads");
     if (rawLocal) {
-      localSaved = JSON.parse(rawLocal).filter(isRealCustomAd);
+      localSaved = JSON.parse(rawLocal).filter(isRealCustomAd).filter((a) => !deletedIds.includes(a.id));
     }
   } catch {}
 
-  // Merge unique ads by ID
-  const map = new Map<string, PromoAdItem>();
-  let hasLocalAdToUpload = false;
-
-  cloudAds.forEach((a) => {
-    if (isRealCustomAd(a)) {
-      map.set(a.id, a);
-    }
-  });
-
-  localSaved.forEach((a) => {
-    if (isRealCustomAd(a)) {
-      if (!map.has(a.id)) {
-        map.set(a.id, a);
-        hasLocalAdToUpload = true; // Auto-sync local admin ad up to cloud!
-      }
-    }
-  });
-
-  const finalAds = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-  // If local admin ad was missing in the cloud, auto-publish it now!
-  if (hasLocalAdToUpload && finalAds.length > 0) {
-    executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(finalAds)]).catch(() => {});
-  }
-
-  try {
-    localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(finalAds));
-  } catch {}
-
-  return finalAds;
+  return localSaved;
 }
 
 // 🚀 Publish Ad to Cloud (Broadcasts globally to all users immediately)
@@ -267,7 +253,9 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
     });
     map.set(ad.id, ad);
 
-    // 2. Prepare cloud-safe payload (strip huge video DataURLs > 600KB so cloud REST never exceeds size limits)
+    const mergedAds = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    // 2. Prepare cloud-safe payload (strip huge video DataURLs > 500KB)
     const cloudSafeMergedAds = mergedAds.map((item) => {
       if (item.mediaUrl && item.mediaUrl.startsWith("data:video") && item.mediaUrl.length > 500000) {
         return {
@@ -295,15 +283,40 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
   }
 }
 
-// 🗑️ Delete Ad from Cloud
+// 🗑️ Delete Ad from Cloud Permanently
 export async function deleteAdFromCloud(adId: string): Promise<boolean> {
   try {
+    // 1. Remove from ads
     const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
     if (rawAds) {
       const parsed: PromoAdItem[] = JSON.parse(rawAds);
       const filtered = parsed.filter((a) => a.id !== adId);
       await executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(filtered)]);
     }
+
+    // 2. Add to deleted_ads blacklist
+    const rawDeleted = await executeRedisCommand(["GET", "bin_abbas:deleted_ads"]);
+    let deletedList: string[] = [];
+    if (rawDeleted) {
+      try {
+        deletedList = JSON.parse(rawDeleted);
+      } catch {}
+    }
+    if (!deletedList.includes(adId)) {
+      deletedList.push(adId);
+      await executeRedisCommand(["SET", "bin_abbas:deleted_ads", JSON.stringify(deletedList)]);
+    }
+
+    // 3. Purge from local storage
+    try {
+      const rawLocal = localStorage.getItem("bin_abbas_promo_ads");
+      if (rawLocal) {
+        const localList: PromoAdItem[] = JSON.parse(rawLocal);
+        const filteredLocal = localList.filter((a) => a.id !== adId);
+        localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(filteredLocal));
+      }
+    } catch {}
+
     return true;
   } catch {
     return false;
