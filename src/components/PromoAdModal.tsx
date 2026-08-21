@@ -212,12 +212,12 @@ export default function PromoAdModal() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[450px] sm:max-w-md h-[94vh] max-h-[850px] bg-gradient-to-b from-slate-950 via-slate-900 to-[#041a10] rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.85)] border-2 border-amber-400 flex flex-col justify-between"
+            className="relative w-full max-w-[460px] sm:max-w-md max-h-[94vh] bg-gradient-to-b from-slate-950 via-slate-900 to-[#041a10] rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9)] border-2 border-amber-400 flex flex-col"
             id="promo-ad-fullscreen-card"
           >
-            {/* 🌟 1. TOP STORY SEGMENTED PROGRESS BARS & CONTROLS */}
-            <div className="absolute top-0 inset-x-0 z-30 p-3 bg-gradient-to-b from-black/85 via-black/50 to-transparent flex flex-col gap-2">
-              {/* Progress Bars (15s duration so user can easily read details) */}
+            {/* 🌟 1. TOP STORY PROGRESS & HEADER CONTROLS */}
+            <div className="relative z-30 p-3 pb-2 bg-gradient-to-b from-black/90 via-black/70 to-transparent flex flex-col gap-2 shrink-0">
+              {/* Progress Bars (For Multiple Ads) */}
               {activeAds.length > 1 && (
                 <div className="flex items-center gap-1.5 w-full">
                   {activeAds.map((ad, idx) => (
@@ -245,12 +245,12 @@ export default function PromoAdModal() {
                 </div>
               )}
 
-              {/* Header Controls (Logo Tag + Sound Toggle + Multi-Ad Counter + Close Button) */}
-              <div className="flex items-center justify-between pt-1">
+              {/* Header Bar */}
+              <div className="flex items-center justify-between pt-0.5">
                 <div className="flex items-center gap-2">
                   <div className="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md border border-amber-300">
                     <Sparkles size={12} className="text-slate-950" />
-                    <span>{isUrdu ? "خصوصی پروموشنل ایڈ" : "Featured Ad"}</span>
+                    <span>{isUrdu ? "خصوصی لائیو ایڈ" : "Featured Ad"}</span>
                   </div>
 
                   {activeAds.length > 1 && (
@@ -274,11 +274,11 @@ export default function PromoAdModal() {
                       title={isMuted ? "آواز آن کریں" : "آواز بند کریں"}
                     >
                       {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                      <span className="text-[10px]">{isMuted ? (isUrdu ? "آواز کھولیں 🔊" : "Unmute") : (isUrdu ? "آواز آن ہے" : "Sound On")}</span>
+                      <span className="text-[10px]">{isMuted ? (isUrdu ? "آواز کھولیں 🔊" : "Unmute") : (isUrdu ? "آواز آن ہے 🔊" : "Sound On")}</span>
                     </button>
                   )}
 
-                  {/* (X) CLOSE BUTTON - Persists until user closes */}
+                  {/* (X) CLOSE BUTTON */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -295,8 +295,8 @@ export default function PromoAdModal() {
               </div>
             </div>
 
-            {/* 🌟 2. FULL MEDIA DISPLAY AREA (FULL SCREEN VIDEO OR IMAGE OR TEXT BANNER) */}
-            <div className="relative w-full flex-1 overflow-hidden flex items-center justify-center bg-black">
+            {/* 🌟 2. MEDIA DISPLAY AREA (OPTIMAL 44vh HEIGHT - NEVER OVERFLOWS) */}
+            <div className="relative w-full h-[40vh] sm:h-[45vh] min-h-[220px] max-h-[340px] bg-black flex items-center justify-center shrink-0 overflow-hidden">
               {isVideo && (resolvedMediaUrl || currentAd.thumbnailUrl) ? (
                 isEmbed ? (
                   <iframe
@@ -317,8 +317,7 @@ export default function PromoAdModal() {
                     loop={activeAds.length === 1}
                     muted={isMuted}
                     onEnded={handleVideoEnded}
-                    onClick={toggleSound}
-                    className="w-full h-full object-cover sm:object-contain cursor-pointer"
+                    className="w-full h-full object-contain cursor-pointer"
                   />
                 ) : currentAd.thumbnailUrl ? (
                   <div className="relative w-full h-full flex items-center justify-center bg-black">
@@ -338,40 +337,24 @@ export default function PromoAdModal() {
                 <img
                   src={resolvedMediaUrl}
                   alt={currentAd.title}
-                  className="w-full h-full object-cover sm:object-contain"
+                  className="w-full h-full object-contain bg-black"
                 />
               ) : (
-                /* Text-Only Luxury Announcement Card */
+                /* Text Announcement Banner */
                 <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0a4d30] via-[#063822] to-[#032415] text-white">
-                  <div className="w-16 h-16 rounded-3xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center mb-4 text-amber-300 shadow-xl">
-                    <FileText size={32} />
+                  <div className="w-14 h-14 rounded-2xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center mb-3 text-amber-300 shadow-xl">
+                    <FileText size={28} />
                   </div>
-                  <span className="text-xs font-black uppercase tracking-widest text-amber-300 mb-2">
-                    {isUrdu ? "بن عباس پراپرٹیز خصوصی آفر" : "Bin Abbas Properties Special Offer"}
+                  <span className="text-[11px] font-black uppercase tracking-widest text-amber-300 mb-1">
+                    {isUrdu ? "بن عباس پراپرٹیز خصوصی پیشکش" : "Bin Abbas Properties Special Offer"}
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-black leading-snug text-white max-w-xs">
+                  <h2 className="text-lg sm:text-xl font-black leading-snug text-white max-w-xs font-sans">
                     {isUrdu ? currentAd.title : (currentAd.titleEn || currentAd.title)}
                   </h2>
-                  {currentAd.price && (
-                    <div className="mt-3 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg border border-amber-300">
-                      {currentAd.price}
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Tap to Unmute Overlay Hint for Video */}
-              {isVideo && isMuted && (
-                <div 
-                  onClick={toggleSound}
-                  className="absolute bottom-4 inset-x-4 z-20 p-2 rounded-xl bg-black/80 backdrop-blur-md border border-amber-400 text-amber-300 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg animate-bounce"
-                >
-                  <Volume2 size={16} className="text-amber-400" />
-                  <span>{isUrdu ? "🔊 ویڈیو کی مکمل آواز سننے کے لیے یہاں ٹیپ کریں" : "Tap here to play full video sound"}</span>
-                </div>
-              )}
-
-              {/* Navigation Left / Right Buttons (When multiple ads exist) */}
+              {/* Navigation Left / Right Buttons */}
               {activeAds.length > 1 && (
                 <>
                   <button
@@ -379,7 +362,7 @@ export default function PromoAdModal() {
                       e.stopPropagation();
                       prevAd();
                     }}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/30 backdrop-blur-sm cursor-pointer z-20"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center border border-white/30 backdrop-blur-sm cursor-pointer z-20"
                     title="Previous Ad"
                   >
                     <ChevronLeft size={18} />
@@ -390,7 +373,7 @@ export default function PromoAdModal() {
                       e.stopPropagation();
                       nextAd();
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/30 backdrop-blur-sm cursor-pointer z-20"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center border border-white/30 backdrop-blur-sm cursor-pointer z-20"
                     title="Next Ad"
                   >
                     <ChevronRight size={18} />
@@ -399,42 +382,55 @@ export default function PromoAdModal() {
               )}
             </div>
 
-            {/* 🌟 3. BOTTOM FLOATING AD DETAILS & PROMINENT WHATSAPP BUY BUTTON */}
-            <div className="relative z-30 bg-gradient-to-t from-black via-black/95 to-black/70 p-4 sm:p-5 pt-3 text-white flex flex-col gap-2.5 border-t border-amber-400/40">
-              {/* Title Header */}
-              <div className="flex items-start justify-between gap-2 text-right">
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base sm:text-lg font-black text-white leading-snug drop-shadow">
+            {/* 🌟 3. URDU DETAILS & WHATSAPP ACTION CARD (100% PROMINENT & SCROLLABLE) */}
+            <div 
+              className="relative z-30 bg-gradient-to-b from-slate-950 via-slate-900 to-[#02180e] p-4 sm:p-5 text-white flex-1 overflow-y-auto flex flex-col justify-between gap-3 border-t-2 border-amber-400/50"
+              dir={dir}
+            >
+              <div className="space-y-2.5">
+                {/* 📌 Title / Headings */}
+                <div className="space-y-1 text-right">
+                  <span className="text-[10px] uppercase font-extrabold tracking-wider text-amber-400/90 block">
+                    {isUrdu ? "📌 ایڈ کے مکمل کوائف و تفصیلات:" : "📌 Property Details:"}
+                  </span>
+                  <h2 className="text-base sm:text-lg font-black text-amber-300 leading-snug font-sans drop-shadow">
                     {isUrdu ? currentAd.title : (currentAd.titleEn || currentAd.title)}
                   </h2>
                 </div>
 
-                {currentAd.price && (
-                  <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md border border-amber-300 shrink-0">
-                    {isUrdu ? currentAd.price : (currentAd.priceEn || currentAd.price)}
+                {/* 💰 Price Demand & 📍 Location Badges Row */}
+                <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
+                  {currentAd.price ? (
+                    <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md border border-amber-300 flex items-center gap-1.5">
+                      <span>💰</span>
+                      <span>{isUrdu ? `ڈیمانڈ: ${currentAd.price}` : `Price: ${currentAd.priceEn || currentAd.price}`}</span>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-1 rounded-xl bg-amber-400/20 text-amber-300 font-bold text-xs border border-amber-400/40">
+                      {isUrdu ? "خصوصی ریٹ / رابطہ کریں" : "Special Rate"}
+                    </div>
+                  )}
+
+                  {currentAd.location && (
+                    <div className="flex items-center gap-1 text-xs text-emerald-200 font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                      <MapPin size={13} className="text-amber-400 shrink-0" />
+                      <span>{isUrdu ? currentAd.location : (currentAd.locationEn || currentAd.location)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 📝 Extra Details / Caption (If Available) */}
+                {currentAd.caption && (
+                  <div className="bg-slate-900/80 p-3 rounded-2xl border border-amber-400/20 text-right">
+                    <p className="text-xs text-slate-200 leading-relaxed font-semibold font-sans whitespace-pre-line">
+                      {isUrdu ? currentAd.caption : (currentAd.captionEn || currentAd.caption)}
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Location / Block Badge & Details */}
-              {currentAd.location && (
-                <div className="flex items-center gap-1 text-xs text-amber-200 font-bold bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 w-fit">
-                  <MapPin size={13} className="text-amber-400 shrink-0" />
-                  <span>{isUrdu ? currentAd.location : (currentAd.locationEn || currentAd.location)}</span>
-                </div>
-              )}
-
-              {/* Optional Caption & Details */}
-              {currentAd.caption && (
-                <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl border border-white/10 max-h-24 overflow-y-auto">
-                  <p className="text-[11px] sm:text-xs text-emerald-100 leading-relaxed font-semibold text-right whitespace-pre-line">
-                    {isUrdu ? currentAd.caption : (currentAd.captionEn || currentAd.caption)}
-                  </p>
-                </div>
-              )}
-
-              {/* 🌟 PROMINENT WHATSAPP ACTION BUTTON: "ابھی خریدنے کے لیے رابطہ کریں" */}
-              <div className="pt-1 flex flex-col gap-2">
+              {/* 🌟 4. PROMINENT WHATSAPP BUY & CALL BUTTONS */}
+              <div className="pt-2 flex flex-col gap-2 shrink-0">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
@@ -452,7 +448,7 @@ export default function PromoAdModal() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleCallClick}
-                    className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Phone size={13} className="text-amber-300" />
                     <span>{isUrdu ? "فوری کال کریں" : "Call Directly"}</span>
@@ -460,7 +456,7 @@ export default function PromoAdModal() {
 
                   <button
                     onClick={handleShareClick}
-                    className="py-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {copied ? (
                       <>
