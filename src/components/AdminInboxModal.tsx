@@ -41,7 +41,7 @@ import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRecord } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
-import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl, extractVideoThumbnail } from "../utils/mediaStorage";
+import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl, extractVideoThumbnail, uploadMediaToCloudinary } from "../utils/mediaStorage";
 import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
 
 export default function AdminInboxModal() {
@@ -86,6 +86,7 @@ export default function AdminInboxModal() {
   const [adWhatsAppMsg, setAdWhatsAppMsg] = useState("");
   const [isAdHot, setIsAdHot] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const loadDevices = async () => {
     setIsLoadingDevices(true);
@@ -138,6 +139,8 @@ export default function AdminInboxModal() {
     if (!file) return;
 
     setIsUploading(true);
+    setUploadProgress(5);
+
     try {
       setAdType(mediaKind);
       setAdFileName(file.name);
@@ -150,21 +153,33 @@ export default function AdminInboxModal() {
         const mediaId = `media-${Date.now()}`;
         await saveMediaBlob(mediaId, compressedDataUrl);
       } else {
-        // Video: extract video poster thumbnail first
-        const posterThumb = await extractVideoThumbnail(file);
-        if (posterThumb) {
-          setAdThumbnailUrl(posterThumb);
+        // Video: Direct Cloud Upload with Progress
+        const cloudRes = await uploadMediaToCloudinary(file, (pct) => {
+          setUploadProgress(pct);
+        });
+
+        if (cloudRes && cloudRes.url) {
+          setAdMediaUrl(cloudRes.url);
+          if (cloudRes.thumbnailUrl) {
+            setAdThumbnailUrl(cloudRes.thumbnailUrl);
+          }
+        } else {
+          // Fallback if network offline
+          const posterThumb = await extractVideoThumbnail(file);
+          if (posterThumb) {
+            setAdThumbnailUrl(posterThumb);
+          }
+          const dataUrl = await fileToDataUrl(file);
+          const mediaId = `media-${Date.now()}`;
+          await saveMediaBlob(mediaId, dataUrl);
+          setAdMediaUrl(dataUrl);
         }
-        
-        const dataUrl = await fileToDataUrl(file);
-        const mediaId = `media-${Date.now()}`;
-        await saveMediaBlob(mediaId, dataUrl);
-        setAdMediaUrl(dataUrl);
       }
     } catch (err) {
       console.warn("Upload error:", err);
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -546,8 +561,24 @@ export default function AdminInboxModal() {
                           />
                         </div>
 
+                        {/* Uploading Progress Bar */}
+                        {isUploading && (
+                          <div className="p-3 rounded-2xl bg-amber-100 border border-amber-400 space-y-1.5 animate-pulse">
+                            <div className="flex items-center justify-between text-xs font-black text-amber-950">
+                              <span>{isUrdu ? "ویڈیو / تصویر کلاؤڈ پر منتقل ہو رہی ہے..." : "Uploading media to cloud..."}</span>
+                              <span>{uploadProgress ? `${uploadProgress}%` : "پراسیسنگ..."}</span>
+                            </div>
+                            <div className="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-amber-600 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress || 30}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
                         {/* Upload Status / Live Preview Indicator */}
-                        {adMediaUrl && (
+                        {adMediaUrl && !isUploading && (
                           <div className="p-3 rounded-2xl bg-emerald-100/90 border border-emerald-300 space-y-2">
                             <div className="flex items-center justify-between text-xs text-emerald-950 font-bold">
                               <div className="flex items-center gap-1.5 truncate">

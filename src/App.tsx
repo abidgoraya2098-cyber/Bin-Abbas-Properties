@@ -122,6 +122,35 @@ function MainAppContent() {
     }
   };
 
+  const [showNotifBanner, setShowNotifBanner] = useState<boolean>(() => {
+    return typeof window !== "undefined" && "Notification" in window && Notification.permission === "default";
+  });
+
+  const handleEnableNotifications = async () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          setShowNotifBanner(false);
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.ready.then((reg) => {
+              reg.showNotification("خوش آمدید! بن عباس پراپرٹیز پورٹل", {
+                body: "آپ کے موبائل پر تمام نئی ڈیلز اور ویڈیو ایڈز کے الرٹس کامیابی سے آن ہو گئے ہیں۔",
+                icon: "/icon-192.png",
+                badge: "/icon.svg",
+                vibrate: [200, 100, 200]
+              });
+            }).catch(() => {});
+          }
+        } else {
+          setShowNotifBanner(false);
+        }
+      } catch {
+        setShowNotifBanner(false);
+      }
+    }
+  };
+
   const tabOptions = [
     { id: "inquiry", label: t.tabInquiry, icon: ArrowRightLeft },
     { id: "deals", label: t.tabDeals, icon: Sparkles },
@@ -137,6 +166,40 @@ function MainAppContent() {
       id="app-root-container"
       dir={dir}
     >
+      {/* 🔔 1-Tap Notification Permission Banner for Mobile */}
+      {showNotifBanner && !showSplashScreen && (
+        <div className="w-full max-w-md my-2 p-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 shadow-lg border-2 border-amber-500 flex items-center justify-between gap-2 z-20 animate-bounce">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="p-1.5 rounded-xl bg-slate-950 text-amber-300 shrink-0">
+              <Bell size={16} />
+            </span>
+            <div className="min-w-0">
+              <h4 className="text-xs font-black leading-tight">
+                {isUrdu ? "🔔 ویڈیو ایڈز اور ڈیلز کے الرٹس آن کریں" : "Enable Video Ads & Deal Alerts"}
+              </h4>
+              <p className="text-[10px] text-slate-800 font-semibold leading-tight">
+                {isUrdu ? "موبائل سکرین پر فوری نوٹیفکیشن حاصل کریں" : "Receive instant heads-up notifications"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleEnableNotifications}
+              className="py-1.5 px-3 rounded-xl bg-slate-950 text-amber-300 hover:bg-slate-900 font-black text-xs shadow transition-all cursor-pointer"
+            >
+              {isUrdu ? "آن کریں" : "Enable"}
+            </button>
+            <button
+              onClick={() => setShowNotifBanner(false)}
+              className="p-1 text-slate-700 hover:text-slate-950 cursor-pointer"
+              title="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
       {/* 🌟 4K Real Estate Motion Graphics Splash Screen */}
       {showSplashScreen && (
         <SplashScreen onFinish={handleSplashFinish} duration={2500} />

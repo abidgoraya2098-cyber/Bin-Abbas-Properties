@@ -89,7 +89,17 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       const cloudAds = await fetchGlobalAdsFromCloud();
       if (cloudAds && Array.isArray(cloudAds)) {
         const cleanCloudAds = cloudAds.filter(isRealCustomAd);
-        setAds(cleanCloudAds);
+        
+        // Only update state if ads array has changed to avoid interrupting video playback
+        setAds((prevAds) => {
+          const prevIds = prevAds.map((a) => a.id).join(",");
+          const newIds = cleanCloudAds.map((a) => a.id).join(",");
+          if (prevIds === newIds && prevAds.length === cleanCloudAds.length) {
+            return prevAds;
+          }
+          return cleanCloudAds;
+        });
+
         try {
           localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanCloudAds));
           const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
@@ -141,16 +151,17 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const activeAds = ads.filter((ad) => ad.isActive);
   const currentAd = activeAds[currentAdIndex] || activeAds[0] || null;
 
-  // ⏱️ Auto-rotate through multiple ads (15 seconds per ad)
+  // ⏱️ Auto-rotate through multiple ads (Only for images/text, never interrupt playing video!)
   useEffect(() => {
     if (!isAdPopupOpen || activeAds.length <= 1 || isPaused) return;
+    if (currentAd && currentAd.type === "video") return; // Never interrupt video on timer
 
     const timer = setInterval(() => {
       setCurrentAdIndex((prev) => (prev + 1) % activeAds.length);
     }, 15000);
 
     return () => clearInterval(timer);
-  }, [isAdPopupOpen, activeAds.length, isPaused, currentAdIndex]);
+  }, [isAdPopupOpen, activeAds.length, isPaused, currentAdIndex, currentAd?.type]);
 
   const nextAd = () => {
     if (activeAds.length === 0) return;

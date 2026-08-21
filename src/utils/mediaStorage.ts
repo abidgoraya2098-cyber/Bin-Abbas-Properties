@@ -244,3 +244,67 @@ export async function deleteMediaBlob(id: string): Promise<void> {
     // Graceful fallback
   }
 }
+
+/**
+ * ☁️ High-Speed Direct Cloud Video & Image Hosting
+ * Uploads any video file (MP4, MOV, WebM, etc.) or image directly to global Cloud CDN
+ * returning a permanent HTTPS streaming URL that plays effortlessly on all phones worldwide!
+ */
+export async function uploadMediaToCloudinary(
+  file: File | Blob, 
+  onProgress?: (pct: number) => void
+): Promise<{ url: string; thumbnailUrl?: string } | null> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "unsigned");
+
+  try {
+    const xhr = new XMLHttpRequest();
+    const isVideo = file.type.startsWith("video/");
+    const endpoint = isVideo 
+      ? "https://api.cloudinary.com/v1_1/demo/video/upload" 
+      : "https://api.cloudinary.com/v1_1/demo/auto/upload";
+
+    return new Promise((resolve) => {
+      xhr.open("POST", endpoint, true);
+
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            onProgress(pct);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            const url = res.secure_url || res.url;
+            let thumbnailUrl = "";
+            if (isVideo && res.public_id) {
+              thumbnailUrl = `https://res.cloudinary.com/demo/video/upload/${res.public_id}.jpg`;
+            }
+            resolve({ url, thumbnailUrl: thumbnailUrl || undefined });
+          } catch {
+            resolve(null);
+          }
+        } else {
+          console.warn("Cloud upload status:", xhr.status, xhr.responseText);
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => {
+        console.warn("Cloud upload network error");
+        resolve(null);
+      };
+
+      xhr.send(formData);
+    });
+  } catch (err) {
+    console.warn("Cloud upload exception:", err);
+    return null;
+  }
+}
