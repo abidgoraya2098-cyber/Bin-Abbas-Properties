@@ -90,7 +90,7 @@ export default function PromoAdModal() {
     setIsPaused 
   } = usePromoAds();
 
-  const { isUrdu } = useLanguage();
+  const { isUrdu, dir } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [resolvedMediaUrl, setResolvedMediaUrl] = useState<string>("");
