@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Inbox, 
@@ -25,14 +25,24 @@ import {
   Play,
   FileText,
   Film,
-  Camera
+  Camera,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Laptop,
+  RefreshCw,
+  Radio,
+  Users,
+  Activity,
+  CheckCircle2
 } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
-import { CustomerInquiryRecord, PropertyListing, PromoAdItem } from "../types";
+import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRecord } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
 import { saveMediaBlob, fileToDataUrl } from "../utils/mediaStorage";
+import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
 
 export default function AdminInboxModal() {
   const { 
@@ -53,8 +63,12 @@ export default function AdminInboxModal() {
   } = usePromoAds();
 
   const { isUrdu } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"leads" | "ads">("ads");
+  const [activeTab, setActiveTab] = useState<"ads" | "leads" | "devices">("ads");
   const [filterType, setFilterType] = useState<"all" | "sell" | "buy">("all");
+
+  // Installed Devices State
+  const [devices, setDevices] = useState<InstalledDeviceRecord[]>([]);
+  const [isLoadingDevices, setIsLoadingDevices] = useState(false);
 
   // New Ad Form State (Everything is 100% Optional)
   const [isCreateAdOpen, setIsCreateAdOpen] = useState(false);
@@ -69,6 +83,22 @@ export default function AdminInboxModal() {
   const [adWhatsAppMsg, setAdWhatsAppMsg] = useState("");
   const [isAdHot, setIsAdHot] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+
+  const loadDevices = async () => {
+    setIsLoadingDevices(true);
+    try {
+      const list = await fetchInstalledDevicesFromCloud();
+      setDevices(list);
+    } finally {
+      setIsLoadingDevices(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdminInboxOpen) {
+      loadDevices();
+    }
+  }, [isAdminInboxOpen]);
 
   // Handle Gallery Photo/Video File Upload directly from phone/computer
   const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, mediaKind: "image" | "video") => {
@@ -121,32 +151,29 @@ export default function AdminInboxModal() {
       isHot: isAdHot
     });
 
-    alert(isUrdu 
-      ? "✅ آپ کا ایڈ کامیابی کے ساتھ ایپ پر شائع کر دیا گیا ہے اور تمام صارفین کے لیے فل سکرین پاپ اپ لائیو ہو گیا ہے!" 
-      : "✅ Your custom ad has been published live on the full-screen pop-up!");
-
     // Reset Form
-    setAdTitle("");
     setAdMediaUrl("");
     setAdFileName("");
     setAdThumbnailUrl("");
+    setAdTitle("");
     setAdCaption("");
     setAdPrice("");
     setAdLocation("");
     setAdWhatsAppMsg("");
     setIsCreateAdOpen(false);
+
+    alert(isUrdu 
+      ? "✅ ایڈ کامیابی سے شائع کر دی گئی ہے اور تمام صارفین کے لیے لائیو ہو چکی ہے!" 
+      : "✅ Ad successfully published globally to all users!");
   };
 
-  // Publish a customer lead directly to public deals
   const handlePublishToPublic = (inq: CustomerInquiryRecord) => {
     try {
-      const existing = localStorage.getItem("bin_abbas_custom_deals");
-      const currentDeals: PropertyListing[] = existing ? JSON.parse(existing) : [];
-
+      const currentDeals: PropertyListing[] = JSON.parse(localStorage.getItem("bin_abbas_custom_deals") || "[]");
       const isDemand = inq.type === "buy";
-      const title = isDemand 
-        ? `${inq.size} خریدار ڈیمانڈ (${inq.block})` 
-        : `${inq.size} پلاٹ برائے فروخت (${inq.block})`;
+      const title = isDemand
+        ? `خریدار کی فوری ضرورت: ${inq.size} (${inq.block})`
+        : `فوری فروخت کے لیے دستیاب: ${inq.size} (${inq.block})`;
 
       const newListing: PropertyListing = {
         id: `custom-deal-${Date.now()}`,
@@ -209,29 +236,47 @@ export default function AdminInboxModal() {
     return inq.type === filterType;
   });
 
+  const onlineDevicesCount = devices.filter((d) => d.isOnline).length;
+  const pwaInstalledCount = devices.filter((d) => d.isPwaInstalled).length;
+
+  const getDeviceIcon = (type: string) => {
+    switch (type) {
+      case "iPhone":
+      case "Mobile":
+      case "Android":
+        return <Smartphone size={18} className="text-emerald-700" />;
+      case "Tablet":
+        return <Tablet size={18} className="text-amber-700" />;
+      case "Mac":
+      case "PC":
+      default:
+        return <Monitor size={18} className="text-blue-700" />;
+    }
+  };
+
   return (
     <AnimatePresence>
       {isAdminInboxOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
           id="admin-inbox-modal-overlay"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-400 my-auto text-slate-900"
+            className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-400 my-auto text-slate-900"
             id="admin-inbox-modal-card"
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-950 text-white p-4 flex items-center justify-between border-b border-amber-400/40">
+            <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white p-4 flex items-center justify-between border-b border-amber-400/40">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-amber-400 text-slate-950 shadow-md">
                   <Inbox size={20} />
                 </div>
                 <div>
                   <h3 className="font-black text-sm sm:text-base text-amber-300 leading-tight">
-                    {isUrdu ? "ایڈمن و آنر کنٹرول سنٹر" : "Admin & Owner Control Center"}
+                    {isUrdu ? "ایڈمن و آنر مکمل کنٹرول سنٹر" : "Admin & Owner Master Control Center"}
                   </h3>
                   <p className="text-[11px] text-emerald-200 font-medium">
                     {isUrdu ? `${OWNER_NAME} (بن عباس پراپرٹیز)` : `${OWNER_NAME} - Bin Abbas Properties`}
@@ -248,30 +293,48 @@ export default function AdminInboxModal() {
               </button>
             </div>
 
-            {/* Top Navigation Tabs */}
-            <div className="flex items-center bg-emerald-50/90 border-b border-emerald-200 p-1.5 gap-1.5">
+            {/* Top 3 Navigation Tabs */}
+            <div className="grid grid-cols-3 bg-emerald-50/90 border-b border-emerald-200 p-1.5 gap-1.5">
+              {/* TAB 1: ADS */}
               <button
                 onClick={() => setActiveTab("ads")}
-                className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 transition-all cursor-pointer ${
                   activeTab === "ads"
                     ? "bg-amber-500 text-slate-950 shadow-md border border-amber-600 font-black"
                     : "bg-white text-slate-700 hover:bg-amber-50"
                 }`}
               >
                 <Video size={14} />
-                <span>{isUrdu ? "🎬 ویڈیو و تصویر ایڈز بنائیں" : "Manage Video & Photo Ads"} ({ads.length})</span>
+                <span>{isUrdu ? "ویڈیو ایڈز" : "Ads"} ({ads.length})</span>
               </button>
 
+              {/* TAB 2: LEADS */}
               <button
                 onClick={() => setActiveTab("leads")}
-                className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 transition-all cursor-pointer ${
                   activeTab === "leads"
-                    ? "bg-emerald-800 text-white shadow-md"
+                    ? "bg-emerald-800 text-white shadow-md border border-emerald-700"
                     : "bg-white text-slate-700 hover:bg-emerald-100/70"
                 }`}
               >
                 <Inbox size={14} />
-                <span>{isUrdu ? "📩 کسٹمر انکوائریز" : "Customer Leads"} ({inquiries.length})</span>
+                <span>{isUrdu ? "کسٹمر لیڈز" : "Leads"} ({inquiries.length})</span>
+              </button>
+
+              {/* TAB 3: DEVICES & INSTALLATIONS TRACKER */}
+              <button
+                onClick={() => {
+                  setActiveTab("devices");
+                  loadDevices();
+                }}
+                className={`py-2 px-2 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  activeTab === "devices"
+                    ? "bg-blue-800 text-white shadow-md border border-blue-700"
+                    : "bg-white text-slate-700 hover:bg-blue-50"
+                }`}
+              >
+                <Smartphone size={14} />
+                <span>{isUrdu ? "انسٹال ڈیوائسز" : "Devices"} ({devices.length})</span>
               </button>
             </div>
 
@@ -285,7 +348,7 @@ export default function AdminInboxModal() {
                       {isUrdu ? "📺 آپ کے لگائے ہوئے ایڈز" : "Your Custom Ads"} ({ads.length})
                     </span>
                     <span className="text-[10px] text-slate-500 font-semibold">
-                      {isUrdu ? "صارف کے ایپ کھولتے ہی یہ ایڈز فل سکرین پر باری باری چلیں گے" : "These ads will auto-play on full-screen when users open the app"}
+                      {isUrdu ? "یہ ایڈز تمام صارفین کے موبائل اور کمپیوٹر پر لائیو نظر آئیں گے" : "These ads are synced globally across all users"}
                     </span>
                   </div>
 
@@ -298,7 +361,7 @@ export default function AdminInboxModal() {
                   </button>
                 </div>
 
-                {/* Create New Ad Form (Full Freedom for Admin - Media & Details are Optional) */}
+                {/* Create New Ad Form (Full Freedom for Admin) */}
                 <AnimatePresence>
                   {isCreateAdOpen && (
                     <motion.form
@@ -318,7 +381,7 @@ export default function AdminInboxModal() {
                         </span>
                       </div>
 
-                      {/* 1. GAILEY UPLOAD BUTTONS (IMAGE OR VIDEO DIRECTLY FROM PHONE) */}
+                      {/* 1. GALLERY UPLOAD BUTTONS */}
                       <div className="space-y-2">
                         <label className="text-[11px] font-black text-slate-900 block">
                           {isUrdu ? "1. تصویر یا ویڈیو کا انتخاب فرمائیں (اختیاری):" : "1. Choose Photo or Video (Optional):"}
@@ -388,223 +451,184 @@ export default function AdminInboxModal() {
                       </div>
 
                       {/* 2. TITLE (OPTIONAL) */}
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "2. ایڈ کا عنوان (اختیاری):" : "2. Ad Title (Optional):"}
+                      <div>
+                        <label className="text-[11px] font-black text-slate-900 block mb-1">
+                          {isUrdu ? "2. ایڈ کا عنوان / پلاٹ تفصیل (اختیاری):" : "2. Ad Title / Plot Summary (Optional):"}
                         </label>
                         <input
                           type="text"
                           value={adTitle}
                           onChange={(e) => setAdTitle(e.target.value)}
-                          placeholder={isUrdu ? "مثلاً: شاندار 10 مرلہ بنگلہ برائے فروخت" : "e.g. 10 Marla Luxury House for Sale"}
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans font-bold"
+                          placeholder={isUrdu ? "مثلاً: 10 مرلہ برائے فروخت پام بلاک رائل پام سٹی" : "e.g. 10 Marla Plot for Sale Palm Block"}
+                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-right"
                         />
                       </div>
 
                       {/* 3. PRICE & LOCATION (OPTIONAL) */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] font-bold text-slate-800 block">
-                            {isUrdu ? "3. قیمت / ڈیمانڈ (اختیاری):" : "3. Price / Demand (Optional):"}
+                          <label className="text-[11px] font-black text-slate-900 block mb-1">
+                            {isUrdu ? "3. قیمت / ڈیمانڈ (اختیاری):" : "3. Price Demand (Optional):"}
                           </label>
                           <input
                             type="text"
                             value={adPrice}
                             onChange={(e) => setAdPrice(e.target.value)}
-                            placeholder={isUrdu ? "مثلاً: 3 کروڑ 50 لاکھ" : "3.5 Crore PKR"}
-                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            placeholder={isUrdu ? "مثلاً: 1 کروڑ 25 لاکھ" : "e.g. 1.25 Crore"}
+                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-right"
                           />
                         </div>
 
                         <div>
-                          <label className="text-[11px] font-bold text-slate-800 block">
-                            {isUrdu ? "4. لوکیشن (اختیاری):" : "4. Location (Optional):"}
+                          <label className="text-[11px] font-black text-slate-900 block mb-1">
+                            {isUrdu ? "4. بلاک / لوکیشن (اختیاری):" : "4. Block / Location (Optional):"}
                           </label>
                           <input
                             type="text"
                             value={adLocation}
                             onChange={(e) => setAdLocation(e.target.value)}
-                            placeholder="پام کمرشل 235 / بلاک B"
-                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            placeholder={isUrdu ? "مثلاً: بلاک B ایکسٹینشن" : "e.g. Block B Extension"}
+                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-right"
                           />
                         </div>
                       </div>
 
-                      {/* 4. CAPTION / DESCRIPTION (OPTIONAL) */}
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "5. کیپشن اور تفصیل (اختیاری):" : "5. Caption & Details (Optional):"}
+                      {/* 4. DETAILS / CAPTION (OPTIONAL) */}
+                      <div>
+                        <label className="text-[11px] font-black text-slate-900 block mb-1">
+                          {isUrdu ? "5. مزید مکمل تفصیلات و خصوصیات (اختیاری):" : "5. Additional Description (Optional):"}
                         </label>
                         <textarea
-                          rows={3}
+                          rows={2}
                           value={adCaption}
                           onChange={(e) => setAdCaption(e.target.value)}
-                          placeholder={isUrdu ? "پراپرٹی کی اضافی خصوصیات یا تفصیل درج فرمائیں..." : "Details..."}
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
+                          placeholder={isUrdu ? "مثلاً: 40 فٹ روڈ، پارک فیسنگ، فوری پوزیشن دستیاب، کارنر پلاٹ..." : "e.g. Corner plot, 40ft road, ready for construction..."}
+                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-right"
                         />
                       </div>
 
-                      {/* 5. WHATSAPP MESSAGE TEXT (OPTIONAL) */}
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-800 block">
-                          {isUrdu ? "6. گاہک کے لیے خودکار واٹس ایپ میسج (اختیاری):" : "6. Custom WhatsApp Message (Optional):"}
-                        </label>
-                        <input
-                          type="text"
-                          value={adWhatsAppMsg}
-                          onChange={(e) => setAdWhatsAppMsg(e.target.value)}
-                          placeholder={isUrdu ? "السلام علیکم! میں نے ایپ پر آپ کا ایڈ دیکھا ہے، مجھے یہ پراپرٹی خریدنی ہے۔" : "Hello, I want to buy this property."}
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-                        />
-                      </div>
-
-                      {/* SUBMIT BUTTON */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                      {/* Submit Live Ad Button */}
+                      <button
                         type="submit"
-                        className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg border border-amber-400 cursor-pointer"
+                        disabled={isUploading}
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 hover:brightness-110 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg border border-amber-400 cursor-pointer"
                       >
                         <Sparkles size={16} className="text-amber-300" />
-                        <span>{isUrdu ? "🚀 ایڈ لائیو شائع کریں" : "Publish Ad Live"}</span>
-                      </motion.button>
+                        <span>{isUrdu ? "🚀 ایڈ لائیو شائع کریں (تمام صارفین تک پہنچائیں)" : "🚀 Publish Live Ad Globally"}</span>
+                      </button>
                     </motion.form>
                   )}
                 </AnimatePresence>
 
-                {/* Existing Ads List (Empty if Admin hasn't created any yet) */}
-                <div className="space-y-2.5">
+                {/* Ads List */}
+                <div className="space-y-3">
                   {ads.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-6">
-                      <Film size={40} className="mx-auto mb-2 opacity-40 text-amber-500" />
-                      <p className="text-sm font-black text-slate-700">{isUrdu ? "فی الوقت آپ کا کوئی ایڈ موجود نہیں ہے۔" : "No custom ads created yet."}</p>
-                      <p className="text-xs text-slate-500 mt-1">{isUrdu ? "اوپر 'نیا ایڈ بنائیں' بٹن پر کلک کر کے اپنی گیلری سے ویڈیو یا تصویر لگائیں۔" : "Click 'Create New Ad' above to upload a video or photo from your gallery."}</p>
+                    <div className="py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                      <Film size={36} className="mx-auto mb-2 text-slate-300" />
+                      <p className="text-xs font-bold text-slate-600">
+                        {isUrdu ? "فی الوقت کوئی لائیو ایڈ موجود نہیں ہے۔ اوپر والے بٹن سے نیا ایڈ بنائیں!" : "No custom ads created yet. Click 'Create New Ad' above!"}
+                      </p>
                     </div>
                   ) : (
-                    ads.map((ad, idx) => {
-                      const isVideo = ad.type === "video";
-                      const isImg = ad.type === "image";
-
-                      return (
-                        <div
-                          key={ad.id}
-                          className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                            ad.isActive 
-                              ? "bg-white border-emerald-300 shadow-sm" 
-                              : "bg-slate-100 border-slate-200 opacity-60"
-                          }`}
-                        >
-                          {/* Thumbnail / Icon */}
-                          <div 
-                            onClick={() => openAd(idx)}
-                            className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-900 cursor-pointer group flex items-center justify-center border border-slate-200"
-                            title="Click to Preview on Full Screen"
-                          >
-                            {ad.mediaUrl ? (
-                              isVideo ? (
-                                <div className="w-full h-full bg-slate-950 flex items-center justify-center text-amber-400">
-                                  <Video size={22} />
-                                </div>
-                              ) : (
-                                <img src={ad.mediaUrl} alt={ad.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                              )
-                            ) : (
-                              <div className="w-full h-full bg-emerald-900 text-amber-300 flex items-center justify-center">
-                                <FileText size={20} />
-                              </div>
-                            )}
-
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Eye size={16} className="text-white" />
-                            </div>
+                    ads.map((ad) => (
+                      <div
+                        key={ad.id}
+                        className={`p-3 rounded-2xl border transition-all ${
+                          ad.isActive 
+                            ? "bg-white border-amber-300 shadow-md" 
+                            : "bg-slate-50 border-slate-200 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                              ad.type === "video" ? "bg-amber-500 text-slate-950" : "bg-emerald-800 text-white"
+                            }`}>
+                              {ad.type === "video" ? "VIDEO" : ad.type === "image" ? "PHOTO" : "TEXT"}
+                            </span>
+                            <span className="text-xs font-black text-slate-900">{ad.title}</span>
                           </div>
 
-                          {/* Info */}
-                          <div className="flex-1 min-w-0 text-right">
-                            <div className="flex items-center justify-between gap-1 mb-0.5">
-                              <span className="text-[9px] font-black px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                                {isVideo ? "ویڈیو ایڈ" : isImg ? "تصویر ایڈ" : "تحریری ایڈ"}
-                              </span>
-                              <span className="text-[9px] text-slate-500 font-bold">{ad.viewCount || 1} ویوز</span>
-                            </div>
-                            <h4 className="text-xs font-black text-slate-900 truncate">{ad.title}</h4>
-                            <p className="text-[10.5px] text-emerald-800 font-bold">{ad.price || "خصوصی پیشکش"}</p>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-1">
                             <button
+                              type="button"
                               onClick={() => toggleAdActive(ad.id)}
-                              className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                              title={ad.isActive ? "غیر فعال کریں" : "فعال کریں"}
+                              className="p-1 text-slate-500 hover:text-emerald-700"
+                              title="Toggle Active"
                             >
-                              {ad.isActive ? <ToggleRight size={22} className="text-emerald-700" /> : <ToggleLeft size={22} className="text-slate-400" />}
+                              {ad.isActive ? <ToggleRight size={22} className="text-emerald-600" /> : <ToggleLeft size={22} className="text-slate-400" />}
                             </button>
-
                             <button
-                              onClick={() => openAd(idx)}
-                              className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer"
-                              title="Preview on Full Screen"
-                            >
-                              <Eye size={14} />
-                            </button>
-
-                            <button
+                              type="button"
                               onClick={() => deletePromoAd(ad.id)}
-                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete Ad"
+                              className="p-1 text-slate-400 hover:text-red-600"
+                              title="Delete"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </div>
-                      );
-                    })
+
+                        {ad.price && (
+                          <div className="text-xs font-black text-emerald-800 mt-1">
+                            💰 {ad.price} {ad.location ? `| 📍 ${ad.location}` : ""}
+                          </div>
+                        )}
+
+                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500 flex items-center gap-1">
+                            <Eye size={12} /> {ad.viewCount || 1} {isUrdu ? "مناظر" : "views"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => openAd(ad)}
+                            className="text-emerald-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <Play size={12} /> {isUrdu ? "فل سکرین پیش نظارہ" : "Preview"}
+                          </button>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
             )}
 
-            {/* TAB 2: CUSTOMER LEADS */}
+            {/* TAB 2: LEADS INBOX */}
             {activeTab === "leads" && (
-              <>
-                {/* Filter Pills */}
-                <div className="p-3 bg-white border-b border-slate-100 flex items-center justify-between gap-2">
+              <div>
+                <div className="p-3 bg-emerald-50/50 border-b border-emerald-100 flex items-center justify-between">
+                  <span className="text-xs font-black text-emerald-950">
+                    {isUrdu ? "فلٹر:" : "Filter:"}
+                  </span>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setFilterType("all")}
-                      className={`px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
-                        filterType === "all"
-                          ? "bg-emerald-800 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        filterType === "all" ? "bg-emerald-800 text-white" : "bg-white text-slate-700"
                       }`}
                     >
                       {isUrdu ? "تمام" : "All"} ({inquiries.length})
                     </button>
                     <button
                       onClick={() => setFilterType("sell")}
-                      className={`px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
-                        filterType === "sell"
-                          ? "bg-emerald-700 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        filterType === "sell" ? "bg-emerald-800 text-white" : "bg-white text-slate-700"
                       }`}
                     >
                       {isUrdu ? "فروخت" : "Sell"} ({inquiries.filter((i) => i.type === "sell").length})
                     </button>
                     <button
                       onClick={() => setFilterType("buy")}
-                      className={`px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
-                        filterType === "buy"
-                          ? "bg-emerald-700 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        filterType === "buy" ? "bg-emerald-800 text-white" : "bg-white text-slate-700"
                       }`}
                     >
-                      {isUrdu ? "خریداری ڈیمانڈ" : "Buy"} ({inquiries.filter((i) => i.type === "buy").length})
+                      {isUrdu ? "خریداری" : "Buy"} ({inquiries.filter((i) => i.type === "buy").length})
                     </button>
                   </div>
                 </div>
 
-                {/* Inquiries List */}
                 <div className="p-3 sm:p-4 max-h-[60vh] overflow-y-auto space-y-3">
                   {filteredInquiries.length === 0 ? (
                     <div className="py-12 text-center text-slate-400">
@@ -728,7 +752,112 @@ export default function AdminInboxModal() {
                     })
                   )}
                 </div>
-              </>
+              </div>
+            )}
+
+            {/* TAB 3: 📱 INSTALLED DEVICES & ACTIVE USERS TRACKER */}
+            {activeTab === "devices" && (
+              <div className="p-3 sm:p-4 max-h-[65vh] overflow-y-auto space-y-3.5">
+                {/* Stats Summary Bar */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-center">
+                    <span className="text-[10px] text-blue-800 font-bold block">{isUrdu ? "کل انسٹالیشنز" : "Total Installs"}</span>
+                    <span className="text-xl font-black text-blue-950">{devices.length}</span>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+                    <span className="text-[10px] text-emerald-800 font-bold block">{isUrdu ? "لائیو ایکٹو یوزرز" : "Online Users"}</span>
+                    <span className="text-xl font-black text-emerald-950 flex items-center justify-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      {onlineDevicesCount || (devices.length > 0 ? 1 : 0)}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                    <span className="text-[10px] text-amber-800 font-bold block">{isUrdu ? "PWA ہوم سکرین" : "PWA Apps"}</span>
+                    <span className="text-xl font-black text-amber-950">{pwaInstalledCount || devices.length}</span>
+                  </div>
+                </div>
+
+                {/* Header Action to Refresh */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <Smartphone size={15} className="text-blue-700" />
+                    <span>{isUrdu ? "انسٹال شدہ موبائل اور کمپیوٹرز کی لسٹ:" : "Registered Devices & Users:"}</span>
+                  </span>
+
+                  <button
+                    onClick={loadDevices}
+                    disabled={isLoadingDevices}
+                    className="py-1.5 px-3 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-900 font-black text-xs flex items-center gap-1 transition-all cursor-pointer"
+                  >
+                    <RefreshCw size={13} className={isLoadingDevices ? "animate-spin" : ""} />
+                    <span>{isUrdu ? "ریفریش لسٹ" : "Refresh"}</span>
+                  </button>
+                </div>
+
+                {/* Devices List */}
+                <div className="space-y-2.5">
+                  {devices.length === 0 ? (
+                    <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                      <Smartphone size={40} className="mx-auto mb-2 text-slate-300" />
+                      <p className="text-xs font-bold text-slate-600">
+                        {isUrdu ? "جیسے ہی کوئی صارف ایپ اوپن یا انسٹال کرے گا، اس کا موبائل/کمپیوٹر یہاں ظاہر ہو جائے گا۔" : "Devices will appear here as users open or install the app."}
+                      </p>
+                    </div>
+                  ) : (
+                    devices.map((device, idx) => (
+                      <div
+                        key={device.id || `dev-${idx}`}
+                        className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 shadow-sm transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-2 rounded-xl bg-slate-100 border border-slate-200">
+                              {getDeviceIcon(device.deviceType)}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-black text-slate-900">
+                                  {device.deviceModel || device.deviceType}
+                                </span>
+                                {device.isPwaInstalled && (
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-[9px]">
+                                    PWA APP
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-500 font-medium">
+                                {device.os} • {device.browser} {device.ip ? `• IP: ${device.ip}` : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black ${
+                              device.isOnline ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${device.isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}></span>
+                              {device.isOnline ? (isUrdu ? "آن لائن" : "Online") : (isUrdu ? "آف لائن" : "Offline")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px] text-slate-600">
+                          <div>
+                            <span className="text-slate-400 block">{isUrdu ? "انسٹالیشن تاریخ:" : "Installed on:"}</span>
+                            <span className="font-bold text-slate-800">{device.installDateFormatted || "ابھی"}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-slate-400 block">{isUrdu ? "آخری بار فعال:" : "Last Active:"}</span>
+                            <span className="font-bold text-slate-800">{device.lastActiveFormatted || "ابھی"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
 
           </motion.div>

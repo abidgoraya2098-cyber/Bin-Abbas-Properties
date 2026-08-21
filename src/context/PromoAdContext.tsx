@@ -3,6 +3,7 @@ import { PromoAdItem } from "../types";
 import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
 import { getMediaBlob, deleteMediaBlob } from "../utils/mediaStorage";
+import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud } from "../utils/cloudSync";
 
 interface PromoAdContextType {
   ads: PromoAdItem[];
@@ -31,17 +32,13 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
-  // 100% Clean: Pure Admin Ads Only (All legacy dummy/sample ads are automatically purged)
+  // Local state initialized from cache
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
       if (!saved) return [];
       const parsed: PromoAdItem[] = JSON.parse(saved);
-      // Completely remove any legacy dummy sample ads
       const cleanAds = parsed.filter((a) => !a.id.startsWith("promo-ad-"));
-      if (cleanAds.length !== parsed.length) {
-        localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanAds));
-      }
       return cleanAds;
     } catch {
       return [];
@@ -71,10 +68,39 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // 🌐 Global Real-Time Cloud Synchronization: Fetch latest ads for ALL users worldwide
+  useEffect(() => {
+    const syncFromCloud = async () => {
+      const cloudAds = await fetchGlobalAdsFromCloud();
+      if (cloudAds && Array.isArray(cloudAds)) {
+        setAds(cloudAds);
+        try {
+          localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cloudAds));
+          const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
+          const latestAdTime = cloudAds.length > 0 ? Math.max(...cloudAds.map((a) => a.createdAt)) : 0;
+          if (latestAdTime > lastSeenTime && cloudAds.some((a) => a.isActive)) {
+            setHasUnseenNewAd(true);
+          }
+        } catch {}
+      }
+    };
+
+    syncFromCloud();
+
+    // Auto-poll every 20 seconds so any new ad by Admin appears on all users' screens
+    const interval = setInterval(syncFromCloud, 20000);
+    window.addEventListener("focus", syncFromCloud);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", syncFromCloud);
+    };
+  }, []);
+
   const activeAds = ads.filter((ad) => ad.isActive);
   const currentAd = activeAds[currentAdIndex] || activeAds[0] || null;
 
-  // ⏱️ Auto-rotate through multiple ads (15 seconds per ad so users can comfortably read details)
+  // ⏱️ Auto-rotate through multiple ads (15 seconds per ad)
   useEffect(() => {
     if (!isAdPopupOpen || activeAds.length <= 1 || isPaused) return;
 
@@ -140,7 +166,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Add new promo ad (Admin Only - Media, Caption, Price, Location are ALL OPTIONAL)
+  // Add new promo ad (Admin Only - Broadcasts to cloud immediately)
   const addPromoAd = (
     adData: Omit<PromoAdItem, "id" | "createdAt" | "viewCount">
   ): PromoAdItem => {
@@ -153,6 +179,9 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
 
     const updated = [newAd, ...ads];
     saveAds(updated);
+
+    // 🚀 Publish to Cloud API (All users worldwide receive this ad)
+    publishAdToCloud(newAd).catch(() => {});
 
     // Set badge and notification
     setHasUnseenNewAd(true);
@@ -219,11 +248,16 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const updatePromoAd = (id: string, adData: Partial<PromoAdItem>) => {
     const updated = ads.map((item) => (item.id === id ? { ...item, ...adData } : item));
     saveAds(updated);
+    const target = updated.find(a => a.id === id);
+    if (target) {
+      publishAdToCloud(target).catch(() => {});
+    }
   };
 
   const deletePromoAd = (id: string) => {
     const updated = ads.filter((item) => item.id !== id);
     saveAds(updated);
+    deleteAdFromCloud(id).catch(() => {});
     deleteMediaBlob(id).catch(() => {});
     if (currentAdIndex >= updated.filter(a => a.isActive).length) {
       setCurrentAdIndex(0);
@@ -235,6 +269,10 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       item.id === id ? { ...item, isActive: !item.isActive } : item
     );
     saveAds(updated);
+    const target = updated.find(a => a.id === id);
+    if (target) {
+      publishAdToCloud(target).catch(() => {});
+    }
   };
 
   return (

@@ -120,7 +120,7 @@ export interface AppNotification {
 export interface PromoAdItem {
   id: string;
   type?: "image" | "video" | "text_only";
-  mediaUrl?: string; // Optional Image URL / Base64 or Video URL (MP4, YouTube, Vimeo, WebM)
+  mediaUrl?: string; // Image Base64 / Web URL or Video MP4 / Base64 / YouTube
   thumbnailUrl?: string;
   title: string;
   titleEn?: string;
@@ -135,4 +135,21 @@ export interface PromoAdItem {
   isActive: boolean;
   isHot?: boolean;
   viewCount?: number;
+}
+
+export interface InstalledDeviceRecord {
+  id: string;
+  deviceType: "Mobile" | "iPhone" | "Android" | "PC" | "Mac" | "Tablet" | "Unknown";
+  deviceModel: string;
+  os: string;
+  browser: string;
+  isPwaInstalled: boolean;
+  installDate: number;
+  installDateFormatted: string;
+  lastActive: number;
+  lastActiveFormatted: string;
+  ip?: string;
+  city?: string;
+  country?: string;
+  isOnline: boolean;
 }

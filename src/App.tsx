@@ -22,6 +22,7 @@ import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { AdminProvider, useAdmin } from "./context/AdminContext";
 import { NotificationProvider, useNotifications } from "./context/NotificationContext";
 import { PromoAdProvider, usePromoAds } from "./context/PromoAdContext";
+import { syncDeviceRegistration } from "./utils/cloudSync";
 import { getTranslation } from "./i18n";
 
 type ActiveTab = "links" | "inquiry" | "deals" | "society";
@@ -64,6 +65,9 @@ function MainAppContent() {
     if (inAppRegex.test(userAgent)) {
       setIsInAppBrowser(true);
     }
+
+    // 📱 Register / Update Device Installation in Cloud Analytics
+    syncDeviceRegistration().catch(() => {});
 
     // Request notification permission smoothly
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
