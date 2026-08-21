@@ -117,6 +117,61 @@ export async function compressImageToDataUrl(
   });
 }
 
+/**
+ * 🎬 Extract crisp first-frame image thumbnail from Video file
+ */
+export function extractVideoThumbnail(videoFile: File | Blob): Promise<string> {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return Promise.resolve("");
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.muted = true;
+      video.playsInline = true;
+      const url = URL.createObjectURL(videoFile);
+      video.src = url;
+
+      video.onloadeddata = () => {
+        video.currentTime = 0.5;
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.min(video.videoWidth || 640, 800);
+          canvas.height = Math.min(video.videoHeight || 360, 450);
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const thumb = canvas.toDataURL("image/jpeg", 0.75);
+            URL.revokeObjectURL(url);
+            resolve(thumb);
+            return;
+          }
+        } catch {}
+        URL.revokeObjectURL(url);
+        resolve("");
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve("");
+      };
+
+      // Safety timeout in case video format metadata fails
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        resolve("");
+      }, 4000);
+    } catch {
+      resolve("");
+    }
+  });
+}
+
 export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string): Promise<string> {
   try {
     let dataToStore = dataOrFile;

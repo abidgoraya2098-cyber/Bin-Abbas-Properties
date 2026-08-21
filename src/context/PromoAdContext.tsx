@@ -66,7 +66,21 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     try {
       localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanItems));
     } catch (e) {
-      console.warn("Could not save promo ads:", e);
+      console.warn("Could not save full promo ads, saving lightweight version:", e);
+      try {
+        const lightweight = cleanItems.map((a) => {
+          if (a.mediaUrl && a.mediaUrl.length > 500000) {
+            return {
+              ...a,
+              mediaUrl: a.thumbnailUrl || ""
+            };
+          }
+          return a;
+        });
+        localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(lightweight));
+      } catch (err2) {
+        console.warn("Could not save lightweight ads:", err2);
+      }
     }
   };
 

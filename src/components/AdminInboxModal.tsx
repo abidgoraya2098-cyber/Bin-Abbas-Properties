@@ -41,7 +41,7 @@ import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRecord } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
-import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl } from "../utils/mediaStorage";
+import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl, extractVideoThumbnail } from "../utils/mediaStorage";
 import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
 
 export default function AdminInboxModal() {
@@ -146,10 +146,16 @@ export default function AdminInboxModal() {
         // High-Quality Client-side compression for instant cross-device delivery
         const compressedDataUrl = await compressImageToDataUrl(file);
         setAdMediaUrl(compressedDataUrl);
+        setAdThumbnailUrl(compressedDataUrl);
         const mediaId = `media-${Date.now()}`;
         await saveMediaBlob(mediaId, compressedDataUrl);
       } else {
-        // Video
+        // Video: extract video poster thumbnail first
+        const posterThumb = await extractVideoThumbnail(file);
+        if (posterThumb) {
+          setAdThumbnailUrl(posterThumb);
+        }
+        
         const dataUrl = await fileToDataUrl(file);
         const mediaId = `media-${Date.now()}`;
         await saveMediaBlob(mediaId, dataUrl);

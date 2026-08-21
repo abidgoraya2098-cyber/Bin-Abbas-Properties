@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { AppNotification, CustomerInquiryRecord } from "../types";
 import { useAdmin } from "./AdminContext";
 
@@ -36,18 +36,6 @@ const INITIAL_NOTIFICATIONS: AppNotification[] = [
     targetRole: "all",
     type: "system",
     isRead: false
-  },
-  {
-    id: "notif-hot-1",
-    title: "🔥 نئی ڈیل: 10 مرلہ پرائم لوکیشن (بلاک A)",
-    titleEn: "🔥 Hot Deal: 10 Marla Prime Plot (Block A)",
-    message: "بلاک A میں 10 مرلہ کا کیش انویسٹمنٹ پلاٹ برائے فروخت دستیاب ہے۔",
-    messageEn: "10 Marla cash investment plot available for instant sale in Block A.",
-    timestamp: Date.now() - 7200000,
-    timeFormatted: "چند گھنٹے پہلے",
-    targetRole: "all",
-    type: "new_deal",
-    isRead: false
   }
 ];
 
@@ -57,7 +45,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_notifications");
-      return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+      if (!saved) return INITIAL_NOTIFICATIONS;
+      const parsed: AppNotification[] = JSON.parse(saved);
+      // Strictly remove any old dummy fake notifications like notif-hot-1
+      const clean = parsed.filter(
+        (n) => n && n.id !== "notif-hot-1" && !n.title.includes("10 مرلہ پرائم لوکیشن")
+      );
+      return clean.length > 0 ? clean : INITIAL_NOTIFICATIONS;
     } catch {
       return INITIAL_NOTIFICATIONS;
     }
@@ -77,9 +71,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   // Save notifications to localStorage
   const saveNotifications = (items: AppNotification[]) => {
-    setNotifications(items);
+    const cleanItems = items.filter(
+      (n) => n && n.id !== "notif-hot-1" && !n.title.includes("10 مرلہ پرائم لوکیشن")
+    );
+    setNotifications(cleanItems);
     try {
-      localStorage.setItem("bin_abbas_notifications", JSON.stringify(items));
+      localStorage.setItem("bin_abbas_notifications", JSON.stringify(cleanItems));
     } catch (e) {
       console.warn("Could not save notifications:", e);
     }
@@ -95,17 +92,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Trigger Native Web / PWA Push Notification if supported
-  const sendNativePush = (title: string, body: string) => {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+  // Trigger Native Web / PWA Push Notification with Service Worker support
+  const sendNativePush = (title: string, body: string, relatedId?: string) => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+
+    if (Notification.permission === "granted") {
       try {
-        new Notification(title, {
-          body,
-          icon: "/pwa-192x192.png",
-          badge: "/pwa-192x192.png"
-        });
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification(title, {
+              body,
+              icon: "/icon-192.png",
+              badge: "/icon.svg",
+              tag: `bin-abbas-${Date.now()}`,
+              data: { url: "/", relatedId }
+            });
+          }).catch(() => {
+            new Notification(title, { body, icon: "/icon-192.png" });
+          });
+        } else {
+          new Notification(title, { body, icon: "/icon-192.png" });
+        }
       } catch (e) {
-        console.warn("Push error", e);
+        console.warn("Push error:", e);
       }
     }
   };
@@ -143,42 +152,43 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const updatedInquiries = [newRecord, ...inquiries];
     saveInquiries(updatedInquiries);
 
-    // Create Notification specifically for Admin
-    const clientLabel = inquiryData.clientName ? inquiryData.clientName : "صارف / کلائنٹ";
-    const typeLabel = inquiryData.type === "sell" ? "پلاٹ برائے فروخت ایڈ" : "پلاٹ خریداری ڈیمانڈ";
+    // Add In-App notification for Admin
+    const isSell = newRecord.type === "sell";
+    const timeFormatted = now.toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" });
 
-    const adminNotif: AppNotification = {
+    const newNotification: AppNotification = {
       id: `notif-admin-${Date.now()}`,
-      title: `📩 نیا کسٹمر اندراج: ${typeLabel}`,
-      titleEn: `📩 New Customer Lead: ${inquiryData.type === "sell" ? "Sell Plot" : "Buy Plot"}`,
-      message: `${clientLabel} نے ${inquiryData.block} میں ${inquiryData.size} کے لیے رابطہ درج کروایا ہے۔`,
-      messageEn: `${clientLabel} submitted an inquiry for ${inquiryData.size} in ${inquiryData.block}.`,
+      title: isSell ? `🔔 نیا پلاٹ برائے فروخت: ${newRecord.size}` : `🔔 خریدار کی ڈیمانڈ: ${newRecord.size}`,
+      titleEn: isSell ? `New Plot for Sale: ${newRecord.size}` : `New Buyer Demand: ${newRecord.size}`,
+      message: `${newRecord.clientName ? newRecord.clientName + " - " : ""}${newRecord.block} (${newRecord.size})۔ موبائل: ${newRecord.clientPhone || "غیر درج"}`,
+      messageEn: `${newRecord.block} (${newRecord.size}) - Phone: ${newRecord.clientPhone || "N/A"}`,
       timestamp: Date.now(),
-      timeFormatted: "ابھی",
+      timeFormatted,
       targetRole: "admin",
-      type: "customer_ad",
+      type: isSell ? "customer_ad" : "demand",
       isRead: false,
       relatedId: newRecord.id
     };
 
-    const updatedNotifications = [adminNotif, ...notifications];
+    const updatedNotifications = [newNotification, ...notifications].slice(0, 50);
     saveNotifications(updatedNotifications);
-
-    // Trigger native push for admin
-    sendNativePush(adminNotif.title, adminNotif.message);
+    sendNativePush(newNotification.title, newNotification.message, newRecord.id);
 
     return newRecord;
   };
 
-  // Broadcast a new Deal from Admin to ALL users
-  const broadcastPublicDeal = (title: string, block: string, size: string, isDemand: boolean = false) => {
+  // Broadcast a hot deal / admin promo ad to all users
+  const broadcastPublicDeal = (title: string, block: string, size: string, isDemand = false, adId?: string) => {
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" });
+
     const notifTitle = isDemand 
       ? `🎯 نئی خریدار ڈیمانڈ: ${size} (${block})` 
-      : `✨ نئی تصدیق شدہ ڈیل: ${title}`;
+      : `🔥 نیا اشتہار: ${title}`;
 
     const notifTitleEn = isDemand 
       ? `🎯 New Buyer Demand: ${size} (${block})` 
-      : `✨ New Verified Deal: ${title}`;
+      : `🔥 New Ad: ${title}`;
 
     const notifMsg = isDemand
       ? `${block} میں خریدار فوری دستیاب ہے۔ تفصیلات اور ریٹ کے لیے بن عباس پراپرٹیز سے رابطہ کریں۔`
@@ -189,22 +199,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       : `New plot available for sale in ${block} (${size}). Contact now.`;
 
     const publicNotif: AppNotification = {
-      id: `notif-public-${Date.now()}`,
+      id: `notif-${Date.now()}`,
       title: notifTitle,
       titleEn: notifTitleEn,
       message: notifMsg,
       messageEn: notifMsgEn,
       timestamp: Date.now(),
-      timeFormatted: "ابھی",
+      timeFormatted,
       targetRole: "all",
-      type: isDemand ? "demand" : "new_deal",
-      isRead: false
+      type: "promo_ad",
+      isRead: false,
+      relatedId: adId
     };
 
-    const updated = [publicNotif, ...notifications];
+    const updated = [publicNotif, ...notifications.filter((n) => n.id !== "notif-hot-1")].slice(0, 50);
     saveNotifications(updated);
-
-    sendNativePush(notifTitle, notifMsg);
+    sendNativePush(notifTitle, notifMsg, adId);
   };
 
   // Filter visible notifications: If Admin logged in -> see both "all" and "admin". If regular user -> see only "all"

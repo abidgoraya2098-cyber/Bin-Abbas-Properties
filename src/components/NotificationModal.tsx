@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, X, CheckCheck, Trash2, Sparkles, Send, ShieldAlert, ArrowRight, ShieldCheck, Video } from "lucide-react";
+import { Bell, X, CheckCheck, Trash2, Sparkles, Send, ShieldAlert, ArrowRight, ShieldCheck, Video, Eye } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -19,9 +19,36 @@ export default function NotificationModal() {
     setIsAdminInboxOpen
   } = useNotifications();
 
-  const { featuredAd, openAd, activeAds } = usePromoAds();
+  const { featuredAd, openAd, activeAds, ads } = usePromoAds();
   const { isUrdu } = useLanguage();
   const { isAdmin } = useAdmin();
+
+  const handleNotificationClick = (n: typeof notifications[0]) => {
+    markAsRead(n.id);
+
+    // 1. If Admin Notification -> Open Admin Inbox
+    if (n.targetRole === "admin" && isAdmin) {
+      setIsNotificationModalOpen(false);
+      setIsAdminInboxOpen(true);
+      return;
+    }
+
+    // 2. If Linked to a specific ad ID -> Open that exact Ad
+    if (n.relatedId) {
+      const match = ads.find((a) => a.id === n.relatedId) || activeAds.find((a) => a.id === n.relatedId);
+      if (match) {
+        setIsNotificationModalOpen(false);
+        openAd(match);
+        return;
+      }
+    }
+
+    // 3. If Promo Ad or Deal -> Open featured or first active ad
+    if (featuredAd || activeAds.length > 0) {
+      setIsNotificationModalOpen(false);
+      openAd(featuredAd || activeAds[0]);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -83,23 +110,25 @@ export default function NotificationModal() {
             </div>
 
             {/* Featured Active Ad Shortcut Banner in Notification Center */}
-            {featuredAd && (
+            {(featuredAd || activeAds.length > 0) && (
               <div 
                 onClick={() => {
                   setIsNotificationModalOpen(false);
-                  openAd(featuredAd);
+                  openAd(featuredAd || activeAds[0]);
                 }}
                 className="my-2 p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black text-xs flex items-center justify-between shadow-md border border-amber-500 cursor-pointer hover:brightness-105 transition-all"
               >
-                <div className="flex items-center gap-2">
-                  <span className="p-1 rounded-lg bg-slate-950 text-amber-300">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="p-1 rounded-lg bg-slate-950 text-amber-300 shrink-0">
                     <Video size={13} />
                   </span>
-                  <span className="truncate max-w-[230px]">
-                    {isUrdu ? `خصوصی ایڈ: ${featuredAd.title}` : `Featured Ad: ${featuredAd.title}`}
+                  <span className="truncate">
+                    {isUrdu 
+                      ? `لائیو ایڈ: ${(featuredAd || activeAds[0]).title}` 
+                      : `Live Ad: ${(featuredAd || activeAds[0]).title}`}
                   </span>
                 </div>
-                <span className="text-[10px] bg-slate-950 text-white px-2 py-0.5 rounded-full shrink-0">
+                <span className="text-[10px] bg-slate-950 text-white px-2.5 py-0.5 rounded-full shrink-0 font-bold">
                   {isUrdu ? "دیکھیں" : "View"}
                 </span>
               </div>
@@ -133,48 +162,56 @@ export default function NotificationModal() {
               {notifications.length > 0 ? (
                 notifications.map((n) => {
                   const isAdminNotif = n.targetRole === "admin";
-                  const isPromoNotif = n.type === "promo_ad" || n.title.includes("ویڈیو") || n.title.includes("تصویر");
+                  const isPromoNotif = n.type === "promo_ad" || n.type === "new_deal" || !!n.relatedId;
                   const title = isUrdu ? n.title : (n.titleEn || n.title);
                   const msg = isUrdu ? n.message : (n.messageEn || n.message);
 
                   return (
                     <div
                       key={n.id}
-                      onClick={() => {
-                        markAsRead(n.id);
-                        if (isAdminNotif && isAdmin) {
-                          setIsNotificationModalOpen(false);
-                          setIsAdminInboxOpen(true);
-                        } else if (isPromoNotif && featuredAd) {
-                          setIsNotificationModalOpen(false);
-                          openAd(featuredAd);
-                        }
-                      }}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer relative ${
+                      onClick={() => handleNotificationClick(n)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer relative group ${
                         !n.isRead
                           ? isAdminNotif
-                            ? "bg-amber-50/80 border-amber-400 shadow-sm"
-                            : "bg-emerald-50/80 border-emerald-300 shadow-sm"
-                          : "bg-slate-50 border-slate-200 opacity-80 hover:opacity-100"
+                            ? "bg-gradient-to-r from-amber-50 via-amber-100/60 to-amber-50 border-amber-400 shadow-md font-bold"
+                            : "bg-gradient-to-r from-emerald-50 via-emerald-100/60 to-emerald-50 border-emerald-300 shadow-md font-bold"
+                          : "bg-slate-50/80 border-slate-200 text-slate-600 opacity-75 hover:opacity-100"
                       }`}
                     >
-                      {/* Unread Dot */}
-                      {!n.isRead && (
-                        <span className={`absolute top-3 ${isUrdu ? "left-3" : "right-3"} w-2 h-2 rounded-full ${isAdminNotif ? "bg-amber-500" : "bg-emerald-600"}`}></span>
-                      )}
-
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-1.5 font-black text-xs text-slate-900">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-900">
                           {isAdminNotif ? (
                             <ShieldAlert size={14} className="text-amber-700 shrink-0" />
                           ) : (
                             <Sparkles size={14} className="text-emerald-700 shrink-0" />
                           )}
-                          <span>{title}</span>
+                          <span className={!n.isRead ? "font-black" : "font-semibold"}>{title}</span>
+                        </div>
+
+                        {/* Right Top Actions: Unread Badge & Individual Delete Button */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {!n.isRead && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black">
+                              {isUrdu ? "نیا" : "NEW"}
+                            </span>
+                          )}
+
+                          {/* Individual Delete Button for this specific notification */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification(n.id);
+                            }}
+                            className="p-1 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                            title={isUrdu ? "یہ نوٹیفکیشن ڈیلیٹ کریں" : "Delete notification"}
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </div>
                       </div>
 
-                      <p className="text-[11px] text-slate-700 font-semibold mt-1 leading-relaxed">
+                      <p className={`text-[11px] mt-1.5 leading-relaxed ${!n.isRead ? "text-slate-800 font-semibold" : "text-slate-600"}`}>
                         {msg}
                       </p>
 
@@ -186,9 +223,10 @@ export default function NotificationModal() {
                             <span>{isUrdu ? "کوائف دیکھیں" : "View Lead"}</span>
                             <ArrowRight size={11} />
                           </span>
-                        ) : isPromoNotif && featuredAd ? (
-                          <span className="text-emerald-800 font-black flex items-center gap-0.5">
-                            <span>{isUrdu ? "ایڈ کھولیں" : "Open Ad"}</span>
+                        ) : isPromoNotif ? (
+                          <span className="text-emerald-800 font-black flex items-center gap-0.5 group-hover:text-amber-600 transition-colors">
+                            <Eye size={12} />
+                            <span>{isUrdu ? "ایڈ دیکھنے کے لیے کلک کریں" : "Click to view Ad"}</span>
                             <ArrowRight size={11} />
                           </span>
                         ) : null}

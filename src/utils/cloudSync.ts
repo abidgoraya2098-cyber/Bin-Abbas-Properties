@@ -267,12 +267,21 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
     });
     map.set(ad.id, ad);
 
-    const mergedAds = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // 2. Prepare cloud-safe payload (strip huge video DataURLs > 600KB so cloud REST never exceeds size limits)
+    const cloudSafeMergedAds = mergedAds.map((item) => {
+      if (item.mediaUrl && item.mediaUrl.startsWith("data:video") && item.mediaUrl.length > 500000) {
+        return {
+          ...item,
+          mediaUrl: item.thumbnailUrl || ""
+        };
+      }
+      return item;
+    });
 
-    // 2. Save back to Upstash Redis
-    await executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(mergedAds)]);
+    // 3. Save back to Upstash Redis
+    await executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(cloudSafeMergedAds)]);
 
-    // 3. Broadcast notification event
+    // 4. Broadcast notification event
     await executeRedisCommand([
       "SET", 
       "bin_abbas:broadcast_ad", 
