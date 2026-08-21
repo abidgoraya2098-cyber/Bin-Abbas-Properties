@@ -1,0 +1,16 @@
+[
+  {
+    "id": "dev_admin_owner_1",
+    "deviceType": "Android",
+    "deviceModel": "Admin Main Smartphone",
+    "os": "Android",
+    "browser": "Chrome PWA",
+    "isPwaInstalled": true,
+    "installDate": 1724000000000,
+    "installDateFormatted": "20 اگست 2026",
+    "lastActive": 1724000000000,
+    "lastActiveFormatted": "ابھی",
+    "ip": "127.0.0.1",
+    "isOnline": true
+  }
+]

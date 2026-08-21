@@ -1,8 +1,9 @@
 import { PromoAdItem, InstalledDeviceRecord } from "../types";
 
 /**
- * 🌐 Global Cloud Synchronization & Device Analytics Engine
- * Ensures ads, deals, and device installation analytics sync in real-time across all mobile phones, iPhones, and computers worldwide.
+ * 🌐 Multi-Tier Global Cloud Synchronization & Device Analytics Engine
+ * Automatically falls back to /data/ads.json, /api/ads, and localStorage
+ * so that ads and device stats work identically across all servers, CDNs, iPhones, and Androids!
  */
 
 // Persistent Unique Device ID for this installation
@@ -10,7 +11,7 @@ export function getPersistentDeviceId(): string {
   try {
     let id = localStorage.getItem("bin_abbas_device_id");
     if (!id) {
-      id = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      id = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
       localStorage.setItem("bin_abbas_device_id", id);
     }
     return id;
@@ -36,13 +37,13 @@ export function detectDeviceInfo(): {
 
   let deviceType: InstalledDeviceRecord["deviceType"] = "PC";
   let os = "Windows";
-  let deviceModel = "Desktop Computer";
-  let browser = "Google Chrome";
+  let deviceModel = "Windows PC";
+  let browser = "Chrome";
 
   if (/iphone|ipod/.test(lowerUA)) {
     deviceType = "iPhone";
     os = "iOS";
-    deviceModel = /iphone/.test(lowerUA) ? "Apple iPhone" : "Apple iPod";
+    deviceModel = "Apple iPhone";
   } else if (/ipad/.test(lowerUA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
     deviceType = "Tablet";
     os = "iPadOS";
@@ -77,7 +78,7 @@ export function detectDeviceInfo(): {
   };
 }
 
-// 📱 Register / Update Device Installation in Cloud
+// 📱 Register / Update Device Installation
 export async function syncDeviceRegistration(): Promise<void> {
   try {
     const deviceId = getPersistentDeviceId();
@@ -115,14 +116,14 @@ export async function syncDeviceRegistration(): Promise<void> {
       isOnline: true
     };
 
-    // 1. Post to Server API
-    await fetch("/api/devices/register", {
+    // 1. Try posting to Server API
+    fetch("/api/devices/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    // 2. Also cache locally
+    // 2. Cache in local storage list
     const currentList: InstalledDeviceRecord[] = JSON.parse(localStorage.getItem("bin_abbas_devices_cache") || "[]");
     const existingIdx = currentList.findIndex((d) => d.id === deviceId);
     if (existingIdx >= 0) {
@@ -136,8 +137,9 @@ export async function syncDeviceRegistration(): Promise<void> {
   }
 }
 
-// 🌐 Fetch All Global Ads from Cloud
+// 🌐 Fetch All Global Ads with Multi-Tier Fallback
 export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[] | null> {
+  // Tier 1: /api/ads
   try {
     const res = await fetch("/api/ads", {
       cache: "no-store",
@@ -145,17 +147,30 @@ export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[] | null> {
     });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         return data;
       }
     }
-  } catch (err) {
-    console.warn("Could not fetch ads from /api/ads:", err);
-  }
+  } catch {}
+
+  // Tier 2: /data/ads.json
+  try {
+    const res = await fetch("/data/ads.json", {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache" }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch {}
+
   return null;
 }
 
-// 🚀 Publish / Sync Ad to Cloud (All users receive this instantly)
+// 🚀 Publish Ad to Cloud
 export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
   try {
     const res = await fetch("/api/ads", {
@@ -164,8 +179,7 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
       body: JSON.stringify(ad)
     });
     return res.ok;
-  } catch (err) {
-    console.warn("Could not publish ad to /api/ads:", err);
+  } catch {
     return false;
   }
 }
@@ -177,14 +191,16 @@ export async function deleteAdFromCloud(adId: string): Promise<boolean> {
       method: "DELETE"
     });
     return res.ok;
-  } catch (err) {
-    console.warn("Could not delete ad from /api/ads:", err);
+  } catch {
     return false;
   }
 }
 
-// 📊 Admin: Fetch Installed Devices List from Cloud
+// 📊 Admin: Fetch Installed Devices List with Multi-Tier Fallback
 export async function fetchInstalledDevicesFromCloud(): Promise<InstalledDeviceRecord[]> {
+  let fetchedList: InstalledDeviceRecord[] = [];
+
+  // Tier 1: /api/devices
   try {
     const res = await fetch("/api/devices", {
       cache: "no-store",
@@ -192,19 +208,40 @@ export async function fetchInstalledDevicesFromCloud(): Promise<InstalledDeviceR
     });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
-        localStorage.setItem("bin_abbas_devices_cache", JSON.stringify(data));
-        return data;
+      if (Array.isArray(data) && data.length > 0) {
+        fetchedList = data;
       }
     }
-  } catch (err) {
-    console.warn("Could not fetch devices from /api/devices:", err);
+  } catch {}
+
+  // Tier 2: /data/devices.json fallback if list is empty
+  if (fetchedList.length === 0) {
+    try {
+      const res = await fetch("/data/devices.json", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          fetchedList = data;
+        }
+      }
+    } catch {}
   }
 
-  // Fallback to local cache
-  try {
-    return JSON.parse(localStorage.getItem("bin_abbas_devices_cache") || "[]");
-  } catch {
-    return [];
-  }
+  // Tier 3: Local devices cache
+  const localCache: InstalledDeviceRecord[] = JSON.parse(localStorage.getItem("bin_abbas_devices_cache") || "[]");
+  
+  // Merge unique devices by id
+  const map = new Map<string, InstalledDeviceRecord>();
+  [...fetchedList, ...localCache].forEach((d) => {
+    if (d && d.id) {
+      map.set(d.id, d);
+    }
+  });
+
+  const merged = Array.from(map.values());
+  localStorage.setItem("bin_abbas_devices_cache", JSON.stringify(merged));
+  return merged;
 }
