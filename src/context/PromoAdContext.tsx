@@ -3,7 +3,7 @@ import { PromoAdItem } from "../types";
 import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
 import { deleteMediaBlob } from "../utils/mediaStorage";
-import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud } from "../utils/cloudSync";
+import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud, isRealCustomAd } from "../utils/cloudSync";
 
 interface PromoAdContextType {
   ads: PromoAdItem[];
@@ -39,7 +39,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
       if (!saved) return [];
       const parsed: PromoAdItem[] = JSON.parse(saved);
-      const cleanAds = parsed.filter((a) => a && !a.id.startsWith("promo-ad-") && !a.id.startsWith("ad-initial-royal-palm-1"));
+      const cleanAds = parsed.filter(isRealCustomAd);
       return cleanAds;
     } catch {
       return [];
@@ -61,7 +61,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const saveAds = (items: PromoAdItem[]) => {
-    const cleanItems = items.filter((a) => a && !a.id.startsWith("promo-ad-") && !a.id.startsWith("ad-initial-royal-palm-1"));
+    const cleanItems = items.filter(isRealCustomAd);
     setAds(cleanItems);
     try {
       localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanItems));
@@ -74,7 +74,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     try {
       const cloudAds = await fetchGlobalAdsFromCloud();
       if (cloudAds && Array.isArray(cloudAds)) {
-        const cleanCloudAds = cloudAds.filter((a) => a && !a.id.startsWith("promo-ad-") && !a.id.startsWith("ad-initial-royal-palm-1"));
+        const cleanCloudAds = cloudAds.filter(isRealCustomAd);
         setAds(cleanCloudAds);
         try {
           localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanCloudAds));
@@ -84,15 +84,21 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
           if (latestAdTime > lastSeenTime && cleanCloudAds.some((a) => a.isActive)) {
             setHasUnseenNewAd(true);
             const newest = cleanCloudAds.find((a) => a.isActive);
-            if (newest && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-              try {
-                new Notification(`🔥 نیا ایڈ: ${newest.title}`, {
-                  body: `${newest.price ? newest.price + " | " : ""}${newest.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
-                  icon: "/icon.svg",
-                  badge: "/icon.svg",
-                  tag: `bin-abbas-ad-${newest.id}`
-                });
-              } catch {}
+            if (newest) {
+              // Trigger native notification
+              if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+                if ("serviceWorker" in navigator) {
+                  navigator.serviceWorker.ready.then((reg) => {
+                    reg.showNotification(`🔥 نیا ایڈ: ${newest.title}`, {
+                      body: `${newest.price ? newest.price + " | " : ""}${newest.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+                      icon: "/icon-192.png",
+                      badge: "/icon.svg",
+                      tag: `bin-abbas-ad-${newest.id}`,
+                      data: { url: "/", adId: newest.id }
+                    });
+                  }).catch(() => {});
+                }
+              }
             }
           }
         } catch {}
