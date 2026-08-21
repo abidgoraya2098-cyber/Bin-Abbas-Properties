@@ -25,6 +25,57 @@ import { useLanguage } from "../context/LanguageContext";
 import { CONTACT_PHONE, OWNER_NAME } from "../data";
 import { getMediaBlob } from "../utils/mediaStorage";
 
+function getEmbedVideoUrl(url: string): { isEmbed: boolean; embedUrl: string } {
+  if (!url) return { isEmbed: false, embedUrl: "" };
+  const clean = url.trim();
+
+  // YouTube Shorts: https://youtube.com/shorts/VIDEO_ID
+  if (clean.includes("youtube.com/shorts/")) {
+    const id = clean.split("shorts/")[1]?.split("?")[0]?.split("&")[0];
+    if (id) {
+      return {
+        isEmbed: true,
+        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&loop=1&playlist=${id}&rel=0`
+      };
+    }
+  }
+
+  // YouTube standard: https://www.youtube.com/watch?v=VIDEO_ID
+  if (clean.includes("youtube.com/watch")) {
+    const id = clean.split("v=")[1]?.split("&")[0];
+    if (id) {
+      return {
+        isEmbed: true,
+        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&loop=1&playlist=${id}&rel=0`
+      };
+    }
+  }
+
+  // YouTube short url: https://youtu.be/VIDEO_ID
+  if (clean.includes("youtu.be/")) {
+    const id = clean.split("youtu.be/")[1]?.split("?")[0]?.split("&")[0];
+    if (id) {
+      return {
+        isEmbed: true,
+        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&loop=1&playlist=${id}&rel=0`
+      };
+    }
+  }
+
+  // Google Drive: https://drive.google.com/file/d/VIDEO_ID/view
+  if (clean.includes("drive.google.com/file/d/")) {
+    const id = clean.split("/d/")[1]?.split("/")[0];
+    if (id) {
+      return {
+        isEmbed: true,
+        embedUrl: `https://drive.google.com/file/d/${id}/preview`
+      };
+    }
+  }
+
+  return { isEmbed: false, embedUrl: clean };
+}
+
 export default function PromoAdModal() {
   const { 
     activeAds, 
@@ -41,7 +92,7 @@ export default function PromoAdModal() {
 
   const { isUrdu } = useLanguage();
   const [copied, setCopied] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Default to unmuted sound or toggleable
+  const [isMuted, setIsMuted] = useState(false);
   const [resolvedMediaUrl, setResolvedMediaUrl] = useState<string>("");
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -49,21 +100,22 @@ export default function PromoAdModal() {
   // Resolve media from IndexedDB if stored as blob ID
   useEffect(() => {
     let isMounted = true;
-    if (!currentAd || !currentAd.mediaUrl) {
+    if (!currentAd) {
       setResolvedMediaUrl("");
       return;
     }
 
-    if (currentAd.mediaUrl.startsWith("media-")) {
-      getMediaBlob(currentAd.mediaUrl).then((url) => {
+    const source = currentAd.mediaUrl || currentAd.thumbnailUrl || "";
+    if (source.startsWith("media-")) {
+      getMediaBlob(source).then((url) => {
         if (isMounted && url) {
           setResolvedMediaUrl(url);
         } else if (isMounted) {
-          setResolvedMediaUrl(currentAd.mediaUrl || "");
+          setResolvedMediaUrl(currentAd.thumbnailUrl || source);
         }
       });
     } else {
-      setResolvedMediaUrl(currentAd.mediaUrl);
+      setResolvedMediaUrl(source);
     }
 
     return () => {
@@ -73,12 +125,11 @@ export default function PromoAdModal() {
 
   // Attempt video play when ad loads
   useEffect(() => {
-    if (videoRef.current && currentAd?.type === "video") {
+    if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().then(() => {
         setIsVideoPlaying(true);
       }).catch(() => {
-        // Autoplay with sound might be blocked on some mobile browsers until user interaction
         if (videoRef.current) {
           videoRef.current.muted = true;
           setIsMuted(true);
@@ -141,9 +192,10 @@ export default function PromoAdModal() {
     }
   };
 
-  const isVideo = currentAd.type === "video";
-  const isImage = currentAd.type === "image";
-  const isTextOnly = currentAd.type === "text_only" || (!resolvedMediaUrl && !isVideo && !isImage);
+  const isVideo = currentAd.type === "video" || (resolvedMediaUrl && (resolvedMediaUrl.includes("youtu") || resolvedMediaUrl.includes(".mp4") || resolvedMediaUrl.startsWith("data:video")));
+  const isImage = currentAd.type === "image" && !isVideo;
+  const { isEmbed, embedUrl } = getEmbedVideoUrl(resolvedMediaUrl);
+  const isTextOnly = !isVideo && !isImage;
 
   return (
     <AnimatePresence>
@@ -245,20 +297,16 @@ export default function PromoAdModal() {
 
             {/* 🌟 2. FULL MEDIA DISPLAY AREA (FULL SCREEN VIDEO OR IMAGE OR TEXT BANNER) */}
             <div className="relative w-full flex-1 overflow-hidden flex items-center justify-center bg-black">
-              {isVideo && resolvedMediaUrl ? (
-                resolvedMediaUrl.includes("youtube.com") || resolvedMediaUrl.includes("youtu.be") ? (
+              {isVideo && (resolvedMediaUrl || currentAd.thumbnailUrl) ? (
+                isEmbed ? (
                   <iframe
-                    src={
-                      resolvedMediaUrl.includes("watch?v=")
-                        ? `${resolvedMediaUrl.replace("watch?v=", "embed/")}?autoplay=1&mute=0&loop=1`
-                        : `${resolvedMediaUrl.replace("youtu.be/", "youtube.com/embed/")}?autoplay=1&mute=0&loop=1`
-                    }
+                    src={embedUrl}
                     title={currentAd.title}
                     className="w-full h-full border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
-                ) : (
+                ) : resolvedMediaUrl ? (
                   <video
                     ref={videoRef}
                     src={resolvedMediaUrl}
@@ -272,7 +320,20 @@ export default function PromoAdModal() {
                     onClick={toggleSound}
                     className="w-full h-full object-cover sm:object-contain cursor-pointer"
                   />
-                )
+                ) : currentAd.thumbnailUrl ? (
+                  <div className="relative w-full h-full flex items-center justify-center bg-black">
+                    <img
+                      src={currentAd.thumbnailUrl}
+                      alt={currentAd.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <div className="w-16 h-16 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-2xl animate-pulse">
+                        <Play size={28} className="fill-slate-950 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                ) : null
               ) : isImage && resolvedMediaUrl ? (
                 <img
                   src={resolvedMediaUrl}

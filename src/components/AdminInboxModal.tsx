@@ -490,37 +490,106 @@ export default function AdminInboxModal() {
                           </label>
                         </div>
 
-                        {/* Direct Link Alternative (Optional) */}
+                        {/* Direct Link Alternative with 1-Tap Paste Button */}
                         <div className="pt-1">
-                          <span className="text-[10px] text-slate-500 block mb-1">
-                            {isUrdu ? "یا یوٹیوب / انٹرنیٹ لنک (اختیاری):" : "Or YouTube / Web Link (Optional):"}
-                          </span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-slate-700 font-bold">
+                              {isUrdu ? "یا یوٹیوب / ویڈیو لنک (یوٹیوب شارٹس یا فیس بک):" : "Or YouTube / Video Link (Shorts or Facebook):"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const text = await navigator.clipboard.readText();
+                                  if (text && text.trim()) {
+                                    const cleanText = text.trim();
+                                    setAdMediaUrl(cleanText);
+                                    if (cleanText.includes("youtu") || cleanText.includes(".mp4") || cleanText.includes("facebook") || cleanText.includes("drive")) {
+                                      setAdType("video");
+                                      const ytMatch = cleanText.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+                                      if (ytMatch && ytMatch[1]) {
+                                        setAdThumbnailUrl(`https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`);
+                                      }
+                                    } else {
+                                      setAdType("image");
+                                    }
+                                  }
+                                } catch (e) {
+                                  alert(isUrdu ? "براہ کرم لنک خود پیسٹ کریں" : "Please paste link manually");
+                                }
+                              }}
+                              className="text-[10px] text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span>📋 {isUrdu ? "لنک چسپاں کریں (Paste)" : "Paste Link"}</span>
+                            </button>
+                          </div>
+
                           <input
                             type="text"
                             value={adMediaUrl.startsWith("data:") || adMediaUrl.startsWith("media-") ? "" : adMediaUrl}
                             onChange={(e) => {
-                              setAdMediaUrl(e.target.value);
-                              if (e.target.value.includes(".mp4") || e.target.value.includes("youtu")) {
+                              const val = e.target.value;
+                              setAdMediaUrl(val);
+                              if (val.includes(".mp4") || val.includes("youtu") || val.includes("drive") || val.includes("facebook")) {
                                 setAdType("video");
-                              } else if (e.target.value.trim()) {
+                                const ytMatch = val.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+                                if (ytMatch && ytMatch[1]) {
+                                  setAdThumbnailUrl(`https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`);
+                                }
+                              } else if (val.trim()) {
                                 setAdType("image");
                               }
                             }}
-                            placeholder={isUrdu ? "اگر انٹرنیٹ یا یوٹیوب کا لنک ہو تو درج کریں (اختیاری)" : "https://youtube.com/... (Optional)"}
-                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans"
+                            placeholder={isUrdu ? "https://youtube.com/shorts/... یا ویڈیو لنک" : "https://youtube.com/shorts/... or video link"}
+                            className="w-full p-2.5 rounded-xl border border-emerald-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 font-sans text-left"
+                            dir="ltr"
                           />
                         </div>
 
-                        {/* Upload Status / Preview Indicator */}
+                        {/* Upload Status / Live Preview Indicator */}
                         {adMediaUrl && (
-                          <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 font-bold">
-                            <div className="flex items-center gap-1.5 truncate">
-                              <CheckCircle size={15} className="text-emerald-700 shrink-0" />
-                              <span className="truncate">{adFileName || (adType === "video" ? "ویڈیو کامیابی سے لوڈ ہو گئی" : "تصویر کامیابی سے لوڈ ہو گئی")}</span>
+                          <div className="p-3 rounded-2xl bg-emerald-100/90 border border-emerald-300 space-y-2">
+                            <div className="flex items-center justify-between text-xs text-emerald-950 font-bold">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <CheckCircle size={15} className="text-emerald-700 shrink-0" />
+                                <span className="truncate">{adFileName || (adType === "video" ? "ویڈیو ایڈ کامیابی سے منسلک ہو گئی" : "تصویر کامیابی سے لوڈ ہو گئی")}</span>
+                              </div>
+                              <span className="text-[10px] bg-emerald-800 text-white px-2.5 py-0.5 rounded-full shrink-0">
+                                {adType === "video" ? "🎥 VIDEO READY" : "📷 PHOTO READY"}
+                              </span>
                             </div>
-                            <span className="text-[10px] bg-emerald-800 text-white px-2.5 py-0.5 rounded-full shrink-0">
-                              {adType === "video" ? "VIDEO READY" : "PHOTO READY"}
-                            </span>
+
+                            {/* Live Video / Photo Preview Box */}
+                            <div className="w-full h-36 rounded-xl overflow-hidden bg-black flex items-center justify-center border border-emerald-400/60 relative">
+                              {adType === "video" ? (
+                                adMediaUrl.includes("youtu") ? (
+                                  <iframe
+                                    src={
+                                      adMediaUrl.includes("shorts/")
+                                        ? `https://www.youtube.com/embed/${adMediaUrl.split("shorts/")[1]?.split("?")[0]}?autoplay=0`
+                                        : adMediaUrl.includes("watch?v=")
+                                        ? `https://www.youtube.com/embed/${adMediaUrl.split("v=")[1]?.split("&")[0]}?autoplay=0`
+                                        : `https://www.youtube.com/embed/${adMediaUrl.split("youtu.be/")[1]?.split("?")[0]}?autoplay=0`
+                                    }
+                                    title="Video Preview"
+                                    className="w-full h-full border-0"
+                                  />
+                                ) : (
+                                  <video
+                                    src={adMediaUrl}
+                                    controls
+                                    playsInline
+                                    className="w-full h-full object-contain"
+                                  />
+                                )
+                              ) : (
+                                <img
+                                  src={adMediaUrl}
+                                  alt="Preview"
+                                  className="w-full h-full object-contain"
+                                />
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

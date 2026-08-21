@@ -48,7 +48,13 @@ export default function PromoAdBanner() {
               <div className="flex items-center gap-3">
                 {/* Thumbnail Preview */}
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-amber-300/40 bg-black/50 flex items-center justify-center">
-                  {isVideo && ad.mediaUrl ? (
+                  {ad.thumbnailUrl ? (
+                    <img
+                      src={ad.thumbnailUrl}
+                      alt={ad.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : isVideo && ad.mediaUrl && !ad.mediaUrl.includes("youtu") ? (
                     <video
                       src={ad.mediaUrl}
                       muted
