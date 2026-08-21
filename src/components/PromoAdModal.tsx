@@ -92,7 +92,7 @@ export default function PromoAdModal() {
 
   const { isUrdu, dir } = useLanguage();
   const [copied, setCopied] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [resolvedMediaUrl, setResolvedMediaUrl] = useState<string>("");
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -348,9 +348,17 @@ export default function PromoAdModal() {
                   <span className="text-[11px] font-black uppercase tracking-widest text-amber-300 mb-1">
                     {isUrdu ? "بن عباس پراپرٹیز خصوصی پیشکش" : "Bin Abbas Properties Special Offer"}
                   </span>
-                  <h2 className="text-lg sm:text-xl font-black leading-snug text-white max-w-xs font-sans">
-                    {isUrdu ? currentAd.title : (currentAd.titleEn || currentAd.title)}
-                  </h2>
+                </div>
+              )}
+
+              {/* Tap to Unmute Overlay Hint for Video */}
+              {isVideo && isMuted && !isEmbed && (
+                <div 
+                  onClick={toggleSound}
+                  className="absolute bottom-3 inset-x-3 z-20 p-2.5 rounded-xl bg-black/85 backdrop-blur-md border border-amber-400 text-amber-300 font-black text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg animate-pulse"
+                >
+                  <Volume2 size={16} className="text-amber-400 animate-bounce" />
+                  <span>{isUrdu ? "🔊 ویڈیو کی آواز کھولنے کے لیے یہاں ٹیپ کریں" : "Tap here to unmute sound"}</span>
                 </div>
               )}
 
