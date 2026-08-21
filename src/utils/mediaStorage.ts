@@ -1,6 +1,7 @@
 /**
- * 📦 High-Capacity Persistent IndexedDB Media Storage for Admin Gallery Uploads
- * Stores media as persistent Base64 Data URLs and Blobs for reliable playback across all devices & reloads.
+ * 📦 High-Capacity Persistent IndexedDB Media Storage & Image Compression for Admin Uploads
+ * Stores media as persistent Base64 Data URLs with smart client-side compression
+ * so images and videos open instantly across all mobile phones, iPhones, and computers worldwide.
  */
 
 const DB_NAME = "BinAbbasMediaDB";
@@ -38,11 +39,93 @@ export function fileToDataUrl(file: File | Blob): Promise<string> {
   });
 }
 
+/**
+ * 🖼️ High-Quality Client-Side Image Compression
+ * Resizes large gallery images (e.g. 10MB phone camera shots) to crisp ~80-120KB WebP/JPEG data URLs
+ * so they fit seamlessly into real-time cloud sync and load instantly on all users' screens.
+ */
+export async function compressImageToDataUrl(
+  file: File | Blob, 
+  maxWidth = 1200, 
+  maxHeight = 1200, 
+  quality = 0.78
+): Promise<string> {
+  // If not in browser or not an image, fallback to raw data URL
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return fileToDataUrl(file);
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(width, 1);
+        canvas.height = Math.max(height, 1);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Try WebP first for optimal compression
+        try {
+          const webpUrl = canvas.toDataURL("image/webp", quality);
+          if (webpUrl && webpUrl.startsWith("data:image/webp") && webpUrl.length > 50) {
+            resolve(webpUrl);
+            return;
+          }
+        } catch {}
+
+        // Fallback to JPEG
+        try {
+          const jpegUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(jpegUrl);
+        } catch {
+          resolve(e.target?.result as string);
+        }
+      };
+
+      img.onerror = () => {
+        resolve(e.target?.result as string);
+      };
+
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => {
+      fileToDataUrl(file).then(resolve).catch(() => resolve(""));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string): Promise<string> {
   try {
     let dataToStore = dataOrFile;
     if (dataOrFile instanceof File || dataOrFile instanceof Blob) {
-      dataToStore = await fileToDataUrl(dataOrFile);
+      if (dataOrFile.type.startsWith("image/")) {
+        dataToStore = await compressImageToDataUrl(dataOrFile);
+      } else {
+        dataToStore = await fileToDataUrl(dataOrFile);
+      }
     }
 
     const db = await openDB();

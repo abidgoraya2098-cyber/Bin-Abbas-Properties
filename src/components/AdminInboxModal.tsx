@@ -41,7 +41,7 @@ import { usePromoAds } from "../context/PromoAdContext";
 import { useLanguage } from "../context/LanguageContext";
 import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRecord } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
-import { saveMediaBlob, fileToDataUrl } from "../utils/mediaStorage";
+import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl } from "../utils/mediaStorage";
 import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
 
 export default function AdminInboxModal() {
@@ -59,7 +59,8 @@ export default function AdminInboxModal() {
     addPromoAd, 
     deletePromoAd, 
     toggleAdActive, 
-    openAd 
+    openAd,
+    refreshAdsFromCloud 
   } = usePromoAds();
 
   const { isUrdu } = useLanguage();
@@ -69,6 +70,8 @@ export default function AdminInboxModal() {
   // Installed Devices State
   const [devices, setDevices] = useState<InstalledDeviceRecord[]>([]);
   const [isLoadingDevices, setIsLoadingDevices] = useState(false);
+  const [isRefreshingAds, setIsRefreshingAds] = useState(false);
+  const [refreshToast, setRefreshToast] = useState<string | null>(null);
 
   // New Ad Form State (Everything is 100% Optional)
   const [isCreateAdOpen, setIsCreateAdOpen] = useState(false);
@@ -89,16 +92,45 @@ export default function AdminInboxModal() {
     try {
       const list = await fetchInstalledDevicesFromCloud();
       setDevices(list);
+      setRefreshToast(isUrdu ? `✅ ${list.length} ڈیوائسز لائیو کلاؤڈ سے اپ ڈیٹ ہو گئیں!` : `✅ ${list.length} devices updated from cloud!`);
+      setTimeout(() => setRefreshToast(null), 3000);
+    } catch (e) {
+      console.warn("Could not load devices:", e);
     } finally {
       setIsLoadingDevices(false);
+    }
+  };
+
+  const handleRefreshAds = async () => {
+    setIsRefreshingAds(true);
+    try {
+      const freshAds = await refreshAdsFromCloud();
+      setRefreshToast(isUrdu ? `✅ ${freshAds.length} ایڈز لائیو کلاؤڈ سے اپ ڈیٹ ہو گئے!` : `✅ ${freshAds.length} ads updated from cloud!`);
+      setTimeout(() => setRefreshToast(null), 3000);
+    } catch (e) {
+      console.warn("Could not refresh ads:", e);
+    } finally {
+      setIsRefreshingAds(false);
     }
   };
 
   useEffect(() => {
     if (isAdminInboxOpen) {
       loadDevices();
+      refreshAdsFromCloud();
+
+      // Poll while open
+      const interval = setInterval(() => {
+        if (activeTab === "devices") {
+          fetchInstalledDevicesFromCloud().then(setDevices).catch(() => {});
+        } else if (activeTab === "ads") {
+          refreshAdsFromCloud().catch(() => {});
+        }
+      }, 15000);
+
+      return () => clearInterval(interval);
     }
-  }, [isAdminInboxOpen]);
+  }, [isAdminInboxOpen, activeTab]);
 
   // Handle Gallery Photo/Video File Upload directly from phone/computer
   const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, mediaKind: "image" | "video") => {
@@ -110,16 +142,18 @@ export default function AdminInboxModal() {
       setAdType(mediaKind);
       setAdFileName(file.name);
 
-      // Convert to permanent Base64 Data URL
-      const dataUrl = await fileToDataUrl(file);
-      const mediaId = `media-${Date.now()}`;
-      await saveMediaBlob(mediaId, dataUrl);
-
-      // If dataUrl < 2.5MB, store dataUrl directly for 100% instant cross-device rendering; else store mediaId
-      if (dataUrl.length < 2500000) {
-        setAdMediaUrl(dataUrl);
+      if (mediaKind === "image") {
+        // High-Quality Client-side compression for instant cross-device delivery
+        const compressedDataUrl = await compressImageToDataUrl(file);
+        setAdMediaUrl(compressedDataUrl);
+        const mediaId = `media-${Date.now()}`;
+        await saveMediaBlob(mediaId, compressedDataUrl);
       } else {
-        setAdMediaUrl(mediaId);
+        // Video
+        const dataUrl = await fileToDataUrl(file);
+        const mediaId = `media-${Date.now()}`;
+        await saveMediaBlob(mediaId, dataUrl);
+        setAdMediaUrl(dataUrl);
       }
     } catch (err) {
       console.warn("Upload error:", err);
@@ -128,43 +162,51 @@ export default function AdminInboxModal() {
     }
   };
 
-  const handleCreateAdSubmit = (e: React.FormEvent) => {
+  const handleCreateAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUploading(true);
 
-    // Title defaults nicely if left empty
-    const finalTitle = adTitle.trim() || (isUrdu ? "خصوصی پیشکش - بن عباس پراپرٹیز" : "Special Offer - Bin Abbas Properties");
+    try {
+      // Title defaults nicely if left empty
+      const finalTitle = adTitle.trim() || (isUrdu ? "خصوصی پیشکش - بن عباس پراپرٹیز" : "Special Offer - Bin Abbas Properties");
 
-    addPromoAd({
-      type: adType,
-      mediaUrl: adMediaUrl.trim() || undefined,
-      thumbnailUrl: adThumbnailUrl.trim() || undefined,
-      title: finalTitle,
-      titleEn: finalTitle,
-      caption: adCaption.trim() || undefined,
-      captionEn: adCaption.trim() || undefined,
-      price: adPrice.trim() || undefined,
-      priceEn: adPrice.trim() || undefined,
-      location: adLocation.trim() || (isUrdu ? "رائل پام سٹی، گوجرانوالہ" : "Royal Palm City, Gujranwala"),
-      locationEn: adLocation.trim() || "Royal Palm City, Gujranwala",
-      whatsAppMessage: adWhatsAppMsg.trim() || undefined,
-      isActive: true,
-      isHot: isAdHot
-    });
+      await addPromoAd({
+        type: adType,
+        mediaUrl: adMediaUrl.trim() || undefined,
+        thumbnailUrl: adThumbnailUrl.trim() || undefined,
+        title: finalTitle,
+        titleEn: finalTitle,
+        caption: adCaption.trim() || undefined,
+        captionEn: adCaption.trim() || undefined,
+        price: adPrice.trim() || undefined,
+        priceEn: adPrice.trim() || undefined,
+        location: adLocation.trim() || (isUrdu ? "رائل پام سٹی، گوجرانوالہ" : "Royal Palm City, Gujranwala"),
+        locationEn: adLocation.trim() || "Royal Palm City, Gujranwala",
+        whatsAppMessage: adWhatsAppMsg.trim() || undefined,
+        isActive: true,
+        isHot: isAdHot
+      });
 
-    // Reset Form
-    setAdMediaUrl("");
-    setAdFileName("");
-    setAdThumbnailUrl("");
-    setAdTitle("");
-    setAdCaption("");
-    setAdPrice("");
-    setAdLocation("");
-    setAdWhatsAppMsg("");
-    setIsCreateAdOpen(false);
+      // Reset Form
+      setAdMediaUrl("");
+      setAdFileName("");
+      setAdThumbnailUrl("");
+      setAdTitle("");
+      setAdCaption("");
+      setAdPrice("");
+      setAdLocation("");
+      setAdWhatsAppMsg("");
+      setIsCreateAdOpen(false);
 
-    alert(isUrdu 
-      ? "✅ ایڈ کامیابی سے شائع کر دی گئی ہے اور تمام صارفین کے لیے لائیو ہو چکی ہے!" 
-      : "✅ Ad successfully published globally to all users!");
+      alert(isUrdu 
+        ? "✅ ایڈ کامیابی سے شائع کر دی گئی ہے اور تمام موبائل صارفین کے لیے لائیو ہو چکی ہے!" 
+        : "✅ Ad successfully published globally to all users!");
+    } catch (err) {
+      console.error("Publish error:", err);
+      alert(isUrdu ? "ایڈ محفوظ ہو گئی ہے" : "Ad saved");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handlePublishToPublic = (inq: CustomerInquiryRecord) => {
@@ -338,11 +380,26 @@ export default function AdminInboxModal() {
               </button>
             </div>
 
+            {/* Live Refresh Status Toast */}
+            <AnimatePresence>
+              {refreshToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="bg-emerald-600 text-white text-xs font-bold text-center py-2 px-4 shadow-sm border-b border-emerald-700 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 size={14} className="text-amber-300" />
+                  <span>{refreshToast}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* TAB 1: PROMOTIONAL VIDEO & PHOTO ADS MANAGER */}
             {activeTab === "ads" && (
               <div className="p-3 sm:p-4 max-h-[65vh] overflow-y-auto space-y-3.5">
-                {/* Header Action to Toggle Create Form */}
-                <div className="flex items-center justify-between">
+                {/* Header Actions (Refresh + Create Form Toggle) */}
+                <div className="flex items-center justify-between gap-2">
                   <div>
                     <span className="text-xs font-black text-emerald-950 block">
                       {isUrdu ? "📺 آپ کے لگائے ہوئے ایڈز" : "Your Custom Ads"} ({ads.length})
@@ -352,13 +409,25 @@ export default function AdminInboxModal() {
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => setIsCreateAdOpen(!isCreateAdOpen)}
-                    className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-105 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer border border-amber-300"
-                  >
-                    <PlusCircle size={15} />
-                    <span>{isCreateAdOpen ? (isUrdu ? "فارم بند کریں" : "Close Form") : (isUrdu ? "➕ نیا ایڈ بنائیں" : "Create New Ad")}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleRefreshAds}
+                      disabled={isRefreshingAds}
+                      className="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center gap-1 transition-all cursor-pointer border border-slate-300"
+                      title={isUrdu ? "کلاؤڈ سے ایڈز ریفریش کریں" : "Refresh Ads from Cloud"}
+                    >
+                      <RefreshCw size={13} className={isRefreshingAds ? "animate-spin" : ""} />
+                      <span className="hidden sm:inline">{isUrdu ? "ریفریش" : "Refresh"}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setIsCreateAdOpen(!isCreateAdOpen)}
+                      className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-105 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer border border-amber-300 shrink-0"
+                    >
+                      <PlusCircle size={15} />
+                      <span>{isCreateAdOpen ? (isUrdu ? "فارم بند کریں" : "Close Form") : (isUrdu ? "➕ نیا ایڈ بنائیں" : "Create New Ad")}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Create New Ad Form (Full Freedom for Admin) */}

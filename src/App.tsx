@@ -69,6 +69,11 @@ function MainAppContent() {
     // 📱 Register / Update Device Installation in Cloud Analytics
     syncDeviceRegistration().catch(() => {});
 
+    // Periodic heartbeat every 45s so live online device status is accurate
+    const heartbeat = setInterval(() => {
+      syncDeviceRegistration().catch(() => {});
+    }, 45000);
+
     // Request notification permission smoothly
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       setTimeout(() => {
@@ -77,6 +82,7 @@ function MainAppContent() {
     }
 
     return () => {
+      clearInterval(heartbeat);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
