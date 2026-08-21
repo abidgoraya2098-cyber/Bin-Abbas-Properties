@@ -1,5 +1,5 @@
-// Progressive Web App Service Worker for Bin Abbas Real Estate - Complete 100% Offline Engine
-const CACHE_NAME = "bin-abbas-real-estate-offline-v10";
+// Progressive Web App Service Worker for Bin Abbas Real Estate - Live Real-Time & Offline Engine
+const CACHE_NAME = "bin-abbas-real-estate-v25-live";
 
 const CORE_ASSETS = [
   "/",
@@ -17,7 +17,7 @@ const CORE_ASSETS = [
   "/apple-touch-icon.png"
 ];
 
-// Install: Cache all essential core assets and activate immediately
+// Install: Skip waiting immediately so new code activates on all phones
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -29,14 +29,14 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Activate: Delete any outdated caches and claim clients immediately
+// Activate: Delete all previous outdated caches and claim all clients immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log("[PWA SW] Clearing old cache:", key);
+            console.log("[PWA SW] Purging old cache version:", key);
             return caches.delete(key);
           }
         })
@@ -67,49 +67,47 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// Fetch: 100% Offline-Ready Stale-While-Revalidate & Cache-First with Dynamic Network Update
+// Fetch: Network-First for real-time live updates, bypassing cache for all cloud & API endpoints
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || !event.request.url.startsWith("http")) {
+  const url = event.request.url;
+
+  // 1. COMPLETELY BYPASS Cache for Cloud Sync, Upstash, REST APIs, and Non-GET requests
+  if (
+    event.request.method !== "GET" || 
+    url.includes("upstash.io") || 
+    url.includes("/api/") || 
+    url.includes("restful-api.dev") || 
+    url.includes("data/ads.json") || 
+    url.includes("data/devices.json") ||
+    !url.startsWith("http")
+  ) {
     return;
   }
 
-  // 1. Navigation requests (HTML Pages)
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(event.request).then((cached) => {
-            return cached || caches.match("/index.html") || caches.match("/");
-          });
-        })
-    );
-    return;
-  }
-
-  // 2. Static Assets (JS, CSS, SVGs, Images, Web Fonts)
+  // 2. Network-First Strategy for HTML, JS bundles, and Assets (Fresh updates first, offline fallback)
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // Fallback to cache when offline
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
-          return networkResponse;
-        })
-        .catch(() => {
-          return cachedResponse;
+          if (event.request.mode === "navigate") {
+            return caches.match("/index.html") || caches.match("/");
+          }
+          return new Response("", { status: 503, statusText: "Offline" });
         });
-
-      return cachedResponse || fetchPromise;
-    })
+      })
   );
 });
 

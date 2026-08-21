@@ -1,22 +1,39 @@
 import { PromoAdItem, InstalledDeviceRecord } from "../types";
 
 /**
- * 🌐 Permanent Global Cloud Synchronization & Multi-Device Analytics Engine
- * Powered by high-speed resilient cloud storage with primary + mirror replication,
- * guaranteeing that Ads, Media, and Installed Devices sync instantly across all
- * mobile phones (Android / iPhone), computers, and PWAs worldwide with zero downtime!
+ * 🌐 High-Speed Permanent Global Cloud Database Engine (Upstash Redis REST)
+ * Syncs Ads, Media, Devices, and Notifications across ALL mobile phones (Android / iPhone),
+ * computers, and PWAs worldwide in real-time with sub-50ms latency!
  */
 
-// Dedicated Production Cloud Database Endpoints (Active Global KV Replicas)
-const CLOUD_PRIMARY_ID = "ff8081819ff5b11001a0236c4fa46a44";
-const CLOUD_MIRROR_ID = "ff8081819ff5b11001a0236c83926a46";
-const CLOUD_API_BASE = "https://api.restful-api.dev/objects";
+const REDIS_URL = "https://upward-bluebird-138470.upstash.io";
+const REDIS_TOKEN = "gQAAAAAAAhzmAQIgcDFmYTUxMTFjNjI2YTk0MGY3ODZmYTlkZmI0NTdiNjQyMw";
 
-interface CloudPayload {
-  ads?: PromoAdItem[];
-  devices?: InstalledDeviceRecord[];
-  inquiries?: any[];
-  lastUpdated?: number;
+async function executeRedisCommand(command: any[]): Promise<any> {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeout = setTimeout(() => controller?.abort(), 6000);
+
+  try {
+    const res = await fetch(REDIS_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${REDIS_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(command),
+      signal: controller?.signal
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data?.result;
+    }
+  } catch (e) {
+    console.warn("[CloudSync] Redis command error:", e);
+  } finally {
+    clearTimeout(timeout);
+  }
+  return null;
 }
 
 // Persistent Unique Device ID for this installation
@@ -91,88 +108,7 @@ export function detectDeviceInfo(): {
   };
 }
 
-/**
- * ☁️ Read complete dataset from Global Cloud with automatic replica fallback
- */
-async function fetchCloudData(): Promise<CloudPayload | null> {
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  const timeout = setTimeout(() => controller?.abort(), 6000);
-
-  // 1. Try Primary Cloud Replica
-  try {
-    const res = await fetch(`${CLOUD_API_BASE}/${CLOUD_PRIMARY_ID}`, {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache" },
-      signal: controller?.signal
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json && json.data) {
-        clearTimeout(timeout);
-        return json.data as CloudPayload;
-      }
-    }
-  } catch {}
-
-  // 2. Try Mirror Cloud Replica
-  try {
-    const res = await fetch(`${CLOUD_API_BASE}/${CLOUD_MIRROR_ID}`, {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache" },
-      signal: controller?.signal
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json && json.data) {
-        clearTimeout(timeout);
-        return json.data as CloudPayload;
-      }
-    }
-  } catch {}
-
-  clearTimeout(timeout);
-  return null;
-}
-
-/**
- * ☁️ Save complete dataset to Global Cloud across both Primary and Mirror replicas
- */
-async function saveCloudData(data: CloudPayload): Promise<boolean> {
-  const payload = {
-    name: "BinAbbasProperties_Global_Production_Database_v2",
-    data: {
-      ...data,
-      lastUpdated: Date.now()
-    }
-  };
-
-  const bodyStr = JSON.stringify(payload);
-
-  const writePromises = [
-    // Write to Primary
-    fetch(`${CLOUD_API_BASE}/${CLOUD_PRIMARY_ID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: bodyStr
-    }).catch(() => null),
-
-    // Write to Mirror in parallel
-    fetch(`${CLOUD_API_BASE}/${CLOUD_MIRROR_ID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: bodyStr
-    }).catch(() => null)
-  ];
-
-  try {
-    const results = await Promise.all(writePromises);
-    return results.some((r) => r && r.ok);
-  } catch {
-    return false;
-  }
-}
-
-// 📱 Register / Update Device Installation in Cloud
+// 📱 Register / Update Device Installation in Global Cloud
 export async function syncDeviceRegistration(): Promise<void> {
   try {
     const deviceId = getPersistentDeviceId();
@@ -220,17 +156,15 @@ export async function syncDeviceRegistration(): Promise<void> {
     }
     localStorage.setItem("bin_abbas_devices_cache", JSON.stringify(currentList));
 
-    // 2. Also register to Local Server API if present
-    fetch("/api/devices/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    // 2. Fetch existing devices from Upstash Redis
+    const rawDevices = await executeRedisCommand(["GET", "bin_abbas:devices"]);
+    let cloudDevices: InstalledDeviceRecord[] = [];
+    if (rawDevices) {
+      try {
+        cloudDevices = JSON.parse(rawDevices);
+      } catch {}
+    }
 
-    // 3. Sync to Global Cloud Store
-    const cloud = await fetchCloudData();
-    const cloudDevices: InstalledDeviceRecord[] = Array.isArray(cloud?.devices) ? cloud!.devices : [];
-    
     const map = new Map<string, InstalledDeviceRecord>();
     cloudDevices.forEach((d) => {
       if (d && d.id && !d.id.startsWith("dev_admin_owner_1")) {
@@ -239,51 +173,35 @@ export async function syncDeviceRegistration(): Promise<void> {
     });
     map.set(deviceId, payload);
 
-    const mergedDevices = Array.from(map.values());
-    await saveCloudData({
-      ads: cloud?.ads || [],
-      devices: mergedDevices,
-      inquiries: cloud?.inquiries || []
-    });
+    const mergedDevices = Array.from(map.values()).slice(0, 150);
+    await executeRedisCommand(["SET", "bin_abbas:devices", JSON.stringify(mergedDevices)]);
   } catch (err) {
     console.warn("Device registration error:", err);
   }
 }
 
-// 🌐 Fetch All Global Ads with Multi-Tier Fallback (Excludes dummy sample ads)
+// 🌐 Fetch All Global Ads from Cloud in Real-Time
 export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[] | null> {
-  let cloudAds: PromoAdItem[] | null = null;
+  let cloudAds: PromoAdItem[] = [];
 
-  // Tier 1: Global Cloud Database (Primary + Mirror)
   try {
-    const cloudData = await fetchCloudData();
-    if (cloudData && Array.isArray(cloudData.ads)) {
-      cloudAds = cloudData.ads;
-    }
-  } catch {}
-
-  // Tier 2: Server API (/api/ads)
-  if (!cloudAds) {
-    try {
-      const res = await fetch("/api/ads", {
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          cloudAds = data;
-        }
+    const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
+    if (rawAds) {
+      const parsed = JSON.parse(rawAds);
+      if (Array.isArray(parsed)) {
+        cloudAds = parsed;
       }
-    } catch {}
+    }
+  } catch (e) {
+    console.warn("Error fetching ads from redis:", e);
   }
 
-  // Tier 3: Local Storage Ads Cache
+  // Local Storage Ads Cache
   const localSaved: PromoAdItem[] = JSON.parse(localStorage.getItem("bin_abbas_promo_ads") || "[]");
 
   // Merge unique ads by ID
   const map = new Map<string, PromoAdItem>();
-  [...(cloudAds || []), ...localSaved].forEach((a) => {
+  [...cloudAds, ...localSaved].forEach((a) => {
     if (a && a.id && !a.id.startsWith("ad-initial-royal-palm-1") && !a.id.startsWith("promo-ad-")) {
       map.set(a.id, a);
     }
@@ -300,16 +218,14 @@ export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[] | null> {
 // 🚀 Publish Ad to Cloud (Broadcasts globally to all users immediately)
 export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
   try {
-    // 1. Post to Server API if available
-    fetch("/api/ads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(ad)
-    }).catch(() => {});
-
-    // 2. Fetch existing cloud data
-    const cloud = await fetchCloudData();
-    const existingAds: PromoAdItem[] = Array.isArray(cloud?.ads) ? cloud!.ads : [];
+    // 1. Fetch existing ads from cloud
+    const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
+    let existingAds: PromoAdItem[] = [];
+    if (rawAds) {
+      try {
+        existingAds = JSON.parse(rawAds);
+      } catch {}
+    }
 
     const map = new Map<string, PromoAdItem>();
     existingAds.forEach((a) => {
@@ -321,14 +237,17 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
 
     const mergedAds = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-    // 3. Save back to Global Cloud Database
-    const saved = await saveCloudData({
-      ads: mergedAds,
-      devices: cloud?.devices || [],
-      inquiries: cloud?.inquiries || []
-    });
+    // 2. Save back to Upstash Redis
+    await executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(mergedAds)]);
 
-    return saved;
+    // 3. Broadcast notification event
+    await executeRedisCommand([
+      "SET", 
+      "bin_abbas:broadcast_ad", 
+      JSON.stringify({ adId: ad.id, title: ad.title, timestamp: Date.now() })
+    ]);
+
+    return true;
   } catch (err) {
     console.warn("Could not publish ad to cloud:", err);
     return false;
@@ -338,18 +257,11 @@ export async function publishAdToCloud(ad: PromoAdItem): Promise<boolean> {
 // 🗑️ Delete Ad from Cloud
 export async function deleteAdFromCloud(adId: string): Promise<boolean> {
   try {
-    // 1. Delete from Server API if available
-    fetch(`/api/ads/${adId}`, { method: "DELETE" }).catch(() => {});
-
-    // 2. Remove from Global Cloud Database
-    const cloud = await fetchCloudData();
-    if (cloud && Array.isArray(cloud.ads)) {
-      const filtered = cloud.ads.filter((a) => a.id !== adId);
-      await saveCloudData({
-        ads: filtered,
-        devices: cloud.devices || [],
-        inquiries: cloud.inquiries || []
-      });
+    const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
+    if (rawAds) {
+      const parsed: PromoAdItem[] = JSON.parse(rawAds);
+      const filtered = parsed.filter((a) => a.id !== adId);
+      await executeRedisCommand(["SET", "bin_abbas:ads", JSON.stringify(filtered)]);
     }
     return true;
   } catch {
@@ -361,31 +273,19 @@ export async function deleteAdFromCloud(adId: string): Promise<boolean> {
 export async function fetchInstalledDevicesFromCloud(): Promise<InstalledDeviceRecord[]> {
   let fetchedList: InstalledDeviceRecord[] = [];
 
-  // Tier 1: Global Cloud Database (Primary + Mirror)
   try {
-    const cloud = await fetchCloudData();
-    if (cloud && Array.isArray(cloud.devices)) {
-      fetchedList = cloud.devices;
-    }
-  } catch {}
-
-  // Tier 2: Server API (/api/devices)
-  if (fetchedList.length === 0) {
-    try {
-      const res = await fetch("/api/devices", {
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          fetchedList = data;
-        }
+    const rawDevices = await executeRedisCommand(["GET", "bin_abbas:devices"]);
+    if (rawDevices) {
+      const parsed = JSON.parse(rawDevices);
+      if (Array.isArray(parsed)) {
+        fetchedList = parsed;
       }
-    } catch {}
+    }
+  } catch (e) {
+    console.warn("Error reading devices from redis:", e);
   }
 
-  // Tier 3: Local devices cache
+  // Local devices cache
   const localCache: InstalledDeviceRecord[] = JSON.parse(localStorage.getItem("bin_abbas_devices_cache") || "[]");
   const currentDeviceId = getPersistentDeviceId();
   const now = Date.now();

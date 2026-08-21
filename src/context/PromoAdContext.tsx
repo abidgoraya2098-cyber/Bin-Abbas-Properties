@@ -80,8 +80,20 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanCloudAds));
           const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
           const latestAdTime = cleanCloudAds.length > 0 ? Math.max(...cleanCloudAds.map((a) => a.createdAt)) : 0;
+          
           if (latestAdTime > lastSeenTime && cleanCloudAds.some((a) => a.isActive)) {
             setHasUnseenNewAd(true);
+            const newest = cleanCloudAds.find((a) => a.isActive);
+            if (newest && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+              try {
+                new Notification(`🔥 نیا ایڈ: ${newest.title}`, {
+                  body: `${newest.price ? newest.price + " | " : ""}${newest.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+                  icon: "/icon.svg",
+                  badge: "/icon.svg",
+                  tag: `bin-abbas-ad-${newest.id}`
+                });
+              } catch {}
+            }
           }
         } catch {}
         return cleanCloudAds;

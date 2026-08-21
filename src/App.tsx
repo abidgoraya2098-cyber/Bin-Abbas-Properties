@@ -30,7 +30,7 @@ type ActiveTab = "links" | "inquiry" | "deals" | "society";
 function MainAppContent() {
   const { language, isUrdu, dir } = useLanguage();
   const t = getTranslation(language);
-  const { activeAds, openAd } = usePromoAds();
+  const { activeAds, openAd, hasUnseenNewAd } = usePromoAds();
   const { isAdmin, setIsLoginModalOpen } = useAdmin();
   const { setIsAdminInboxOpen } = useNotifications();
 
@@ -39,6 +39,16 @@ function MainAppContent() {
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine !== false : true);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
+
+  // Auto-open ad popup when a new ad arrives or on initial splash finish
+  useEffect(() => {
+    if (!showSplashScreen && activeAds.length > 0 && hasUnseenNewAd) {
+      const timer = setTimeout(() => {
+        openAd(0);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasUnseenNewAd, activeAds.length, showSplashScreen]);
 
   useEffect(() => {
     // Online & Offline Event Listeners
