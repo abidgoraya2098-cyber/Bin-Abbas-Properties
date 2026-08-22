@@ -92,7 +92,7 @@ export default function PromoAdModal() {
 
   const { isUrdu, dir } = useLanguage();
   const [copied, setCopied] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [resolvedMediaUrl, setResolvedMediaUrl] = useState<string>("");
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -123,13 +123,15 @@ export default function PromoAdModal() {
     };
   }, [currentAd]);
 
-  // Attempt video play when ad loads
+  // Attempt video play with full sound enabled by default
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
+      videoRef.current.muted = isMuted;
       videoRef.current.play().then(() => {
         setIsVideoPlaying(true);
       }).catch(() => {
+        // If mobile browser policy requires user gesture for sound, fallback to muted
         if (videoRef.current) {
           videoRef.current.muted = true;
           setIsMuted(true);
@@ -274,7 +276,7 @@ export default function PromoAdModal() {
                       title={isMuted ? "آواز آن کریں" : "آواز بند کریں"}
                     >
                       {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                      <span className="text-[10px]">{isMuted ? (isUrdu ? "آواز کھولیں 🔊" : "Unmute") : (isUrdu ? "آواز آن ہے 🔊" : "Sound On")}</span>
+                      <span className="text-[10px]">{isMuted ? (isUrdu ? "آواز کھولیں 🔊" : "Unmute") : (isUrdu ? "آواز بند کریں 🔇" : "Mute Sound")}</span>
                     </button>
                   )}
 
