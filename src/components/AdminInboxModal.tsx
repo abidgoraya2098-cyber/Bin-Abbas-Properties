@@ -148,32 +148,26 @@ export default function AdminInboxModal() {
       if (mediaKind === "image") {
         // High-Quality Client-side compression for instant cross-device delivery
         const compressedDataUrl = await compressImageToDataUrl(file);
-        setAdMediaUrl(compressedDataUrl);
-        setAdThumbnailUrl(compressedDataUrl);
+        setUploadProgress(70);
         const mediaId = `media-${Date.now()}`;
-        await saveMediaBlob(mediaId, compressedDataUrl);
+        const storedRef = await saveMediaBlob(mediaId, compressedDataUrl);
+        setAdMediaUrl(storedRef);
+        setAdThumbnailUrl(compressedDataUrl);
+        setUploadProgress(100);
       } else {
-        // Video: Direct Cloud Upload with Progress
-        const cloudRes = await uploadMediaToCloudinary(file, (pct) => {
-          setUploadProgress(pct);
-        });
-
-        if (cloudRes && cloudRes.url) {
-          setAdMediaUrl(cloudRes.url);
-          if (cloudRes.thumbnailUrl) {
-            setAdThumbnailUrl(cloudRes.thumbnailUrl);
-          }
-        } else {
-          // Fallback if network offline
-          const posterThumb = await extractVideoThumbnail(file);
-          if (posterThumb) {
-            setAdThumbnailUrl(posterThumb);
-          }
-          const dataUrl = await fileToDataUrl(file);
-          const mediaId = `media-${Date.now()}`;
-          await saveMediaBlob(mediaId, dataUrl);
-          setAdMediaUrl(dataUrl);
+        // Video: Extract thumbnail + Save full video to dedicated Cloud Media Storage
+        setUploadProgress(20);
+        const posterThumb = await extractVideoThumbnail(file);
+        if (posterThumb) {
+          setAdThumbnailUrl(posterThumb);
         }
+        setUploadProgress(50);
+        const dataUrl = await fileToDataUrl(file);
+        setUploadProgress(80);
+        const mediaId = `media-${Date.now()}`;
+        const storedRef = await saveMediaBlob(mediaId, dataUrl);
+        setAdMediaUrl(storedRef);
+        setUploadProgress(100);
       }
     } catch (err) {
       console.warn("Upload error:", err);

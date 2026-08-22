@@ -109,7 +109,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
             setHasUnseenNewAd(true);
             const newest = cleanCloudAds.find((a) => a.isActive);
             if (newest) {
-              // Trigger native notification
+              // Trigger native mobile notification (heads-up status bar alert)
               if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
                 if ("serviceWorker" in navigator) {
                   navigator.serviceWorker.ready.then((reg) => {
@@ -118,9 +118,18 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
                       icon: "/icon-192.png",
                       badge: "/icon.svg",
                       tag: `bin-abbas-ad-${newest.id}`,
+                      vibrate: [300, 100, 300, 100, 300],
+                      requireInteraction: true,
                       data: { url: "/", adId: newest.id }
                     });
                   }).catch(() => {});
+                } else {
+                  try {
+                    new Notification(`🔥 نیا ایڈ: ${newest.title}`, {
+                      body: `${newest.price ? newest.price + " | " : ""}${newest.location || "رائل پام سٹی"}`,
+                      icon: "/icon-192.png"
+                    });
+                  } catch {}
                 }
               }
             }

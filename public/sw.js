@@ -1,5 +1,5 @@
 // Progressive Web App Service Worker for Bin Abbas Real Estate - Live Real-Time & Offline Engine
-const CACHE_NAME = "bin-abbas-real-estate-v25-live";
+const CACHE_NAME = "bin-abbas-real-estate-v26-live";
 
 const CORE_ASSETS = [
   "/",

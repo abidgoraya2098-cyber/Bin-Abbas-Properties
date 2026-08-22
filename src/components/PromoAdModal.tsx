@@ -106,7 +106,7 @@ export default function PromoAdModal() {
     }
 
     const source = currentAd.mediaUrl || currentAd.thumbnailUrl || "";
-    if (source.startsWith("media-")) {
+    if (source.startsWith("redis:") || source.startsWith("media-")) {
       getMediaBlob(source).then((url) => {
         if (isMounted && url) {
           setResolvedMediaUrl(url);

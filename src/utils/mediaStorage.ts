@@ -172,6 +172,9 @@ export function extractVideoThumbnail(videoFile: File | Blob): Promise<string> {
   });
 }
 
+const REDIS_TOKEN = "gQAAAAAAAhzmAQIgcDFmYTUxMTFjNjI2YTk0MGY3ODZmYTlkZmI0NTdiNjQyMw";
+const REDIS_URL = "https://upward-bluebird-138470.upstash.io";
+
 export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string): Promise<string> {
   try {
     let dataToStore = dataOrFile;
@@ -183,66 +186,129 @@ export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string
       }
     }
 
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      
-      const item = { id, data: dataToStore, timestamp: Date.now() };
-      const req = store.put(item);
+    const cleanId = id.startsWith("redis:") ? id.replace(/^redis:/, "") : id;
 
-      req.onsuccess = () => resolve(id);
-      req.onerror = () => reject(req.error);
-    });
+    // 1. Save to local IndexedDB for instant offline & high-speed zero-lag playback
+    try {
+      const db = await openDB();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const item = { id: cleanId, data: dataToStore, timestamp: Date.now() };
+        const req = store.put(item);
+        req.onsuccess = () => resolve(cleanId);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.warn("IndexedDB save error:", e);
+    }
+
+    // 2. 🚀 Synchronize permanently to Upstash Cloud Storage key: bin_abbas:media:<cleanId>
+    if (typeof dataToStore === "string" && dataToStore.length > 50) {
+      fetch(REDIS_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${REDIS_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(["SET", `bin_abbas:media:${cleanId}`, dataToStore])
+      }).catch((err) => console.warn("Cloud media upload warning:", err));
+    }
+
+    return `redis:${cleanId}`;
   } catch (err) {
-    console.warn("Could not save to IndexedDB:", err);
+    console.warn("Could not save media blob:", err);
     return id;
   }
 }
 
-export async function getMediaBlob(id: string): Promise<string | null> {
-  try {
-    const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(id);
+export async function getMediaBlob(idOrSource: string): Promise<string | null> {
+  if (!idOrSource) return null;
+  if (idOrSource.startsWith("data:") || idOrSource.startsWith("http://") || idOrSource.startsWith("https://")) {
+    return idOrSource;
+  }
 
-      req.onsuccess = () => {
-        if (req.result && req.result.data) {
-          const raw = req.result.data;
-          if (typeof raw === "string") {
-            resolve(raw);
-          } else if (raw instanceof Blob || raw instanceof File) {
-            fileToDataUrl(raw).then(resolve).catch(() => resolve(null));
+  const cleanId = idOrSource.replace(/^redis:/, "").replace(/^media-/, "media-");
+
+  try {
+    // 1. Check local IndexedDB first (0ms instant response)
+    let localData: string | null = null;
+    try {
+      const db = await openDB();
+      localData = await new Promise<string | null>((resolve) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(cleanId);
+        req.onsuccess = () => {
+          if (req.result && req.result.data) {
+            const raw = req.result.data;
+            if (typeof raw === "string") resolve(raw);
+            else if (raw instanceof Blob || raw instanceof File) {
+              fileToDataUrl(raw).then(resolve).catch(() => resolve(null));
+            } else resolve(null);
           } else {
             resolve(null);
           }
-        } else {
-          resolve(null);
-        }
-      };
+        };
+        req.onerror = () => resolve(null);
+      });
+    } catch {}
 
-      req.onerror = () => resolve(null);
+    if (localData) {
+      return localData;
+    }
+
+    // 2. Fetch from Upstash Cloud Storage key bin_abbas:media:<cleanId>
+    const cloudRes = await fetch(REDIS_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${REDIS_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(["GET", `bin_abbas:media:${cleanId}`])
     });
-  } catch {
+
+    if (cloudRes.ok) {
+      const json = await cloudRes.json();
+      const cloudData = json.result;
+      if (typeof cloudData === "string" && cloudData.length > 50) {
+        // Cache into local IndexedDB for future instant playback
+        try {
+          const db = await openDB();
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          const store = tx.objectStore(STORE_NAME);
+          store.put({ id: cleanId, data: cloudData, timestamp: Date.now() });
+        } catch {}
+        return cloudData;
+      }
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("Error getting media blob:", err);
     return null;
   }
 }
 
 export async function deleteMediaBlob(id: string): Promise<void> {
+  const cleanId = id.replace(/^redis:/, "");
   try {
     const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.delete(id);
-      req.onsuccess = () => resolve();
-      req.onerror = () => resolve();
-    });
-  } catch {
-    // Graceful fallback
-  }
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(cleanId);
+  } catch {}
+
+  try {
+    fetch(REDIS_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${REDIS_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(["DEL", `bin_abbas:media:${cleanId}`])
+    }).catch(() => {});
+  } catch {}
 }
 
 /**
