@@ -249,11 +249,16 @@ export default function PromoAdModal() {
 
               {/* Header Bar */}
               <div className="flex items-center justify-between pt-0.5">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <div className="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md border border-amber-300">
                     <Sparkles size={12} className="text-slate-950" />
                     <span>{isUrdu ? "خصوصی لائیو ایڈ" : "Featured Ad"}</span>
                   </div>
+
+                  <span className="text-[10px] text-amber-200 font-bold bg-black/60 px-2 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
+                    <Eye size={11} className="text-amber-300" />
+                    <span>{(currentAd.viewCount || 1) + 20}</span>
+                  </span>
 
                   {activeAds.length > 1 && (
                     <span className="text-[10px] text-amber-200 font-bold bg-black/60 px-2 py-0.5 rounded-full border border-white/20">

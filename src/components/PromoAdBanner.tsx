@@ -98,7 +98,7 @@ export default function PromoAdBanner() {
 
                     <span className="text-[9.5px] text-emerald-200 font-semibold flex items-center gap-1">
                       <Eye size={10} />
-                      <span>{ad.viewCount || 1}</span>
+                      <span>{(ad.viewCount || 1) + 20}</span>
                     </span>
                   </div>
 

@@ -34,7 +34,8 @@ import {
   Radio,
   Users,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  Edit3
 } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
@@ -57,6 +58,7 @@ export default function AdminInboxModal() {
   const { 
     ads, 
     addPromoAd, 
+    updatePromoAd,
     deletePromoAd, 
     toggleAdActive, 
     openAd,
@@ -177,6 +179,36 @@ export default function AdminInboxModal() {
     }
   };
 
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
+
+  const handleStartEditAd = (ad: PromoAdItem) => {
+    setEditingAdId(ad.id);
+    setAdType(ad.type);
+    setAdMediaUrl(ad.mediaUrl || "");
+    setAdFileName("");
+    setAdThumbnailUrl(ad.thumbnailUrl || "");
+    setAdTitle(ad.title || "");
+    setAdCaption(ad.caption || "");
+    setAdPrice(ad.price || "");
+    setAdLocation(ad.location || "");
+    setAdWhatsAppMsg(ad.whatsAppMessage || "");
+    setIsAdHot(ad.isHot !== false);
+    setIsCreateAdOpen(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAdId(null);
+    setAdMediaUrl("");
+    setAdFileName("");
+    setAdThumbnailUrl("");
+    setAdTitle("");
+    setAdCaption("");
+    setAdPrice("");
+    setAdLocation("");
+    setAdWhatsAppMsg("");
+    setIsCreateAdOpen(false);
+  };
+
   const handleCreateAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
@@ -185,6 +217,32 @@ export default function AdminInboxModal() {
       // Title defaults nicely if left empty
       const finalTitle = adTitle.trim() || (isUrdu ? "خصوصی پیشکش - بن عباس پراپرٹیز" : "Special Offer - Bin Abbas Properties");
 
+      if (editingAdId) {
+        // ✏️ UPDATE EXISTING AD
+        await updatePromoAd(editingAdId, {
+          type: adType,
+          mediaUrl: adMediaUrl.trim() || undefined,
+          thumbnailUrl: adThumbnailUrl.trim() || undefined,
+          title: finalTitle,
+          titleEn: finalTitle,
+          caption: adCaption.trim() || undefined,
+          captionEn: adCaption.trim() || undefined,
+          price: adPrice.trim() || undefined,
+          priceEn: adPrice.trim() || undefined,
+          location: adLocation.trim() || (isUrdu ? "رائل پام سٹی، گوجرانوالہ" : "Royal Palm City, Gujranwala"),
+          locationEn: adLocation.trim() || "Royal Palm City, Gujranwala",
+          whatsAppMessage: adWhatsAppMsg.trim() || undefined,
+          isHot: isAdHot
+        });
+
+        handleCancelEdit();
+        alert(isUrdu 
+          ? "✅ ایڈ کی تمام تبدیلیاں کامیابی سے محفوظ ہو گئیں اور تمام صارفین کے پاس لائیو اپ ڈیٹ ہو گئیں!" 
+          : "✅ Ad updated successfully and broadcast to all users!");
+        return;
+      }
+
+      // ➕ CREATE BRAND NEW AD
       await addPromoAd({
         type: adType,
         mediaUrl: adMediaUrl.trim() || undefined,
@@ -203,15 +261,7 @@ export default function AdminInboxModal() {
       });
 
       // Reset Form
-      setAdMediaUrl("");
-      setAdFileName("");
-      setAdThumbnailUrl("");
-      setAdTitle("");
-      setAdCaption("");
-      setAdPrice("");
-      setAdLocation("");
-      setAdWhatsAppMsg("");
-      setIsCreateAdOpen(false);
+      handleCancelEdit();
 
       alert(isUrdu 
         ? "✅ ایڈ کامیابی سے شائع کر دی گئی ہے اور تمام موبائل صارفین کے لیے لائیو ہو چکی ہے!" 
@@ -457,12 +507,23 @@ export default function AdminInboxModal() {
                     >
                       <div className="flex items-center justify-between border-b border-amber-300 pb-2">
                         <h4 className="text-xs sm:text-sm font-black text-emerald-950 flex items-center gap-1.5">
-                          <Sparkles size={15} className="text-amber-600" />
-                          <span>{isUrdu ? "نیا ایڈ بنائیں (گیلری سے تصویر/ویڈیو اپ لوڈ کریں)" : "Create Ad (Upload Photo/Video from Gallery)"}</span>
+                          {editingAdId ? <Edit3 size={15} className="text-amber-600" /> : <Sparkles size={15} className="text-amber-600" />}
+                          <span>{editingAdId ? (isUrdu ? "✏️ ایڈ کی تفصیلات تبدیل / ایڈٹ کریں (Edit Ad)" : "✏️ Edit Ad Details") : (isUrdu ? "نیا ایڈ بنائیں (گیلری سے تصویر/ویڈیو اپ لوڈ کریں)" : "Create Ad (Upload Photo/Video from Gallery)")}</span>
                         </h4>
-                        <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
-                          {isUrdu ? "تمام خانے اختیاری ہیں" : "All fields optional"}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {editingAdId && (
+                            <button
+                              type="button"
+                              onClick={handleCancelEdit}
+                              className="text-[10px] bg-red-100 text-red-800 hover:bg-red-200 px-2 py-0.5 rounded-full font-bold cursor-pointer"
+                            >
+                              {isUrdu ? "منسوخ کریں ✕" : "Cancel ✕"}
+                            </button>
+                          )}
+                          <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                            {isUrdu ? "تمام خانے اختیاری ہیں" : "All fields optional"}
+                          </span>
+                        </div>
                       </div>
 
                       {/* 1. GALLERY UPLOAD BUTTONS */}
@@ -676,15 +737,31 @@ export default function AdminInboxModal() {
                         />
                       </div>
 
-                      {/* Submit Live Ad Button */}
-                      <button
-                        type="submit"
-                        disabled={isUploading}
-                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 hover:brightness-110 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg border border-amber-400 cursor-pointer"
-                      >
-                        <Sparkles size={16} className="text-amber-300" />
-                        <span>{isUrdu ? "🚀 ایڈ لائیو شائع کریں (تمام صارفین تک پہنچائیں)" : "🚀 Publish Live Ad Globally"}</span>
-                      </button>
+                      {/* Submit / Update Live Ad Buttons */}
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <button
+                          type="submit"
+                          disabled={isUploading}
+                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 hover:brightness-110 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg border border-amber-400 cursor-pointer flex-1"
+                        >
+                          {editingAdId ? <Edit3 size={16} className="text-amber-300" /> : <Sparkles size={16} className="text-amber-300" />}
+                          <span>
+                            {editingAdId 
+                              ? (isUrdu ? "💾 تبدیلیاں کلاؤڈ پر محفوظ کریں (Update Ad)" : "💾 Save Changes to Cloud")
+                              : (isUrdu ? "🚀 ایڈ لائیو شائع کریں (تمام صارفین تک پہنچائیں)" : "🚀 Publish Live Ad Globally")}
+                          </span>
+                        </button>
+
+                        {editingAdId && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs cursor-pointer border border-slate-300"
+                          >
+                            <span>{isUrdu ? "ایڈٹ منسوخ کریں" : "Cancel Edit"}</span>
+                          </button>
+                        )}
+                      </div>
                     </motion.form>
                   )}
                 </AnimatePresence>
@@ -718,48 +795,56 @@ export default function AdminInboxModal() {
                             <span className="text-xs font-black text-slate-900">{ad.title}</span>
                           </div>
 
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => toggleAdActive(ad.id)}
-                              className="p-1 text-slate-500 hover:text-emerald-700"
-                              title="Toggle Active"
-                            >
-                              {ad.isActive ? <ToggleRight size={22} className="text-emerald-600" /> : <ToggleLeft size={22} className="text-slate-400" />}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deletePromoAd(ad.id)}
-                              className="p-1 text-slate-400 hover:text-red-600"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {ad.price && (
-                          <div className="text-xs font-black text-emerald-800 mt-1">
-                            💰 {ad.price} {ad.location ? `| 📍 ${ad.location}` : ""}
-                          </div>
-                        )}
-
-                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                          <span className="text-slate-500 flex items-center gap-1">
-                            <Eye size={12} /> {ad.viewCount || 1} {isUrdu ? "مناظر" : "views"}
-                          </span>
+                        <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => openAd(ad)}
-                            className="text-emerald-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                            onClick={() => handleStartEditAd(ad)}
+                            className="p-1 text-slate-500 hover:text-amber-600 cursor-pointer"
+                            title={isUrdu ? "ایڈ ایڈٹ / تبدیل کریں" : "Edit Ad"}
                           >
-                            <Play size={12} /> {isUrdu ? "فل سکرین پیش نظارہ" : "Preview"}
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleAdActive(ad.id)}
+                            className="p-1 text-slate-500 hover:text-emerald-700"
+                            title="Toggle Active"
+                          >
+                            {ad.isActive ? <ToggleRight size={22} className="text-emerald-600" /> : <ToggleLeft size={22} className="text-slate-400" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deletePromoAd(ad.id)}
+                            className="p-1 text-slate-400 hover:text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+
+                      {ad.price && (
+                        <div className="text-xs font-black text-emerald-800 mt-1">
+                          💰 {ad.price} {ad.location ? `| 📍 ${ad.location}` : ""}
+                        </div>
+                      )}
+
+                      <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 flex items-center gap-1 font-bold">
+                          <Eye size={12} className="text-amber-600" /> {(ad.viewCount || 1) + 20} {isUrdu ? "مناظر" : "views"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => openAd(ad)}
+                          className="text-emerald-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Play size={12} /> {isUrdu ? "فل سکرین پیش نظارہ" : "Preview"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
               </div>
             )}
 
