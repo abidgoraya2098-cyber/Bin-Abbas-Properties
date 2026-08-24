@@ -361,6 +361,22 @@ export const FEATURED_PROPERTIES: readonly PropertyListing[] = Object.freeze([])
 
 export const SOCIETY_AMENITIES: readonly SocietyAmenity[] = Object.freeze([
   {
+    id: "hospital",
+    title: "جدید ہسپتال کا افتتاح و 24/7 ایمرجنسی",
+    titleEn: "Grand Inauguration: Modern Hospital & ICU",
+    description: "سوسائٹی میں جدید ترین مشینری، ماہر سپیشلسٹ ڈاکٹرز، آئی سی یو اور 24 گھنٹے ایمرجنسی سے آراستہ اسٹیٹ آف دی آرٹ ہسپتال کا باوقار افتتاح۔",
+    descriptionEn: "Grand inauguration of state-of-the-art hospital equipped with specialist doctors, ICU, modern pathology, and 24/7 emergency healthcare.",
+    icon: "HeartPulse"
+  },
+  {
+    id: "education",
+    title: "جدید گرلز و بوائز کیمپسز (اسکول و کالج)",
+    titleEn: "Modern Girls & Boys Campuses",
+    description: "اعلیٰ اور معیاری بین الاقوامی نصاب تعلیم کے حامل علیحدہ گرلز و بوائز اسکول و کالج کیمپسز، جدید سائنس لیبز اور وسیع اسپورٹس گراؤنڈز۔",
+    descriptionEn: "Modern separate Girls & Boys school and college campuses with international academic curriculum, advanced science labs, and sports grounds.",
+    icon: "GraduationCap"
+  },
+  {
     id: "security",
     title: "24/7 سیکیورٹی و کیمرے",
     titleEn: "24/7 Gated Security & CCTV",

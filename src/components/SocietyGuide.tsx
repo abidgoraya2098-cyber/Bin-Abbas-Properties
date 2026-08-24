@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Navigation, ShieldCheck, Zap, Building, ShoppingBag, Trees, Fuel, Landmark, ExternalLink } from "lucide-react";
+import { MapPin, Navigation, ShieldCheck, Zap, Building, ShoppingBag, Trees, Fuel, Landmark, ExternalLink, HeartPulse, GraduationCap, Sparkles, Award } from "lucide-react";
 import { SOCIETY_AMENITIES, GOOGLE_MAPS_URL, GOOGLE_MAPS_NAV_URL, ROYAL_PALM_BLOCKS } from "../data";
 import { useLanguage } from "../context/LanguageContext";
 import { getTranslation } from "../i18n";
@@ -10,6 +10,10 @@ export default function SocietyGuide() {
 
   const getAmenityIcon = (iconName: string) => {
     switch (iconName) {
+      case "HeartPulse":
+        return <HeartPulse size={18} className="text-red-600" />;
+      case "GraduationCap":
+        return <GraduationCap size={18} className="text-blue-700" />;
       case "ShieldCheck":
         return <ShieldCheck size={18} className="text-emerald-800" />;
       case "Zap":
@@ -52,6 +56,54 @@ export default function SocietyGuide() {
         <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-full border border-emerald-300 shadow-sm">
           {t.societyBadge}
         </span>
+      </div>
+
+      {/* 🌟 SPECIAL SPOTLIGHT: Hospital Inauguration & Modern Educational Campuses */}
+      <div className="mt-3.5 p-3 rounded-2xl bg-gradient-to-br from-[#0c4a2d] via-[#08351f] to-[#041f12] text-white border-2 border-amber-400 shadow-md">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="p-1 rounded-lg bg-amber-400 text-slate-950 font-black">
+            <Sparkles size={14} />
+          </span>
+          <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
+            {isUrdu ? "✨ اہم سنگِ میل و خصوصی سہولیات" : "✨ Society Milestones & Highlights"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Hospital Box */}
+          <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 rounded-lg bg-red-500/20 text-red-300 border border-red-400/30">
+                <HeartPulse size={16} />
+              </div>
+              <h4 className="text-xs font-black text-amber-300">
+                {isUrdu ? "🏥 جدید ہسپتال کا افتتاح" : "🏥 State-of-the-Art Hospital"}
+              </h4>
+            </div>
+            <p className="text-[10.5px] text-slate-200 leading-relaxed font-medium">
+              {isUrdu 
+                ? "سوسائٹی میں 24/7 ایمرجنسی، سپیشلسٹ ڈاکٹرز اور جدید آئی سی یو سے لیس ہسپتال کا افتتاح ہو چکا ہے۔" 
+                : "Operational modern hospital with 24/7 emergency care, specialist doctors, and advanced ICU."}
+            </p>
+          </div>
+
+          {/* School/College Campuses Box */}
+          <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                <GraduationCap size={16} />
+              </div>
+              <h4 className="text-xs font-black text-amber-300">
+                {isUrdu ? "🎓 گرلز و بوائز کیمپسز" : "🎓 Girls & Boys Campuses"}
+              </h4>
+            </div>
+            <p className="text-[10.5px] text-slate-200 leading-relaxed font-medium">
+              {isUrdu 
+                ? "بین الاقوامی معیار کے علیحدہ اسکول و کالج کیمپسز برائے طلباء و طالبات مع وسیع گراؤنڈز اور سائنس لیبز۔" 
+                : "Separate modern school and college campuses for Girls & Boys with labs and sports grounds."}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Society Amenities Grid */}

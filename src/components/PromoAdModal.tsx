@@ -429,6 +429,38 @@ export default function PromoAdModal() {
                   )}
                 </div>
 
+                {/* 🗂️ Multi-Ad Navigation Pills (When multiple ads exist) */}
+                {activeAds.length > 1 && (
+                  <div className="pt-1">
+                    <div className="flex items-center justify-between text-[10px] text-amber-300/90 font-bold mb-1">
+                      <span>{isUrdu ? `کل ${activeAds.length} لائیو ایڈز موجود ہیں (تبدیل کرنے کے لیے ٹیپ کریں):` : `Total ${activeAds.length} Live Ads (Tap to switch):`}</span>
+                      <span className="text-[9px] bg-amber-400/20 px-1.5 py-0.5 rounded text-amber-200">
+                        {currentAdIndex + 1} / {activeAds.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                      {activeAds.map((ad, idx) => (
+                        <button
+                          key={`pill-${ad.id}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            goToAdIndex(idx);
+                          }}
+                          className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                            idx === currentAdIndex
+                              ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md border border-amber-300 scale-105"
+                              : "bg-white/10 text-slate-300 hover:bg-white/20 border border-white/15"
+                          }`}
+                        >
+                          <span>{ad.type === "video" ? "🎥" : "📷"}</span>
+                          <span className="max-w-[120px] truncate">{ad.title || `ایڈ ${idx + 1}`}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* 📝 Extra Details / Caption (If Available) */}
                 {currentAd.caption && (
                   <div className="bg-slate-900/80 p-3 rounded-2xl border border-amber-400/20 text-right">
