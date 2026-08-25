@@ -35,7 +35,10 @@ import {
   Users,
   Activity,
   CheckCircle2,
-  Edit3
+  Edit3,
+  Download,
+  UploadCloud,
+  ShieldCheck
 } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
@@ -44,6 +47,7 @@ import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRec
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
 import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl, extractVideoThumbnail, uploadMediaToCloudinary } from "../utils/mediaStorage";
 import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
+import { exportFullDatabaseBackup, importFullDatabaseBackup } from "../utils/persistentDB";
 
 export default function AdminInboxModal() {
   const { 
@@ -845,8 +849,67 @@ export default function AdminInboxModal() {
                   ))
                 )}
               </div>
+
+              {/* 💾 Permanent Backup & Restore Card */}
+              <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border-2 border-amber-400/60 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-2.5 text-right w-full sm:w-auto">
+                  <div className="p-2.5 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-black text-amber-300">
+                      {isUrdu ? "🔒 مستقل ڈیٹا بیک اپ و بحالی (100% محفوظ)" : "Permanent Data Backup & Recovery"}
+                    </h5>
+                    <p className="text-[10px] text-slate-300 font-medium">
+                      {isUrdu ? "کیشے کلئیر ہونے کے بعد بھی اپنے ایڈز اور ڈیوائسز کا بیک اپ ڈاؤن لوڈ یا ری سٹور کریں" : "Download or restore your ads & devices anytime"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const json = await exportFullDatabaseBackup();
+                      const blob = new Blob([json], { type: "application/json" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `bin-abbas-backup-${new Date().toISOString().split("T")[0]}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="flex-1 sm:flex-initial py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow border border-amber-300"
+                  >
+                    <Download size={13} />
+                    <span>{isUrdu ? "📥 بیک اپ فائل ڈاؤن لوڈ" : "Download Backup"}</span>
+                  </button>
+
+                  <label className="flex-1 sm:flex-initial py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow border border-emerald-500">
+                    <UploadCloud size={13} />
+                    <span>{isUrdu ? "📤 فائل سے بحال کریں" : "Restore File"}</span>
+                    <input
+                      type="file"
+                      accept=".json,application/json"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const text = await file.text();
+                          const res = await importFullDatabaseBackup(text);
+                          alert(res.message);
+                          if (res.success) {
+                            refreshAdsFromCloud();
+                            loadDevices();
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
             {/* TAB 2: LEADS INBOX */}
             {activeTab === "leads" && (

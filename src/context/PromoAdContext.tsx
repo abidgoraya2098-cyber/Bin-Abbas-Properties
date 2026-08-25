@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { PromoAdItem } from "../types";
+import { DEFAULT_PROMO_ADS } from "../data";
 import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
 import { deleteMediaBlob } from "../utils/mediaStorage";
+import { saveAdsToIndexedDB } from "../utils/persistentDB";
 import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud, isRealCustomAd } from "../utils/cloudSync";
 
 interface PromoAdContextType {
@@ -33,16 +35,16 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
-  // Local state initialized from cache (strictly excluding old dummy samples)
+  // Local state initialized from cache with fallback to DEFAULT_PROMO_ADS
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
-      if (!saved) return [];
+      if (!saved) return [...DEFAULT_PROMO_ADS];
       const parsed: PromoAdItem[] = JSON.parse(saved);
       const cleanAds = parsed.filter(isRealCustomAd);
-      return cleanAds;
+      return cleanAds.length > 0 ? cleanAds : [...DEFAULT_PROMO_ADS];
     } catch {
-      return [];
+      return [...DEFAULT_PROMO_ADS];
     }
   });
 
@@ -62,13 +64,15 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
 
   const saveAds = (items: PromoAdItem[]) => {
     const cleanItems = items.filter(isRealCustomAd);
-    setAds(cleanItems);
+    const finalItems = cleanItems.length > 0 ? cleanItems : [...DEFAULT_PROMO_ADS];
+    setAds(finalItems);
     try {
-      localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanItems));
+      localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(finalItems));
+      saveAdsToIndexedDB(finalItems).catch(() => {});
     } catch (e) {
       console.warn("Could not save full promo ads, saving lightweight version:", e);
       try {
-        const lightweight = cleanItems.map((a) => {
+        const lightweight = finalItems.map((a) => {
           if (a.mediaUrl && a.mediaUrl.length > 500000) {
             return {
               ...a,
@@ -78,6 +82,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
           return a;
         });
         localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(lightweight));
+        saveAdsToIndexedDB(lightweight).catch(() => {});
       } catch (err2) {
         console.warn("Could not save lightweight ads:", err2);
       }
@@ -89,25 +94,27 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       const cloudAds = await fetchGlobalAdsFromCloud();
       if (cloudAds && Array.isArray(cloudAds)) {
         const cleanCloudAds = cloudAds.filter(isRealCustomAd);
+        const finalAds = cleanCloudAds.length > 0 ? cleanCloudAds : [...DEFAULT_PROMO_ADS];
         
         // Only update state if ads array has changed to avoid interrupting video playback
         setAds((prevAds) => {
           const prevIds = prevAds.map((a) => a.id).join(",");
-          const newIds = cleanCloudAds.map((a) => a.id).join(",");
-          if (prevIds === newIds && prevAds.length === cleanCloudAds.length) {
+          const newIds = finalAds.map((a) => a.id).join(",");
+          if (prevIds === newIds && prevAds.length === finalAds.length) {
             return prevAds;
           }
-          return cleanCloudAds;
+          return finalAds;
         });
 
         try {
-          localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanCloudAds));
+          localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(finalAds));
+          saveAdsToIndexedDB(finalAds).catch(() => {});
           const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
-          const latestAdTime = cleanCloudAds.length > 0 ? Math.max(...cleanCloudAds.map((a) => a.createdAt)) : 0;
+          const latestAdTime = finalAds.length > 0 ? Math.max(...finalAds.map((a) => a.createdAt)) : 0;
           
-          if (latestAdTime > lastSeenTime && cleanCloudAds.some((a) => a.isActive)) {
+          if (latestAdTime > lastSeenTime && finalAds.some((a) => a.isActive)) {
             setHasUnseenNewAd(true);
-            const newest = cleanCloudAds.find((a) => a.isActive);
+            const newest = finalAds.find((a) => a.isActive);
             if (newest) {
               // Trigger native mobile notification (heads-up status bar alert)
               if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
@@ -135,7 +142,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
             }
           }
         } catch {}
-        return cleanCloudAds;
+        return finalAds;
       }
     } catch (err) {
       console.warn("Error refreshing ads from cloud:", err);
