@@ -61,26 +61,27 @@ export default function FloatingActionBar() {
         {/* ========================================================= */}
         {/* 👑 ADMIN FLOATING CONTROLS (Only visible when Admin is Logged In) */}
         {/* ========================================================= */}
+        {/* ========================================================= */}
+        {/* 👑 ADMIN FLOATING CONTROLS (Only visible when Admin is Logged In) */}
+        {/* ========================================================= */}
         {isAdmin ? (
-          <div className="flex items-center justify-around gap-2 text-center">
-            {/* 1. 🎬 ➕ Create Ad Button (Primary Golden Action) */}
+          <div className="grid grid-cols-3 gap-2 text-center w-full">
+            {/* 1. 🎬 ➕ Create Ad Button */}
             <button
               type="button"
               onClick={() => setIsAdminInboxOpen(true)}
               id="admin-floating-create-ad-btn"
               title={isUrdu ? "گیلری سے ویڈیو یا تصویر ایڈ لگائیں" : "Create Video or Photo Ad"}
-              className="flex-[1.4] flex flex-col items-center justify-center py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 text-slate-950 shadow-lg active:scale-95 border-2 border-amber-300 cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-amber-400 via-amber-300 to-amber-500 hover:brightness-105 text-slate-950 shadow-md active:scale-95 border border-amber-600 cursor-pointer"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full bg-slate-950 flex items-center justify-center text-amber-300 shadow-sm">
-                  <Video size={13} />
-                </div>
-                <span className="text-xs font-black text-slate-950">
-                  {isUrdu ? "➕ ایڈ لگائیں" : "➕ Create Ad"}
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <Video size={13} className="text-slate-950 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-slate-950 whitespace-nowrap">
+                  {isUrdu ? "نیا ایڈ" : "New Ad"}
                 </span>
               </div>
-              <span className="text-[9px] text-slate-900 font-extrabold mt-0.5">
-                {isUrdu ? "گیلری سے ویڈیو/تصویر" : "Photo / Video Ad"}
+              <span className="text-[9.5px] text-slate-950 font-black leading-tight mt-0.5 whitespace-nowrap truncate">
+                {isUrdu ? "ویڈیو / تصویر" : "Photo/Video"}
               </span>
             </button>
 
@@ -90,18 +91,16 @@ export default function FloatingActionBar() {
               onClick={() => setIsAdminInboxOpen(true)}
               id="admin-floating-leads-btn"
               title={isUrdu ? "کسٹمر انکوائریز دیکھیں" : "Customer Leads"}
-              className="flex-1 flex flex-col items-center justify-center py-2 px-2 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white shadow-md active:scale-95 border border-emerald-500 cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-emerald-900 to-emerald-950 hover:brightness-110 text-white shadow-md active:scale-95 border border-emerald-600 cursor-pointer"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full bg-emerald-800 flex items-center justify-center text-amber-300">
-                  <Inbox size={12} />
-                </div>
-                <span className="text-xs font-black text-amber-300">
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <Inbox size={13} className="text-amber-300 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-amber-300 whitespace-nowrap">
                   {isUrdu ? "کسٹمر لیڈز" : "Leads"}
                 </span>
               </div>
-              <span className="text-[9px] text-emerald-200 font-bold mt-0.5">
-                {inquiries.length} {isUrdu ? "انکوائریز" : "Inquiries"}
+              <span className="text-[9.5px] text-emerald-200 font-bold leading-tight mt-0.5 whitespace-nowrap truncate">
+                {inquiries.length} {isUrdu ? "انکوائریز" : "Leads"}
               </span>
             </button>
 
@@ -111,11 +110,16 @@ export default function FloatingActionBar() {
               onClick={logout}
               id="admin-floating-logout-btn"
               title={isUrdu ? "ایڈمن لاگ آؤٹ کریں" : "Logout Admin"}
-              className="flex-shrink-0 flex flex-col items-center justify-center py-2 px-2.5 rounded-xl bg-red-950/80 hover:bg-red-900 text-red-200 shadow-sm active:scale-95 border border-red-700/60 cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-red-900 to-red-950 hover:brightness-110 text-white shadow-md active:scale-95 border border-red-700 cursor-pointer"
             >
-              <LogOut size={14} className="text-red-400 mb-0.5" />
-              <span className="text-[9px] font-black text-red-300">
-                {isUrdu ? "لاگ آؤٹ" : "Logout"}
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <LogOut size={13} className="text-red-300 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-red-200 whitespace-nowrap">
+                  {isUrdu ? "لاگ آؤٹ" : "Logout"}
+                </span>
+              </div>
+              <span className="text-[9.5px] font-bold text-red-300/80 leading-tight mt-0.5 whitespace-nowrap truncate">
+                {isUrdu ? "ایڈمن سیشن" : "Session"}
               </span>
             </button>
           </div>
@@ -123,21 +127,23 @@ export default function FloatingActionBar() {
           /* ========================================================= */
           /* 👤 PUBLIC USER FLOATING CONTROLS (Call, WhatsApp, Maps)    */
           /* ========================================================= */
-          <div className="flex items-center justify-around gap-2 text-center">
+          <div className="grid grid-cols-3 gap-2 text-center w-full">
             {/* 1. Direct Phone Call */}
             <a
               href={directCallUrl}
               id="floating-call-btn"
               title="Direct Phone Call"
-              className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-emerald-900 to-emerald-950 hover:from-emerald-800 hover:to-emerald-900 text-amber-300 border border-amber-400/40 active:scale-95 shadow-md cursor-pointer transition-all"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
-                  <Phone size={12} className="text-emerald-800" />
-                </div>
-                <span className="text-xs font-black text-emerald-950">{t.floatCall}</span>
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <Phone size={13} className="text-amber-300 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-amber-300 whitespace-nowrap">
+                  {t.floatCall}
+                </span>
               </div>
-              <span className="text-[9px] text-emerald-800 font-bold mt-0.5">{t.floatCallSub}</span>
+              <span className="text-[9.5px] text-emerald-200/90 font-bold leading-tight mt-0.5 whitespace-nowrap truncate">
+                {t.floatCallSub}
+              </span>
             </a>
 
             {/* 2. Direct WhatsApp */}
@@ -147,15 +153,17 @@ export default function FloatingActionBar() {
               rel="noopener noreferrer"
               id="floating-whatsapp-btn"
               title="Direct WhatsApp Chat"
-              className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:brightness-105 text-white shadow-md active:scale-95 border border-emerald-500 cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-emerald-600 via-emerald-700 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 text-white shadow-[0_2px_12px_rgba(16,185,129,0.35)] active:scale-95 border border-amber-300/60 cursor-pointer transition-all"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
-                  <MessageCircle size={13} className="fill-white" />
-                </div>
-                <span className="text-xs font-black text-white">{t.floatWhatsApp}</span>
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <MessageCircle size={13} className="text-amber-300 fill-amber-300 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-white whitespace-nowrap">
+                  {t.floatWhatsApp}
+                </span>
               </div>
-              <span className="text-[9px] text-emerald-100 font-bold mt-0.5">{t.floatWhatsAppSub}</span>
+              <span className="text-[9.5px] text-amber-200 font-bold leading-tight mt-0.5 whitespace-nowrap truncate">
+                {t.floatWhatsAppSub}
+              </span>
             </a>
 
             {/* 3. Office Location Map (Google Maps) */}
@@ -166,15 +174,17 @@ export default function FloatingActionBar() {
               rel="noopener noreferrer"
               id="floating-map-btn"
               title="Google Maps Location"
-              className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 transition-colors text-slate-900 border border-emerald-200 active:scale-95 shadow-sm cursor-pointer"
+              className="w-full h-[58px] flex flex-col items-center justify-center py-1 px-1 rounded-xl bg-gradient-to-b from-emerald-900 to-emerald-950 hover:from-emerald-800 hover:to-emerald-900 text-amber-300 border border-amber-400/40 active:scale-95 shadow-md cursor-pointer transition-all"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
-                  <MapPin size={12} className="text-emerald-800" />
-                </div>
-                <span className="text-xs font-black text-emerald-950">{t.floatLocation}</span>
+              <div className="flex items-center justify-center gap-1 leading-none">
+                <MapPin size={13} className="text-amber-300 shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-black text-amber-300 whitespace-nowrap">
+                  {t.floatLocation}
+                </span>
               </div>
-              <span className="text-[9px] text-slate-600 font-bold mt-0.5">{t.floatLocationSub}</span>
+              <span className="text-[9.5px] text-emerald-200/90 font-bold leading-tight mt-0.5 whitespace-nowrap truncate">
+                {t.floatLocationSub}
+              </span>
             </a>
           </div>
         )}

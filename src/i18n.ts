@@ -128,10 +128,10 @@ export const translations = {
 
     // Floating Action Bar
     floatCall: "کال کریں",
-    floatCallSub: "آف لائن دستیاب",
+    floatCallSub: "فوری رابطہ",
     floatWhatsApp: "واٹس ایپ",
-    floatWhatsAppSub: "انٹرنیٹ / پیکج",
-    floatLocation: "لوکیشن",
+    floatWhatsAppSub: "آن لائن چیٹ",
+    floatLocation: "آفس لوکیشن",
     floatLocationSub: "پام کمرشل 235"
   },
 

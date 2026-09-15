@@ -5,7 +5,7 @@ import { useNotifications } from "./NotificationContext";
 import { useAdmin } from "./AdminContext";
 import { deleteMediaBlob } from "../utils/mediaStorage";
 import { saveAdsToIndexedDB } from "../utils/persistentDB";
-import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud, isRealCustomAd } from "../utils/cloudSync";
+import { fetchGlobalAdsFromCloud, publishAdToCloud, deleteAdFromCloud, clearAllAdsFromCloud, isRealCustomAd } from "../utils/cloudSync";
 
 interface PromoAdContextType {
   ads: PromoAdItem[];
@@ -23,6 +23,7 @@ interface PromoAdContextType {
   addPromoAd: (adData: Omit<PromoAdItem, "id" | "createdAt" | "viewCount">) => Promise<PromoAdItem>;
   updatePromoAd: (id: string, adData: Partial<PromoAdItem>) => Promise<void>;
   deletePromoAd: (id: string) => Promise<void>;
+  clearAllAds: () => Promise<void>;
   toggleAdActive: (id: string) => Promise<void>;
   refreshAdsFromCloud: () => Promise<PromoAdItem[]>;
   hasUnseenNewAd: boolean;
@@ -35,11 +36,25 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
+  // One-time auto-purge migration to guarantee old ads are permanently deleted from user browsers
+  const ADS_PURGE_VERSION = "bin_abbas_purge_v3_20260915";
+
   // Local state initialized from cache
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
+      if (typeof window !== "undefined") {
+        const isPurged = localStorage.getItem(ADS_PURGE_VERSION);
+        if (!isPurged) {
+          localStorage.removeItem("bin_abbas_promo_ads");
+          localStorage.removeItem("bin_abbas_deleted_ads");
+          localStorage.removeItem("bin_abbas_cached_ads");
+          localStorage.setItem(ADS_PURGE_VERSION, "true");
+          saveAdsToIndexedDB([]).catch(() => {});
+          return [];
+        }
+      }
       const saved = localStorage.getItem("bin_abbas_promo_ads");
-      if (!saved) return [...DEFAULT_PROMO_ADS];
+      if (!saved) return [];
       const parsed: PromoAdItem[] = JSON.parse(saved);
       const cleanAds = parsed.filter(isRealCustomAd);
       return cleanAds;
@@ -140,7 +155,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
             }
           }
         } catch {}
-        return finalAds;
+        return cleanCloudAds;
       }
     } catch (err) {
       console.warn("Error refreshing ads from cloud:", err);
@@ -330,6 +345,19 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const clearAllAds = async (): Promise<void> => {
+    setAds([]);
+    try {
+      localStorage.removeItem("bin_abbas_promo_ads");
+      localStorage.removeItem("bin_abbas_cached_ads");
+      localStorage.removeItem("bin_abbas_deleted_ads");
+      await saveAdsToIndexedDB([]);
+      await clearAllAdsFromCloud();
+    } catch (e) {
+      console.warn("Could not clear all ads:", e);
+    }
+  };
+
   const toggleAdActive = async (id: string) => {
     const updated = ads.map((item) => 
       item.id === id ? { ...item, isActive: !item.isActive } : item
@@ -359,6 +387,7 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
         addPromoAd,
         updatePromoAd,
         deletePromoAd,
+        clearAllAds,
         toggleAdActive,
         refreshAdsFromCloud,
         hasUnseenNewAd,

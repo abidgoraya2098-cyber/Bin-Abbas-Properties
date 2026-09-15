@@ -471,6 +471,22 @@ export async function deleteAdFromCloud(adId: string): Promise<boolean> {
   }
 }
 
+// 🧹 Clear All Ads Permanently (Wipe out all old & current ads from Cloud & Local Stores)
+export async function clearAllAdsFromCloud(): Promise<boolean> {
+  try {
+    localStorage.removeItem("bin_abbas_promo_ads");
+    localStorage.removeItem("bin_abbas_cached_ads");
+    localStorage.removeItem("bin_abbas_deleted_ads");
+    await saveAdsToIndexedDB([]);
+    await executeRedisCommand(["SET", "bin_abbas:ads", "[]"]);
+    await executeRedisCommand(["DEL", "bin_abbas:broadcast_ad"]);
+    return true;
+  } catch (e) {
+    console.warn("Clear all ads error:", e);
+    return false;
+  }
+}
+
 // 📊 Admin: Fetch Installed Devices List with Real-Time Global Stats
 export async function fetchInstalledDevicesFromCloud(): Promise<InstalledDeviceRecord[]> {
   requestPersistentStorage().catch(() => {});

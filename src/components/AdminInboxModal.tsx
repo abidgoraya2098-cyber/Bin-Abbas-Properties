@@ -72,6 +72,7 @@ export default function AdminInboxModal() {
     addPromoAd, 
     updatePromoAd,
     deletePromoAd, 
+    clearAllAds,
     toggleAdActive, 
     openAd,
     refreshAdsFromCloud 
@@ -515,6 +516,23 @@ export default function AdminInboxModal() {
                   </div>
 
                   <div className="flex items-center gap-1.5">
+                    {ads.length > 0 && (
+                      <button
+                        onClick={async () => {
+                          if (window.confirm(isUrdu ? "کیا آپ واقعی تمام پرانی ایڈز ختم کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔" : "Are you sure you want to clear all ads?")) {
+                            await clearAllAds();
+                            setRefreshToast(isUrdu ? "✅ تمام پرانی ایڈز کامیابی سے ختم کر دی گئیں!" : "✅ All ads cleared successfully!");
+                            setTimeout(() => setRefreshToast(null), 3000);
+                          }
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-black text-xs flex items-center gap-1 transition-all cursor-pointer border border-red-200 shrink-0"
+                        title={isUrdu ? "تمام پرانی ایڈز ختم کریں" : "Clear All Ads"}
+                      >
+                        <Trash2 size={13} />
+                        <span className="hidden sm:inline">{isUrdu ? "تمام ایڈز ختم کریں" : "Clear All"}</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={handleRefreshAds}
                       disabled={isRefreshingAds}
