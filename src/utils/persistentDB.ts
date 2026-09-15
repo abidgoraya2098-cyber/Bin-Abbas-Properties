@@ -141,8 +141,8 @@ export async function exportFullDatabaseBackup(): Promise<string> {
   const localDevices: InstalledDeviceRecord[] = JSON.parse(localStorage.getItem("bin_abbas_devices_cache") || "[]");
   const inquiries = JSON.parse(localStorage.getItem("bin_abbas_inquiries") || "[]");
 
-  const combinedAds = ads.length > 0 ? ads : localAds.length > 0 ? localAds : [...DEFAULT_PROMO_ADS];
-  const combinedDevices = devices.length > 0 ? devices : localDevices.length > 0 ? localDevices : [...DEFAULT_INSTALLED_DEVICES];
+  const combinedAds = ads.length > 0 ? ads : localAds;
+  const combinedDevices = devices.length > 0 ? devices : localDevices;
 
   const backupData = {
     appName: "Bin Abbas Properties",

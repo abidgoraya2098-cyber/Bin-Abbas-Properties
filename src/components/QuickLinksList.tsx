@@ -104,15 +104,15 @@ export default function QuickLinksList({ onNavigateToInquiry }: QuickLinksListPr
                 </span>
                 <div className={isUrdu ? "text-right" : "text-left"}>
                   <div
-                    className={`text-sm sm:text-base font-black leading-tight tracking-wide ${
-                      isWhatsApp ? "text-amber-300" : "text-slate-900"
+                    className={`text-sm sm:text-base font-bold leading-normal ${
+                      isWhatsApp ? "text-amber-300" : "text-emerald-950"
                     }`}
                   >
                     {currentTitle}
                   </div>
                   <div
-                    className={`text-[10.5px] sm:text-[11px] font-semibold mt-0.5 ${
-                      isWhatsApp ? "text-emerald-100/90" : "text-slate-600"
+                    className={`text-[11px] sm:text-[11.5px] font-medium leading-relaxed mt-0.5 ${
+                      isWhatsApp ? "text-emerald-100/95" : "text-slate-600"
                     }`}
                   >
                     {currentSubtitle}

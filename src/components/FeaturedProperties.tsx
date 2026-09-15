@@ -283,17 +283,17 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
         <button
           type="button"
           onClick={() => setFilter("all")}
-          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+          className={`p-2.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
             filter === "all"
-              ? "bg-gradient-to-b from-amber-100 to-amber-50 border-amber-400 shadow-sm"
-              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+              ? "bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-950 border-amber-400 text-amber-300 shadow-md"
+              : "bg-white/90 border-emerald-600/20 hover:border-amber-400/70 text-slate-800"
           }`}
         >
           <span className="text-lg block">🔥</span>
-          <span className="text-xs font-black text-emerald-950 block mt-0.5">
+          <span className={`text-xs font-bold block mt-0.5 ${filter === "all" ? "text-amber-300" : "text-emerald-950"}`}>
             {isUrdu ? "ہاٹ ڈیلز" : "Hot Deals"}
           </span>
-          <span className="text-[9.5px] text-slate-500 font-bold block mt-0.5">
+          <span className={`text-[9.5px] font-medium block mt-0.5 ${filter === "all" ? "text-emerald-200" : "text-slate-500"}`}>
             {isUrdu ? "تصدیق شدہ موقع" : "Verified Spot"}
           </span>
         </button>
@@ -302,17 +302,17 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
         <button
           type="button"
           onClick={() => setFilter("commercial")}
-          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+          className={`p-2.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
             filter === "commercial"
-              ? "bg-gradient-to-b from-amber-100 to-amber-50 border-amber-400 shadow-sm"
-              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+              ? "bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-950 border-amber-400 text-amber-300 shadow-md"
+              : "bg-white/90 border-emerald-600/20 hover:border-amber-400/70 text-slate-800"
           }`}
         >
           <span className="text-lg block">🏬</span>
-          <span className="text-xs font-black text-emerald-950 block mt-0.5">
+          <span className={`text-xs font-bold block mt-0.5 ${filter === "commercial" ? "text-amber-300" : "text-emerald-950"}`}>
             {isUrdu ? "کمرشل ہب" : "Commercial"}
           </span>
-          <span className="text-[9.5px] text-slate-500 font-bold block mt-0.5">
+          <span className={`text-[9.5px] font-medium block mt-0.5 ${filter === "commercial" ? "text-emerald-200" : "text-slate-500"}`}>
             {isUrdu ? "پام کمرشل" : "Palm Comm."}
           </span>
         </button>
@@ -321,17 +321,17 @@ export default function FeaturedProperties({ onNavigateToInquiry }: FeaturedProp
         <button
           type="button"
           onClick={() => setFilter("demand")}
-          className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+          className={`p-2.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
             filter === "demand"
-              ? "bg-gradient-to-b from-purple-100 to-purple-50 border-purple-400 shadow-sm"
-              : "bg-emerald-50/60 border-emerald-200 hover:border-emerald-400"
+              ? "bg-gradient-to-b from-amber-500 via-amber-600 to-amber-700 border-amber-300 text-slate-950 shadow-md"
+              : "bg-white/90 border-emerald-600/20 hover:border-amber-400/70 text-slate-800"
           }`}
         >
           <span className="text-lg block">🎯</span>
-          <span className="text-xs font-black text-purple-950 block mt-0.5">
+          <span className={`text-xs font-bold block mt-0.5 ${filter === "demand" ? "text-slate-950" : "text-emerald-950"}`}>
             {isUrdu ? "خریدار ڈیمانڈز" : "Demands"}
           </span>
-          <span className="text-[9.5px] text-purple-700 font-bold block mt-0.5">
+          <span className={`text-[9.5px] font-medium block mt-0.5 ${filter === "demand" ? "text-slate-900 font-bold" : "text-slate-500"}`}>
             {isUrdu ? "فوری خریدار" : "Active Buyers"}
           </span>
         </button>

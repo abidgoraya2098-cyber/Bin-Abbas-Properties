@@ -35,16 +35,16 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
   const { broadcastPublicDeal } = useNotifications();
   const { isAdmin } = useAdmin();
 
-  // Local state initialized from cache with fallback to DEFAULT_PROMO_ADS
+  // Local state initialized from cache
   const [ads, setAds] = useState<PromoAdItem[]>(() => {
     try {
       const saved = localStorage.getItem("bin_abbas_promo_ads");
       if (!saved) return [...DEFAULT_PROMO_ADS];
       const parsed: PromoAdItem[] = JSON.parse(saved);
       const cleanAds = parsed.filter(isRealCustomAd);
-      return cleanAds.length > 0 ? cleanAds : [...DEFAULT_PROMO_ADS];
+      return cleanAds;
     } catch {
-      return [...DEFAULT_PROMO_ADS];
+      return [];
     }
   });
 
@@ -64,15 +64,14 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
 
   const saveAds = (items: PromoAdItem[]) => {
     const cleanItems = items.filter(isRealCustomAd);
-    const finalItems = cleanItems.length > 0 ? cleanItems : [...DEFAULT_PROMO_ADS];
-    setAds(finalItems);
+    setAds(cleanItems);
     try {
-      localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(finalItems));
-      saveAdsToIndexedDB(finalItems).catch(() => {});
+      localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanItems));
+      saveAdsToIndexedDB(cleanItems).catch(() => {});
     } catch (e) {
       console.warn("Could not save full promo ads, saving lightweight version:", e);
       try {
-        const lightweight = finalItems.map((a) => {
+        const lightweight = cleanItems.map((a) => {
           if (a.mediaUrl && a.mediaUrl.length > 500000) {
             return {
               ...a,
@@ -94,27 +93,26 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       const cloudAds = await fetchGlobalAdsFromCloud();
       if (cloudAds && Array.isArray(cloudAds)) {
         const cleanCloudAds = cloudAds.filter(isRealCustomAd);
-        const finalAds = cleanCloudAds.length > 0 ? cleanCloudAds : [...DEFAULT_PROMO_ADS];
         
         // Only update state if ads array has changed to avoid interrupting video playback
         setAds((prevAds) => {
           const prevIds = prevAds.map((a) => a.id).join(",");
-          const newIds = finalAds.map((a) => a.id).join(",");
-          if (prevIds === newIds && prevAds.length === finalAds.length) {
+          const newIds = cleanCloudAds.map((a) => a.id).join(",");
+          if (prevIds === newIds && prevAds.length === cleanCloudAds.length) {
             return prevAds;
           }
-          return finalAds;
+          return cleanCloudAds;
         });
 
         try {
-          localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(finalAds));
-          saveAdsToIndexedDB(finalAds).catch(() => {});
+          localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanCloudAds));
+          saveAdsToIndexedDB(cleanCloudAds).catch(() => {});
           const lastSeenTime = Number(localStorage.getItem("bin_abbas_last_seen_ad_time") || 0);
-          const latestAdTime = finalAds.length > 0 ? Math.max(...finalAds.map((a) => a.createdAt)) : 0;
+          const latestAdTime = cleanCloudAds.length > 0 ? Math.max(...cleanCloudAds.map((a) => a.createdAt)) : 0;
           
-          if (latestAdTime > lastSeenTime && finalAds.some((a) => a.isActive)) {
+          if (latestAdTime > lastSeenTime && cleanCloudAds.some((a) => a.isActive)) {
             setHasUnseenNewAd(true);
-            const newest = finalAds.find((a) => a.isActive);
+            const newest = cleanCloudAds.find((a) => a.isActive);
             if (newest) {
               // Trigger native mobile notification (heads-up status bar alert)
               if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {

@@ -35,10 +35,13 @@ import {
   Users,
   Activity,
   CheckCircle2,
-  Edit3,
   Download,
   UploadCloud,
-  ShieldCheck
+  ShieldCheck,
+  Cloud,
+  Server,
+  Key,
+  AlertCircle
 } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 import { usePromoAds } from "../context/PromoAdContext";
@@ -46,7 +49,12 @@ import { useLanguage } from "../context/LanguageContext";
 import { CustomerInquiryRecord, PropertyListing, PromoAdItem, InstalledDeviceRecord } from "../types";
 import { OWNER_NAME, CONTACT_PHONE } from "../data";
 import { saveMediaBlob, fileToDataUrl, compressImageToDataUrl, extractVideoThumbnail, uploadMediaToCloudinary } from "../utils/mediaStorage";
-import { fetchInstalledDevicesFromCloud } from "../utils/cloudSync";
+import { 
+  fetchInstalledDevicesFromCloud, 
+  getCloudDbConfig, 
+  setCloudDbConfig, 
+  testCloudDbConnection 
+} from "../utils/cloudSync";
 import { exportFullDatabaseBackup, importFullDatabaseBackup } from "../utils/persistentDB";
 
 export default function AdminInboxModal() {
@@ -78,6 +86,34 @@ export default function AdminInboxModal() {
   const [isLoadingDevices, setIsLoadingDevices] = useState(false);
   const [isRefreshingAds, setIsRefreshingAds] = useState(false);
   const [refreshToast, setRefreshToast] = useState<string | null>(null);
+
+  // Cloud Database Configuration State
+  const [showCloudConfig, setShowCloudConfig] = useState(false);
+  const [cloudUrl, setCloudUrl] = useState(() => getCloudDbConfig().url);
+  const [cloudToken, setCloudToken] = useState(() => getCloudDbConfig().token);
+  const [isCloudConfigured, setIsCloudConfigured] = useState(() => getCloudDbConfig().isConfigured);
+  const [cloudTestStatus, setCloudTestStatus] = useState<{ testing: boolean; message: string | null; success?: boolean }>({
+    testing: false,
+    message: null
+  });
+
+  const handleSaveAndTestCloud = async () => {
+    if (!cloudUrl.trim() || !cloudToken.trim()) {
+      setCloudTestStatus({ testing: false, message: isUrdu ? "URL اور Token درج کریں" : "Please enter URL & Token", success: false });
+      return;
+    }
+    setCloudTestStatus({ testing: true, message: isUrdu ? "کنکشن چیک ہو رہا ہے..." : "Testing connection..." });
+    const result = await testCloudDbConnection(cloudUrl.trim(), cloudToken.trim());
+    if (result.success) {
+      setCloudDbConfig(cloudUrl.trim(), cloudToken.trim());
+      setIsCloudConfigured(true);
+      setCloudTestStatus({ testing: false, message: result.message, success: true });
+      loadDevices();
+      refreshAdsFromCloud();
+    } else {
+      setCloudTestStatus({ testing: false, message: result.message, success: false });
+    }
+  };
 
   // New Ad Form State (Everything is 100% Optional)
   const [isCreateAdOpen, setIsCreateAdOpen] = useState(false);
@@ -1075,6 +1111,102 @@ export default function AdminInboxModal() {
             {/* TAB 3: 📱 INSTALLED DEVICES & ACTIVE USERS TRACKER */}
             {activeTab === "devices" && (
               <div className="p-3 sm:p-4 max-h-[65vh] overflow-y-auto space-y-3.5">
+                {/* 🌐 Cloud Database Live Connection & Settings Bar */}
+                <div className={`p-3 rounded-2xl border transition-all ${
+                  isCloudConfigured 
+                    ? "bg-slate-900 text-white border-emerald-500/60 shadow-md" 
+                    : "bg-amber-50 text-slate-900 border-amber-300"
+                }`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-xl shrink-0 ${isCloudConfigured ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-400/30 text-amber-800"}`}>
+                        <Cloud size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black">
+                            {isCloudConfigured 
+                              ? (isUrdu ? "🟢 کلاؤڈ ڈیٹا بیس ایکٹو ہے (Upstash Redis Synced)" : "🟢 Global Cloud Database Active")
+                              : (isUrdu ? "⚠️ کلاؤڈ ڈیٹا بیس کنیکٹ نہیں ہے" : "⚠️ Cloud Database Not Connected")}
+                          </span>
+                        </div>
+                        <p className={`text-[10px] ${isCloudConfigured ? "text-slate-300" : "text-amber-900"}`}>
+                          {isCloudConfigured
+                            ? (isUrdu ? "تمام صارفین کے موبائلز اور ایڈز حقیقی وقت میں کلاؤڈ سے سنک ہو رہے ہیں۔" : "All user devices and promo ads are syncing globally in real-time.")
+                            : (isUrdu ? "تمام موبائلز پر اشتہارات اور انسٹال شدہ ڈیوائسز کا لائیو ڈیٹا حاصل کرنے کے لیے Upstash کیز درج کریں۔" : "Connect Upstash Redis to sync ads and device telemetry live across all phones.")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowCloudConfig(!showCloudConfig)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shrink-0 cursor-pointer transition-all ${
+                        isCloudConfigured 
+                          ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" 
+                          : "bg-amber-400 hover:bg-amber-500 text-slate-950 font-black shadow"
+                      }`}
+                    >
+                      <Server size={13} />
+                      <span>{showCloudConfig ? (isUrdu ? "بند کریں" : "Close") : (isUrdu ? "کلاؤڈ سیٹنگز" : "Cloud Settings")}</span>
+                    </button>
+                  </div>
+
+                  {/* Expandable Configuration Form */}
+                  {showCloudConfig && (
+                    <div className="mt-3 pt-3 border-t border-slate-700/50 space-y-2.5">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-300 block">
+                          {isUrdu ? "Upstash REST URL:" : "Upstash REST URL:"}
+                        </label>
+                        <input
+                          type="text"
+                          value={cloudUrl}
+                          onChange={(e) => setCloudUrl(e.target.value)}
+                          placeholder="https://...upstash.io"
+                          className="w-full text-xs p-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-300 block">
+                          {isUrdu ? "Upstash REST Token:" : "Upstash REST Token:"}
+                        </label>
+                        <input
+                          type="password"
+                          value={cloudToken}
+                          onChange={(e) => setCloudToken(e.target.value)}
+                          placeholder="gQAAAAAA..."
+                          className="w-full text-xs p-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      {cloudTestStatus.message && (
+                        <div className={`p-2 rounded-xl text-xs font-bold ${
+                          cloudTestStatus.success ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-red-500/20 text-red-300 border border-red-500/30"
+                        }`}>
+                          {cloudTestStatus.message}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <span className="text-[9px] text-slate-400">
+                          {isUrdu ? "console.upstash.com پر فری اکاؤنٹ بنا کر REST کیز حاصل کریں۔" : "Get free REST keys at console.upstash.com"}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={cloudTestStatus.testing}
+                          onClick={handleSaveAndTestCloud}
+                          className="py-1.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black cursor-pointer shadow transition-all flex items-center gap-1.5"
+                        >
+                          <Key size={13} />
+                          <span>{cloudTestStatus.testing ? (isUrdu ? "چیک ہو رہا ہے..." : "Testing...") : (isUrdu ? "محفوظ اور ٹیسٹ کریں" : "Save & Test")}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Stats Summary Bar */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-center">

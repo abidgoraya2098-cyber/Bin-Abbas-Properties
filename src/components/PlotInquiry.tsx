@@ -206,14 +206,14 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
       </div>
 
       {/* Main Switcher: پلاٹ فروخت کریں vs پلاٹ خریدیں */}
-      <div className="grid grid-cols-2 gap-2 mt-3 p-1.5 bg-emerald-50/90 rounded-2xl border border-emerald-200 shadow-inner">
+      <div className="grid grid-cols-2 gap-2 mt-3 p-1.5 bg-emerald-950/10 rounded-2xl border-2 border-amber-400/40 shadow-inner">
         <button
           type="button"
           onClick={() => setActiveMode("sell")}
-          className={`py-2 px-3 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeMode === "sell"
-              ? "bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white shadow-md border border-amber-300"
-              : "text-emerald-900 hover:text-emerald-950 hover:bg-emerald-100/70"
+              ? "bg-gradient-to-r from-emerald-950 via-emerald-800 to-emerald-950 text-amber-300 shadow-md border-2 border-amber-400"
+              : "text-emerald-950 hover:bg-white/80"
           }`}
           id="mode-sell-btn"
         >
@@ -224,10 +224,10 @@ export default function PlotInquiry({ defaultMode = "sell" }: { defaultMode?: "s
         <button
           type="button"
           onClick={() => setActiveMode("buy")}
-          className={`py-2 px-3 rounded-xl font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeMode === "buy"
-              ? "bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white shadow-md border border-amber-300"
-              : "text-emerald-900 hover:text-emerald-950 hover:bg-emerald-100/70"
+              ? "bg-gradient-to-r from-emerald-950 via-emerald-800 to-emerald-950 text-amber-300 shadow-md border-2 border-amber-400"
+              : "text-emerald-950 hover:bg-white/80"
           }`}
           id="mode-buy-btn"
         >
