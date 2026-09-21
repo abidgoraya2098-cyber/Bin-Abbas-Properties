@@ -188,7 +188,7 @@ export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string
 
     const cleanId = id.startsWith("redis:") ? id.replace(/^redis:/, "") : id;
 
-    // 1. Save to local IndexedDB for instant offline & high-speed zero-lag playback
+    // 1. Save to local IndexedDB for instant offline playback
     try {
       const db = await openDB();
       await new Promise((resolve, reject) => {
@@ -203,22 +203,15 @@ export async function saveMediaBlob(id: string, dataOrFile: Blob | File | string
       console.warn("IndexedDB save error:", e);
     }
 
-    // 2. 🚀 Synchronize permanently to Upstash Cloud Storage key: bin_abbas:media:<cleanId>
-    if (typeof dataToStore === "string" && dataToStore.length > 50) {
-      fetch(REDIS_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${REDIS_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(["SET", `bin_abbas:media:${cleanId}`, dataToStore])
-      }).catch((err) => console.warn("Cloud media upload warning:", err));
+    // If dataToStore is a data URL or direct URL, return it directly so any user on any device can view it
+    if (typeof dataToStore === "string" && (dataToStore.startsWith("data:") || dataToStore.startsWith("http"))) {
+      return dataToStore;
     }
 
-    return `redis:${cleanId}`;
+    return `media:${cleanId}`;
   } catch (err) {
     console.warn("Could not save media blob:", err);
-    return id;
+    return typeof dataOrFile === "string" ? dataOrFile : id;
   }
 }
 

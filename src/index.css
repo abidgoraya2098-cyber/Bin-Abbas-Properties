@@ -1,60 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ✒️ Authentic Jameel Noori Nastaleeq Web Font Definition */
-@font-face {
-  font-family: 'Jameel Noori Nastaleeq';
-  src: url('https://cdn.jsdelivr.net/gh/urdu-fonts/jameel-noori-nastaleeq@master/Jameel%20Noori%20Nastaleeq.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Jameel Noori Nastaleeq';
-  src: url('https://cdn.jsdelivr.net/gh/urdu-fonts/jameel-noori-nastaleeq@master/Jameel%20Noori%20Nastaleeq.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Jameel Noori Nastaleeq Kasheeda';
-  src: url('https://cdn.jsdelivr.net/gh/urdu-fonts/jameel-noori-nastaleeq@master/Jameel%20Noori%20Nastaleeq%20Kasheeda.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
-  --font-sans: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Urdu Typesetting", "Nastaliq", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-nastaleeq: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Urdu Typesetting", "Nastaliq", serif;
+  --font-sans: "Noto Nastaliq Urdu", "Urdu Typesetting", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-nastaleeq: "Noto Nastaliq Urdu", "Urdu Typesetting", serif;
   --font-latin: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
-  --font-urdu: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Urdu Typesetting", "Nastaliq", serif;
+  --font-urdu: "Noto Nastaliq Urdu", "Urdu Typesetting", serif;
   --font-latin: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* 🌟 Ultra-Luxury Sovereign Emerald & 24K Royal Gold Ambient Theme */
+/* 🌿 Serene Royal Emerald & Warm Champagne Gold Theme */
 .bg-royal-light-green {
-  background-color: #f0f7f3;
+  background-color: #f8faf9;
   background-image: 
-    radial-gradient(circle at 50% -5%, rgba(217, 119, 6, 0.22) 0%, transparent 48%),
-    radial-gradient(circle at 10% 20%, rgba(6, 78, 59, 0.16) 0%, transparent 42%),
-    radial-gradient(circle at 90% 60%, rgba(245, 158, 11, 0.18) 0%, transparent 46%),
-    radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.14) 0%, transparent 52%),
-    radial-gradient(rgba(6, 78, 59, 0.05) 1.2px, transparent 1.2px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 26px 26px;
+    radial-gradient(ellipse at 50% -10%, rgba(6, 78, 59, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse at 95% 30%, rgba(217, 119, 6, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 5% 70%, rgba(6, 78, 59, 0.06) 0%, transparent 55%);
+  background-attachment: fixed;
 }
 
-/* 👑 24K Metallic Champagne Gold Gradient Text */
+/* 👑 Warm Metallic Champagne Gold Gradient Text */
 .gold-metallic-text {
-  background: linear-gradient(135deg, #78350f 0%, #b45309 20%, #d97706 42%, #fbbf24 60%, #fffbeb 75%, #b45309 90%, #78350f 100%);
+  background: linear-gradient(135deg, #92400e 0%, #b45309 25%, #d97706 50%, #f59e0b 75%, #b45309 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
 .gold-metallic-subtext {
@@ -63,30 +35,25 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* 💎 Million-Dollar Royal Master Card with 3D Embossed Golden Trim */
+/* 💎 Sovereign Master Card with Soft Gold Trim */
 .gold-luxury-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(243, 251, 246, 0.98) 100%);
-  box-shadow: 
-    0 25px 65px -12px rgba(6, 78, 59, 0.22),
-    0 0 0 2px rgba(217, 119, 6, 0.5),
-    0 0 28px rgba(245, 158, 11, 0.16),
-    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
+  background: #ffffff;
+  border: 1.5px solid rgba(217, 119, 6, 0.4);
+  box-shadow: 0 10px 30px -4px rgba(6, 78, 59, 0.07), 0 0 12px rgba(245, 158, 11, 0.06);
 }
 
 .frosted-luxury-card {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(217, 119, 6, 0.35);
-  box-shadow: 0 12px 35px -8px rgba(6, 78, 59, 0.12);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(6, 78, 59, 0.12);
+  box-shadow: 0 4px 20px -2px rgba(6, 78, 59, 0.05);
+  transition: all 0.25s ease-out;
 }
 
 .frosted-luxury-card:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(217, 119, 6, 0.8);
-  box-shadow: 0 18px 45px -8px rgba(217, 119, 6, 0.28);
-  transform: translateY(-2px);
+  background: #ffffff;
+  border-color: rgba(217, 119, 6, 0.5);
+  box-shadow: 0 8px 30px -4px rgba(6, 78, 59, 0.1);
+  transform: translateY(-1.5px);
 }
 
 /* ✨ Subtle Shimmer Animation for Luxury Badges */
@@ -96,12 +63,12 @@
 }
 
 .animate-gold-shimmer {
-  background: linear-gradient(90deg, rgba(217, 119, 6, 0.1) 0%, rgba(245, 158, 11, 0.45) 50%, rgba(217, 119, 6, 0.1) 100%);
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.1) 0%, rgba(245, 158, 11, 0.35) 50%, rgba(217, 119, 6, 0.1) 100%);
   background-size: 200% 100%;
   animation: goldShimmer 4s infinite linear;
 }
 
-/* 🖋️ Perfect Urdu Nastaleeq Global Typography & Ergonomics */
+/* 🖋️ Perfect Urdu Noto Nastaliq Global Typography & Ergonomics */
 html, body {
   min-height: 100%;
   overflow-x: hidden;
@@ -109,28 +76,28 @@ html, body {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
-  background-color: #f0f7f3;
+  background-color: #f8faf9;
   color: #0f172a;
 }
 
-/* Set Jameel Noori Nastaleeq as primary font across RTL and Urdu elements */
+/* Set Noto Nastaliq Urdu as primary font across RTL and Urdu elements */
 html[dir="rtl"], [dir="rtl"], [lang="ur"], body {
-  font-family: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Urdu Typesetting", "Nastaliq", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Noto Nastaliq Urdu", "Urdu Typesetting", "Plus Jakarta Sans", serif, sans-serif;
   letter-spacing: 0;
   word-spacing: 0.5px;
 }
 
-/* Nastaleeq line-height buffer to prevent character clipping (نستعلیق کے شوشے اور نقطے نہ کٹیں) */
-[dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6, [dir="rtl"] button, [dir="rtl"] label, [dir="rtl"] input, [dir="rtl"] textarea {
-  line-height: 1.85;
+/* Noto Nastaliq line-height buffer to prevent character clipping (نستعلیق کے شوشے اور نقطے نہ کٹیں) */
+[dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] label, [dir="rtl"] input, [dir="rtl"] textarea {
+  line-height: 1.95;
 }
 
-[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4 {
-  line-height: 1.65;
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+  line-height: 1.7;
 }
 
-/* Buttons with Urdu Nastaleeq require slightly balanced vertical padding */
 [dir="rtl"] button {
+  line-height: 1.8;
   padding-top: max(0.45rem, env(safe-area-inset-top, 0.45rem));
   padding-bottom: max(0.45rem, env(safe-area-inset-bottom, 0.45rem));
 }
@@ -142,7 +109,7 @@ html[dir="rtl"], [dir="rtl"], [lang="ur"], body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #e2f2e9;
+  background: #f1f7f4;
 }
 
 ::-webkit-scrollbar-thumb {

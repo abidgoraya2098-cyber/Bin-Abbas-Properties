@@ -107,8 +107,17 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
     try {
       const cloudAds = await fetchGlobalAdsFromCloud();
       if (cloudAds && Array.isArray(cloudAds)) {
-        const cleanCloudAds = cloudAds.filter(isRealCustomAd);
+        let cleanCloudAds = cloudAds.filter(isRealCustomAd);
         
+        // If cloud has no ads yet but local device has custom ads created by admin, auto-upload to cloud!
+        if (cleanCloudAds.length === 0 && ads.length > 0) {
+          const localCustom = ads.filter(isRealCustomAd);
+          if (localCustom.length > 0) {
+            cleanCloudAds = localCustom;
+            localCustom.forEach((a) => publishAdToCloud(a).catch(() => {}));
+          }
+        }
+
         // Only update state if ads array has changed to avoid interrupting video playback
         setAds((prevAds) => {
           const prevIds = prevAds.map((a) => a.id).join(",");
