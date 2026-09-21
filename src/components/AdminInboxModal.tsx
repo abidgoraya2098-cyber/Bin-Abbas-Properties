@@ -18,6 +18,7 @@ import {
   Image,
   PlusCircle,
   Sparkles,
+  Edit3,
   Eye,
   ToggleLeft,
   ToggleRight,
@@ -834,7 +835,7 @@ export default function AdminInboxModal() {
                       </p>
                     </div>
                   ) : (
-                    ads.map((ad) => (
+                    ads.filter((ad) => ad && ad.id).map((ad) => (
                       <div
                         key={ad.id}
                         className={`p-3 rounded-2xl border transition-all ${
@@ -850,7 +851,7 @@ export default function AdminInboxModal() {
                             }`}>
                               {ad.type === "video" ? "VIDEO" : ad.type === "image" ? "PHOTO" : "TEXT"}
                             </span>
-                            <span className="text-xs font-black text-slate-900">{ad.title}</span>
+                            <span className="text-xs font-black text-slate-900">{ad.title || (isUrdu ? "خصوصی ایڈ" : "Special Offer")}</span>
                           </div>
 
                         <div className="flex items-center gap-1">

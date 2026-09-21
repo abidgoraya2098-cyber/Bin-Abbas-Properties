@@ -291,6 +291,43 @@ const GITHUB_TOKEN =
   `${_t1}_${_t2}${_t3}`;
 
 
+function safeUtf8ToBase64(str: string): string {
+  try {
+    const bytes = new TextEncoder().encode(str);
+    let binary = "";
+    const len = bytes.byteLength;
+    const chunkSize = 8192;
+    for (let i = 0; i < len; i += chunkSize) {
+      binary += String.fromCharCode.apply(
+        null,
+        Array.from(bytes.subarray(i, Math.min(i + chunkSize, len)))
+      );
+    }
+    return btoa(binary);
+  } catch {
+    try {
+      return btoa(unescape(encodeURIComponent(str)));
+    } catch {
+      return "";
+    }
+  }
+}
+
+function safeBase64ToUtf8(base64: string): string {
+  try {
+    const clean = base64.replace(/\s/g, "");
+    const binary = atob(clean);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  } catch {
+    try {
+      return decodeURIComponent(escape(atob(base64.replace(/\s/g, ""))));
+    } catch {
+      return "";
+    }
+  }
+}
+
 // Push full ads array to GitHub repository so ALL users in the world receive it
 export async function syncAdsToGitHub(ads: PromoAdItem[]): Promise<boolean> {
   try {
@@ -312,7 +349,8 @@ export async function syncAdsToGitHub(ads: PromoAdItem[]): Promise<boolean> {
     }
 
     const jsonStr = JSON.stringify(cleanAds, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+    const base64Content = safeUtf8ToBase64(jsonStr);
+    if (!base64Content) return false;
 
     const bodyData: any = {
       message: `sync: update promo ads via Bin Abbas app (${cleanAds.length} active ads)`,
@@ -340,7 +378,7 @@ export async function syncAdsToGitHub(ads: PromoAdItem[]): Promise<boolean> {
   }
 }
 
-// 🌐 Fetch All Global Ads in Real-Time (GitHub Global CDN + Cloud Redis + Local Cache)
+// 🌐 Fetch All Global Ads in Real-Time (GitHub Global API + Raw CDN + Cloud Redis + Local Cache)
 export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[]> {
   requestPersistentStorage().catch(() => {});
 
@@ -352,10 +390,49 @@ export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[]> {
     }
   } catch {}
 
-  // 1. Fetch from GitHub Raw CDN (Worldwide accessible to 100% of users without auth)
+  // 1. Fetch from GitHub Contents API (Real-time zero-delay global API)
   try {
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timeout = setTimeout(() => controller?.abort(), 5000);
+    const timeout = setTimeout(() => controller?.abort(), 4000);
+    const apiRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_ADS_PATH}`, {
+      signal: controller?.signal,
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Bin-Abbas-App"
+      }
+    });
+    clearTimeout(timeout);
+    if (apiRes.ok) {
+      const apiData = await apiRes.json();
+      if (apiData && apiData.content) {
+        const decoded = safeBase64ToUtf8(apiData.content);
+        if (decoded) {
+          const parsed = JSON.parse(decoded);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const cleanApiAds = parsed
+              .filter(isRealCustomAd)
+              .filter((a) => !deletedIds.includes(a.id))
+              .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if (cleanApiAds.length > 0) {
+              try {
+                localStorage.setItem("bin_abbas_promo_ads", JSON.stringify(cleanApiAds));
+                saveAdsToIndexedDB(cleanApiAds).catch(() => {});
+              } catch {}
+              return cleanApiAds;
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Fall back to Raw CDN
+  }
+
+  // 2. Fetch from GitHub Raw CDN (Worldwide accessible fallback)
+  try {
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeout = setTimeout(() => controller?.abort(), 4000);
     const gitRes = await fetch(`${GITHUB_RAW_ADS_URL}?t=${Date.now()}`, {
       signal: controller?.signal,
       headers: { "Cache-Control": "no-cache" }
@@ -382,7 +459,7 @@ export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[]> {
     console.warn("GitHub raw ads fetch:", err);
   }
 
-  // 2. Fetch from Local Static fallback (/data/ads.json)
+  // 3. Fetch from Local Static fallback (/data/ads.json)
   try {
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     const timeout = setTimeout(() => controller?.abort(), 3500);
@@ -404,10 +481,11 @@ export async function fetchGlobalAdsFromCloud(): Promise<PromoAdItem[]> {
     }
   } catch {}
 
-  // 3. Fetch from Cloud Redis if configured
+  // 4. Fetch from Cloud Redis if configured
   const rawAds = await executeRedisCommand(["GET", "bin_abbas:ads"]);
   if (rawAds !== null && rawAds !== undefined) {
     try {
+
       const parsed = typeof rawAds === "string" ? JSON.parse(rawAds) : rawAds;
       if (Array.isArray(parsed) && parsed.length > 0) {
         const cleanCloudAds = parsed

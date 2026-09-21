@@ -283,39 +283,49 @@ export const PromoAdProvider = ({ children }: { children: ReactNode }) => {
       console.warn("Badge error", e);
     }
 
-    // Trigger Native System / Push Notification outside the app
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-      if (Notification.permission === "granted") {
-        const notifOptions = {
-          body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
-          icon: "/icon.svg",
-          badge: "/icon.svg",
-          vibrate: [200, 100, 200],
-          tag: `bin-abbas-ad-${newAd.id}`,
-          data: { url: "/", adId: newAd.id }
-        };
-
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
-          }).catch(() => {
-            const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
-            fallbackNotif.onclick = () => {
-              window.focus();
-              fallbackNotif.close();
-            };
-          });
-        } else {
-          const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
-          fallbackNotif.onclick = () => {
-            window.focus();
-            fallbackNotif.close();
+    // Trigger Native System / Push Notification outside the app safely
+    try {
+      if (typeof window !== "undefined" && "Notification" in window) {
+        if (Notification.permission === "default") {
+          Notification.requestPermission().catch(() => {});
+        }
+        if (Notification.permission === "granted") {
+          const notifOptions = {
+            body: `${newAd.price ? newAd.price + " | " : ""}${newAd.location || "رائل پام سٹی"} (بن عباس پراپرٹیز)`,
+            icon: "/icon.svg",
+            badge: "/icon.svg",
+            vibrate: [200, 100, 200],
+            tag: `bin-abbas-ad-${newAd.id}`,
+            data: { url: "/", adId: newAd.id }
           };
+
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.ready.then((reg) => {
+              try {
+                reg.showNotification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
+              } catch {}
+            }).catch(() => {
+              try {
+                const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
+                fallbackNotif.onclick = () => {
+                  window.focus();
+                  fallbackNotif.close();
+                };
+              } catch {}
+            });
+          } else {
+            try {
+              const fallbackNotif = new Notification(`🔥 نیا ایڈ: ${newAd.title}`, notifOptions);
+              fallbackNotif.onclick = () => {
+                window.focus();
+                fallbackNotif.close();
+              };
+            } catch {}
+          }
         }
       }
+    } catch (err) {
+      console.warn("Notification error ignored:", err);
     }
 
     // Broadcast In-App Notification
